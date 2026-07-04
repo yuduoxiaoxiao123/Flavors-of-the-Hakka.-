@@ -1,0 +1,612 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>时间总览|食在闽西，味在客家</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=ZCOOL+XiaoWei&display=swap');
+
+        /* ===== 全局重置 ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            font-family: "Ma Shan Zheng", "ZCOOL XiaoWei", "STXingkai", "霞鹜臻楷 GB 常规", "KaiTi", "楷体", serif;
+            background: #1a1410;
+        }
+
+        /* ===== 固定背景 ===== */
+        .bg-fixed {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            background: url('images/时间总览/时间总览背景.png') center/cover no-repeat;
+        }
+
+        /* ===== 半透明遮罩 ===== */
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.02);
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* ===== 底部渐隐 ===== */
+        .vignette-bottom {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            height: 20%;
+            background: linear-gradient(0deg, rgba(26, 20, 16, 0.35) 0%, transparent 100%);
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        /* ===== 顶部导航栏 ===== */
+        .top-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 30;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding: 20px 50px;
+            pointer-events: none;
+        }
+        .top-bar > * {
+            pointer-events: auto;
+        }
+
+        .nav {
+            display: flex;
+            gap: 2px;
+            background: rgba(40, 28, 18, 0.55);
+            backdrop-filter: blur(10px);
+            padding: 4px 2px;
+            border-radius: 6px;
+            border: 1px solid rgba(180, 150, 110, 0.35);
+            box-shadow: 0 2px 16px rgba(0, 0, 0, 0.15), inset 0 0 20px rgba(180, 150, 110, 0.05);
+        }
+        .nav a {
+            display: block;
+            padding: 10px 22px;
+            font-size: 18px;
+            font-family: "Ma Shan Zheng", "ZCOOL XiaoWei", "STXingkai", "霞鹜臻楷 GB 常规", "KaiTi", serif;
+            color: #ffffff;
+            text-decoration: none;
+            letter-spacing: 4px;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+        }
+        .nav a:hover,
+        .nav a.active {
+            color: #fff6e0;
+            background: rgba(200, 160, 80, 0.25);
+            text-shadow: 0 0 16px rgba(232, 200, 122, 0.5);
+        }
+        .nav a.active {
+            background: rgba(200, 160, 80, 0.3);
+            color: #fff6e0;
+        }
+        .nav a + a {
+            border-left: 1px solid rgba(180, 150, 110, 0.12);
+        }
+
+        /* ===== 汉堡菜单按钮 ===== */
+        .hamburger-btn {
+            display: none;
+            position: fixed;
+            top: 14px;
+            right: 18px;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+            width: 44px;
+            height: 44px;
+            background: rgba(40, 28, 18, 0.65);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(180, 150, 110, 0.35);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 1200;
+            padding: 0;
+        }
+        .hamburger-btn:hover {
+            background: rgba(60, 44, 30, 0.75);
+            border-color: rgba(200, 170, 130, 0.5);
+        }
+        .hamburger-btn span {
+            display: block;
+            width: 24px;
+            height: 2px;
+            background: #ffffff;
+            border-radius: 2px;
+            transition: all 0.3s ease;
+            transform-origin: center;
+        }
+        .hamburger-btn.active span:nth-child(1) {
+            transform: translateY(7px) rotate(45deg);
+        }
+        .hamburger-btn.active span:nth-child(2) {
+            opacity: 0;
+            transform: scaleX(0);
+        }
+        .hamburger-btn.active span:nth-child(3) {
+            transform: translateY(-7px) rotate(-45deg);
+        }
+
+        .mobile-nav-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 1101;
+            background: rgba(0, 0, 0, 0.25);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+        .mobile-nav-overlay.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .mobile-nav {
+            position: fixed;
+            top: 76px;
+            right: 18px;
+            width: 200px;
+            z-index: 1150;
+            background: rgba(35, 24, 16, 0.92);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(180, 150, 110, 0.25);
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            padding: 8px 0;
+            opacity: 0;
+            transform: translateY(-10px) scale(0.95);
+            transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+            pointer-events: none;
+        }
+        .mobile-nav.open {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            pointer-events: auto;
+        }
+        .mobile-nav a {
+            display: block;
+            padding: 12px 20px;
+            font-size: 17px;
+            font-family: "Ma Shan Zheng", "ZCOOL XiaoWei", "STXingkai", "霞鹜臻楷 GB 常规", "KaiTi", serif;
+            color: #e8d5b8;
+            text-decoration: none;
+            letter-spacing: 4px;
+            transition: all 0.25s ease;
+            text-align: center;
+        }
+        .mobile-nav a:hover,
+        .mobile-nav a.active {
+            color: #fff6e0;
+            background: rgba(200, 160, 80, 0.2);
+            text-shadow: 0 0 12px rgba(232, 200, 122, 0.3);
+        }
+        .mobile-nav a.active {
+            color: #ffd966;
+        }
+        .mobile-nav a + a {
+            border-top: 1px solid rgba(180, 150, 110, 0.08);
+        }
+
+        /* ===== 主内容容器 ===== */
+        .main-container {
+            position: relative;
+            z-index: 5;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 20px 60px 0;
+        }
+
+        /* ===== 标题 ===== */
+        .title-wrapper {
+            position: relative;
+            padding-top: 50px;
+            margin-bottom: 25px;
+            flex-shrink: 0;
+            animation: fadeInDown 1s ease forwards;
+        }
+        .title-wrapper img {
+            display: block;
+            max-width: 100%;
+            height: auto;
+            max-height: 100px;
+        }
+
+        /* ===== 五次迁徙图片展示（两行交错） ===== */
+        .migration-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            max-width: 1600px;
+            gap: 30px;
+            padding-bottom: 60px;
+            animation: fadeInUp 1s 0.3s ease both;
+        }
+        /* 上行：第1、3、5张（山峰之间） */
+        .migration-row-top {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 30px;
+            width: 100%;
+        }
+        /* 下行：第2、4张（山峰下面） */
+        .migration-row-bottom {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 30px;
+            width: 100%;
+            padding: 0 16.666%; /* 左右缩进使2张图对齐上行第2、4列位置 */
+        }
+
+        .migration-item {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: all 0.4s ease;
+            cursor: pointer;
+            flex: 1;
+            max-width: 220px;
+        }
+        .migration-item:hover .mig-img {
+            animation: none;
+            transform: scale(1.12);
+        }
+
+        .migration-item .mig-img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .migration-item a {
+            display: block;
+            text-decoration: none;
+            line-height: 0;
+            position: relative;
+        }
+        /* ===== 图片呼吸缩放（动画在img上，避免与圆环transform冲突） ===== */
+        .migration-item .mig-img {
+            animation: breatheScale 2.5s ease-in-out infinite;
+        }
+        .migration-item a:hover .mig-img {
+            animation: none;
+        }
+        @keyframes breatheScale {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.06); }
+        }
+        /* ===== 👆 圆环提示（所有图片，置于图片中心） ===== */
+        .migration-item a::before {
+            content: '👆';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 20px;
+            line-height: 44px;
+            text-align: center;
+            width: 44px;
+            height: 44px;
+            background: rgba(255, 217, 102, 0.25);
+            border: 2px solid #ffd966;
+            border-radius: 50%;
+            z-index: 10;
+            box-shadow: 0 0 14px rgba(255, 217, 102, 0.4);
+            animation: pulseCenter 2s ease-in-out infinite;
+            pointer-events: none;
+        }
+        .migration-item a:hover::before {
+            opacity: 0;
+        }
+        @keyframes pulseCenter {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.8; }
+            50% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
+        }
+
+        /* ===== 连接线装饰 ===== */
+        .connector-line {
+            flex: 0 0 20px;
+            height: 2px;
+            background: linear-gradient(90deg, 
+                rgba(200, 170, 130, 0.1), 
+                rgba(200, 170, 130, 0.5), 
+                rgba(200, 170, 130, 0.1));
+            align-self: center;
+        }
+        /* 上行各列之间的竖向连接线装饰 */
+        .connector-dot {
+            flex: 0 0 8px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(200, 170, 130, 0.4);
+            align-self: center;
+            box-shadow: 0 0 6px rgba(200, 170, 130, 0.2);
+        }
+
+        /* ===== 关键帧动画 ===== */
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ===== 响应式 ===== */
+        @media (max-width: 1200px) {
+            .migration-row-top,
+            .migration-row-bottom {
+                gap: 18px;
+            }
+            .migration-wrapper {
+                gap: 20px;
+            }
+            .title-wrapper img {
+                max-height: 80px;
+            }
+            .main-container {
+                padding: 10px 30px 0;
+            }
+            .connector-line {
+                flex: 0 0 12px;
+            }
+            .migration-row-bottom {
+                padding: 0 12%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .migration-wrapper {
+                flex: 1;
+                overflow-y: auto;
+                gap: 8px;
+                padding: 0 10px;
+                justify-content: flex-start;
+            }
+            .migration-row-top {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+            .migration-row-bottom {
+                flex-wrap: wrap;
+                gap: 8px;
+                padding: 0;
+            }
+            .migration-item {
+                flex: 0 0 calc(50% - 8px);
+                max-width: 160px;
+                min-width: 0;
+            }
+            .title-wrapper {
+                margin-bottom: 25px;
+            }
+            .title-wrapper img {
+                max-height: 60px;
+            }
+            .main-container {
+                padding: 10px 15px 0;
+            }
+            .connector-line,
+            .connector-dot {
+                display: none;
+            }
+            .hamburger-btn {
+                display: flex;
+            }
+            .nav {
+                display: none;
+            }
+            .mobile-nav-overlay {
+                display: block;
+            }
+            .top-bar {
+                padding: 12px 16px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .migration-item {
+                flex: 0 0 100%;
+                max-width: 180px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== 固定背景 ===== -->
+    <div class="bg-fixed"></div>
+
+    <!-- ===== 遮罩与渐隐 ===== -->
+    <div class="overlay"></div>
+    <div class="vignette-bottom"></div>
+
+    <!-- ===== 顶部导航栏 ===== -->
+    <div class="top-bar">
+        <nav class="nav">
+            <a href="index.html">首页</a>
+            <a href="时间总览.html" class="active">时间长廊</a>
+            <a href="地图页面.html">地图</a>
+            <a href="美食图鉴.html">美食图鉴</a>
+        </nav>
+        <button class="hamburger-btn" id="hamburgerBtn" aria-label="菜单">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+    </div>
+
+    <!-- ===== 移动端下拉菜单 ===== -->
+    <div class="mobile-nav-overlay" id="mobileOverlay"></div>
+    <div class="mobile-nav" id="mobileNav">
+        <a href="index.html">首页</a>
+        <a href="时间总览.html" class="active">时间长廊</a>
+        <a href="地图页面.html">地图</a>
+        <a href="美食图鉴.html">美食图鉴</a>
+    </div>
+
+    <!-- ===== 主内容 ===== -->
+    <div class="main-container">
+
+        <!-- ===== 标题 ===== -->
+        <div class="title-wrapper">
+            <img src="images/时间总览/标题.png" alt="客家迁徙时间总览" />
+        </div>
+
+        <!-- ===== 五次迁徙图片（两行交错） ===== -->
+        <div class="migration-wrapper">
+            <!-- 上行：第1、3、5张（山峰之间） -->
+            <div class="migration-row-top">
+                <div class="migration-item" style="transform: translateX(-170px);">
+                    <a href="时间长廊轮播.html?slide=1">
+                        <img class="mig-img" src="images/时间总览/第一次迁徙.png" alt="第一次迁徙" />
+                    </a>
+                </div>
+                <div class="connector-dot"></div>
+                <div class="migration-item">
+                    <a href="时间长廊轮播.html?slide=3">
+                        <img class="mig-img" src="images/时间总览/第三次迁徙.png" alt="第三次迁徙" />
+                    </a>
+                </div>
+                <div class="connector-dot"></div>
+                <div class="migration-item" style="transform: translateX(170px);">
+                    <a href="时间长廊轮播.html?slide=5">
+                        <img class="mig-img" src="images/时间总览/第五次迁徙.png" alt="第五次迁徙" />
+                    </a>
+                </div>
+            </div>
+            <!-- 下行：第2、4张（山峰下面） -->
+            <div class="migration-row-bottom">
+                <div class="migration-item" style="transform: translateX(-100px);">
+                    <a href="时间长廊轮播.html?slide=2">
+                        <img class="mig-img" src="images/时间总览/第二次迁徙.png" alt="第二次迁徙" />
+                    </a>
+                </div>
+                <div class="connector-dot"></div>
+                <div class="migration-item" style="transform: translateX(100px);">
+                    <a href="时间长廊轮播.html?slide=4">
+                        <img class="mig-img" src="images/时间总览/第四次迁徙.png" alt="第四次迁徙" />
+                    </a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+    (function() {
+        // ===== 汉堡菜单 =====
+        var hamburger = document.getElementById('hamburgerBtn');
+        var mobileNav = document.getElementById('mobileNav');
+        var mobileOverlay = document.getElementById('mobileOverlay');
+        var isOpen = false;
+
+        function toggleMenu(e) {
+            e.stopPropagation();
+            isOpen = !isOpen;
+            hamburger.classList.toggle('active', isOpen);
+            mobileNav.classList.toggle('open', isOpen);
+            mobileOverlay.classList.toggle('open', isOpen);
+        }
+
+        function closeMenu() {
+            isOpen = false;
+            hamburger.classList.remove('active');
+            mobileNav.classList.remove('open');
+            mobileOverlay.classList.remove('open');
+        }
+
+        hamburger.addEventListener('click', toggleMenu);
+        mobileOverlay.addEventListener('click', closeMenu);
+
+        // 点击导航链接关闭菜单
+        mobileNav.querySelectorAll('a').forEach(function(link) {
+            link.addEventListener('click', closeMenu);
+        });
+    })();
+    </script>
+
+<!-- ===== 水墨互动效果：点击涟漪 + 毛笔拖尾 ===== -->
+<script>
+(function() {
+    var cvs = document.createElement('canvas');
+    cvs.id = 'inkCanvas';
+    cvs.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:99999;pointer-events:none;';
+    document.body.appendChild(cvs);
+    var ctx = cvs.getContext('2d');
+    var W, H;
+    function resize() { W = cvs.width = window.innerWidth; H = cvs.height = window.innerHeight; }
+    resize();
+    window.addEventListener('resize', resize);
+    var palette = [[0,188,212],[0,150,136],[38,198,218],[0,172,193],[76,175,80],[56,142,60],[102,187,106],[128,203,196],[129,199,132]];
+    function randColor() { return palette[Math.floor(Math.random()*palette.length)]; }
+    var rings = [];
+    function createInkRings(x,y) {
+        var count = 3+Math.floor(Math.random()*3);
+        for(var i=0;i<count;i++){var c=randColor();rings.push({x:x,y:y,r:0,maxR:40+Math.random()*80,opacity:0.5+Math.random()*0.4,rColor:c,speed:0.5+Math.random()*0.8,lw:1.5+Math.random()*3.5,delay:i*(50+Math.random()*80),life:0,decay:0.0015+Math.random()*0.002,wobble:0.08+Math.random()*0.12,phase:Math.random()*Math.PI*2});}
+    }
+    var trail=[];var MAX_TRAIL=15;
+    function addTrailPoint(x,y){var c=randColor();trail.push({x:x,y:y,r:0,maxR:10+Math.random()*18,opacity:0.5+Math.random()*0.3,color:c,lw:1.2+Math.random()*2.0,life:0,speed:0.5+Math.random()*0.8,decay:0.002+Math.random()*0.0025,wobble:0.06+Math.random()*0.10,phase:Math.random()*Math.PI*2});if(trail.length>MAX_TRAIL)trail.shift();}
+    var lastMouse={x:0,y:0};var mouseMoved=false;
+    document.addEventListener('mousedown',function(e){if(e.target.closest('.top-bar')||e.target.closest('.bottom-area')||e.target.closest('.nav-btn')||e.target.closest('.chart-modal-btn')||e.target.closest('.food-modal-btn'))return;createInkRings(e.clientX,e.clientY);});
+    document.addEventListener('mousemove',function(e){var dx=e.clientX-lastMouse.x;var dy=e.clientY-lastMouse.y;var dist=Math.sqrt(dx*dx+dy*dy);if(dist>12){var steps=Math.min(Math.floor(dist/12),4);for(var i=0;i<=steps;i++){var t=i/steps;var px=lastMouse.x+dx*t;var py=lastMouse.y+dy*t;addTrailPoint(px,py);}lastMouse.x=e.clientX;lastMouse.y=e.clientY;mouseMoved=true;}});
+    document.addEventListener('mouseenter',function(e){lastMouse.x=e.clientX;lastMouse.y=e.clientY;});
+    function animate(){
+        ctx.clearRect(0,0,W,H);
+        for(var i=rings.length-1;i>=0;i--){var ring=rings[i];if(ring.life<ring.delay){ring.life+=16;if(ring.life<ring.delay)continue;}ring.r+=ring.speed;var progress=ring.r/ring.maxR;var alpha=ring.opacity*(1-progress*progress);alpha=Math.max(0,alpha);var wobbleAmount=ring.wobble*ring.r;var r1=ring.r+wobbleAmount*Math.sin(ring.phase+progress*4);var r2=ring.r+wobbleAmount*Math.sin(ring.phase+2.3+progress*3.5);if(alpha>0.01&&ring.r<ring.maxR*1.3){ctx.beginPath();ctx.ellipse(ring.x,ring.y,r1,r2,0,0,Math.PI*2);ctx.strokeStyle='rgba('+ring.rColor[0]+','+ring.rColor[1]+','+ring.rColor[2]+','+alpha+')';ctx.lineWidth=ring.lw*(1-progress*0.6);ctx.stroke();ctx.beginPath();ctx.ellipse(ring.x,ring.y,r1*0.5,r2*0.5,0,0,Math.PI*2);ctx.fillStyle='rgba('+ring.rColor[0]+','+ring.rColor[1]+','+ring.rColor[2]+','+(alpha*0.15)+')';ctx.fill();}if(alpha<=0.01||ring.r>ring.maxR*1.5)rings.splice(i,1);}
+        for(var i=trail.length-1;i>=0;i--){var p=trail[i];p.r+=p.speed;if(p.r>p.maxR*1.3){trail.splice(i,1);continue;}var progress=p.r/p.maxR;var alpha=p.opacity*(1-progress*progress);if(alpha<0.01){trail.splice(i,1);continue;}var wobbleAmount=p.wobble*p.r;var r1=p.r+wobbleAmount*Math.sin(p.phase+progress*4);var r2=p.r+wobbleAmount*Math.sin(p.phase+2.3+progress*3.5);ctx.beginPath();ctx.ellipse(p.x,p.y,r1,r2,0,0,Math.PI*2);ctx.strokeStyle='rgba('+p.color[0]+','+p.color[1]+','+p.color[2]+','+alpha+')';ctx.lineWidth=p.lw*(1-progress*0.5);ctx.stroke();ctx.beginPath();ctx.ellipse(p.x,p.y,r1*0.4,r2*0.4,0,0,Math.PI*2);ctx.fillStyle='rgba('+p.color[0]+','+p.color[1]+','+p.color[2]+','+(alpha*0.12)+')';ctx.fill();}
+        requestAnimationFrame(animate);
+    }
+    animate();
+})();
+</script>
+
+</body>
+</html>

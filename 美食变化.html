@@ -1,0 +1,439 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>客家饮食文化的转变</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=ZCOOL+XiaoWei&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            font-family: "Ma Shan Zheng", "ZCOOL XiaoWei", "STXingkai", "霞鹜臻楷 GB 常规", "KaiTi", "楷体", serif;
+            background: #1a1410;
+        }
+
+        /* 背景图 */
+        .bg-fixed {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            background: url('images/背景图.png') center/cover no-repeat;
+        }
+
+        /* 半透明遮罩 */
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.08);
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        /* 返回按钮 */
+        .back-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 60px;
+            height: 44px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(180, 150, 110, 0.35);
+            border-radius: 22px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #222;
+            font-size: 16px;
+            text-decoration: none;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+        }
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        /* 主容器 */
+        .main-content {
+            position: absolute;
+            left: 50%;
+            top: 0;
+            transform: translateX(-50%);
+            z-index: 10;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            gap: 0;
+            padding: 8px 30px 80px;
+            max-width: 100%;
+        }
+
+        /* ===== 大标题 ===== */
+        .food-title-wrapper {
+            position: relative;
+            width: 30%;
+            margin: 0 auto 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .food-title-wrapper .food-title-bg {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        .food-title-wrapper .food-title-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: clamp(22px, 2vw, 34px);
+            font-family: "Ma Shan Zheng", "ZCOOL XiaoWei", "STXingkai", "霞鹜臻楷 GB 常规", "KaiTi", serif;
+            color: #fff6e8;
+            letter-spacing: 8px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            white-space: nowrap;
+            font-weight: bold;
+        }
+
+        /* ===== 三列布局 ===== */
+        .food-columns {
+            display: flex;
+            gap: 12px;
+            flex: 1;
+            min-height: 0;
+            padding-bottom: 5px;
+        }
+
+        /* ===== 每列 ===== */
+        .food-col {
+            flex: 1;
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 0;
+        }
+        .food-col .food-col-bg {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: fill;
+            z-index: 0;
+        }
+        .food-col .food-col-inner {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 15% 6px 6px;
+            width: 100%;
+            height: 100%;
+            min-height: 0;
+        }
+
+        /* ===== 小标题 ===== */
+        .food-subtitle-wrapper {
+            position: relative;
+            width: 55%;
+            margin: 0 auto 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .food-subtitle-wrapper .food-subtitle-bg {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        .food-subtitle-wrapper .food-subtitle-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: clamp(17px, 1.3vw, 23px);
+            font-family: "Ma Shan Zheng", "ZCOOL XiaoWei", "STXingkai", "霞鹜臻楷 GB 常规", "KaiTi", serif;
+            color: #222222;
+            letter-spacing: 2px;
+            text-shadow: 0 1px 2px rgba(255,255,255,0.3);
+            white-space: nowrap;
+            font-weight: bold;
+        }
+
+        /* ===== 美食图片 ===== */
+        .food-images {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin: 0 0 5px;
+            justify-content: flex-start;
+            align-items: center;
+            flex-shrink: 0;
+            width: 100%;
+        }
+        .food-images img {
+            width: auto;
+            height: auto;
+            max-width: 80%;
+            max-height: 130px;
+            display: block;
+            transition: transform 0.3s ease;
+            cursor: pointer;
+            object-fit: contain;
+        }
+        .food-images img:hover {
+            transform: scale(1.08);
+        }
+        .food-arrow {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: clamp(18px, 1.6vw, 30px);
+            color: #8B6914;
+            flex-shrink: 0;
+            opacity: 0.7;
+            line-height: 1;
+            font-weight: bold;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transform: rotate(90deg);
+        }
+
+        /* ===== 描述文字 ===== */
+        .food-desc {
+            font-family: "ZCOOL XiaoWei", "Noto Serif SC", "KaiTi", serif;
+            font-size: clamp(15px, 1.1vw, 20px) !important;
+            line-height: 1.7 !important;
+            color: rgba(50, 35, 20, 0.92) !important;
+            text-indent: 2em !important;
+            padding: 2px 4px !important;
+            overflow-y: auto !important;
+            flex: 1 !important;
+            min-height: 0 !important;
+            width: 90% !important;
+            max-width: 20em !important;
+            margin: 0 auto !important;
+            border-radius: 4px !important;
+        }
+
+        /* ===== 大屏适配（全屏桌面） ===== */
+        @media (min-width: 1920px) {
+            .main-content {
+                padding: 12px 50px 80px !important;
+            }
+            .food-title-wrapper {
+                width: 22%;
+                margin-bottom: 10px;
+            }
+            .food-title-wrapper .food-title-text {
+                font-size: clamp(28px, 2.2vw, 36px);
+            }
+            .food-columns {
+                gap: 18px;
+                padding-bottom: 8px;
+            }
+            .food-col .food-col-inner {
+                padding: 12% 10px 10px;
+            }
+            .food-subtitle-wrapper {
+                width: 50%;
+                margin: 0 auto 10px;
+            }
+            .food-subtitle-wrapper .food-subtitle-text {
+                font-size: clamp(20px, 1.6vw, 28px);
+            }
+            .food-images img {
+                width: auto;
+                height: auto;
+                max-width: 75%;
+                max-height: 200px;
+                object-fit: contain;
+            }
+            .food-desc {
+                font-size: clamp(18px, 1.3vw, 24px) !important;
+                line-height: 1.8 !important;
+                max-width: 22em !important;
+            }
+            .food-arrow {
+                font-size: clamp(22px, 2vw, 36px);
+            }
+        }
+
+        /* ===== 移动端适配 ===== */
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 5px 10px 3px !important;
+            }
+            .food-title-wrapper {
+                width: 45%;
+                margin-bottom: 5px;
+            }
+            .food-title-wrapper .food-title-text {
+                font-size: 18px;
+                letter-spacing: 4px;
+            }
+            .food-columns {
+                flex-direction: column;
+                gap: 6px;
+                overflow-y: auto;
+            }
+            .food-col .food-col-inner {
+                padding: 15% 4px 4px;
+            }
+            .food-subtitle-wrapper {
+                width: 40%;
+                margin: 0 auto 3px;
+            }
+            .food-subtitle-wrapper .food-subtitle-text {
+                font-size: 15px;
+                letter-spacing: 1px;
+                color: #222222 !important;
+            }
+            .food-images {
+                width: auto;
+                margin: 0 0 3px;
+                gap: 3px;
+            }
+            .food-images img {
+                width: auto;
+                height: auto;
+                max-width: 70%;
+                max-height: 85px;
+                object-fit: contain;
+            }
+            .food-desc {
+                font-size: 14px !important;
+                line-height: 1.5 !important;
+                padding: 2px 4px !important;
+                width: 90% !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 返回按钮 -->
+    <a class="back-btn" href="javascript:history.back()" title="返回">返回</a>
+
+    <!-- 背景 -->
+    <div class="bg-fixed"></div>
+    <div class="overlay"></div>
+
+    <!-- 主内容 -->
+    <div class="main-content">
+        <!-- 大标题 -->
+        <div class="food-title-wrapper">
+            <img class="food-title-bg" src="images/大标题.png" alt="大标题" />
+            <span class="food-title-text">客家饮食文化的转变</span>
+        </div>
+
+        <!-- 三列内容 -->
+        <div class="food-columns">
+
+            <!-- 第1列 -->
+            <div class="food-col">
+                <img class="food-col-bg" src="images/变化11.png" alt="" />
+                <div class="food-col-inner">
+                    <div class="food-subtitle-wrapper">
+                        <img class="food-subtitle-bg" src="images/小标题.png" alt="" />
+                        <span class="food-subtitle-text">面食向米食的转变</span>
+                    </div>
+                    <div class="food-images">
+                        <img src="images/饺子.png" alt="饺子" />
+                        <span class="food-arrow">→</span>
+                        <img src="images/武平酿豆腐/武平酿豆腐.png" alt="武平酿豆腐" />
+                    </div>
+                    <p class="food-desc">中原饺子、包子等面食因缺乏小麦而无法制作，客家人便用豆腐、木薯粉、竹笋等替代，创造出"酿豆腐"、"笋粄"等独特小吃。如"酿豆腐"是中原饺子文化的创造性转化，用豆腐替代面粉，保留"皮馅结合"的核心特征。</p>
+                </div>
+            </div>
+
+            <!-- 第2列 -->
+            <div class="food-col">
+                <img class="food-col-bg" src="images/变化22.png" alt="" />
+                <div class="food-col-inner">
+                    <div class="food-subtitle-wrapper">
+                        <img class="food-subtitle-bg" src="images/小标题.png" alt="" />
+                        <span class="food-subtitle-text">肉类食材的多样化</span>
+                    </div>
+                    <div class="food-images">
+                        <img src="images/鸡.png" alt="鸡" />
+                        <span class="food-arrow">→</span>
+                        <img src="images/羊肉.png" alt="羊肉" />
+                    </div>
+                    <p class="food-desc">中原地区以牛羊肉为主，而闽西山区则以猪肉、鸡肉、鸭肉为主。客家人将中原的肉食烹饪技法（如腌制、炖煮）应用于猪肉和禽类，创造出"梅菜扣肉"、"盐焗鸡"等经典菜品。</p>
+                </div>
+            </div>
+
+            <!-- 第3列 -->
+            <div class="food-col">
+                <img class="food-col-bg" src="images/变化33.png" alt="" />
+                <div class="food-col-inner">
+                    <div class="food-subtitle-wrapper">
+                        <img class="food-subtitle-bg" src="images/小标题.png" alt="" />
+                        <span class="food-subtitle-text">野菜的充分利用</span>
+                    </div>
+                    <div class="food-images">
+                        <img src="images/艾叶粄.png" alt="艾叶粄" />
+                        <span class="food-arrow">→</span>
+                        <img src="images/野菜.png" alt="野菜" />
+                    </div>
+                    <p class="food-desc">中原地区蔬菜种类有限，而闽西山区野菜资源丰富。客家人将马齿苋（"老鼠耳"）、蕨菜、苋菜等野菜纳入日常饮食，创造出"艾粄"、"蕨须包"等特色小吃。</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+<!-- ===== 水墨互动效果：点击涟漪 + 毛笔拖尾 ===== -->
+<script>
+(function() {
+    var cvs = document.createElement('canvas');
+    cvs.id = 'inkCanvas';
+    cvs.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:99999;pointer-events:none;';
+    document.body.appendChild(cvs);
+    var ctx = cvs.getContext('2d');
+    var W, H;
+    function resize() { W = cvs.width = window.innerWidth; H = cvs.height = window.innerHeight; }
+    resize();
+    window.addEventListener('resize', resize);
+    var palette = [[0,188,212],[0,150,136],[38,198,218],[0,172,193],[76,175,80],[56,142,60],[102,187,106],[128,203,196],[129,199,132]];
+    function randColor() { return palette[Math.floor(Math.random()*palette.length)]; }
+    var rings = [];
+    function createInkRings(x,y) {
+        var count = 3+Math.floor(Math.random()*3);
+        for(var i=0;i<count;i++){var c=randColor();rings.push({x:x,y:y,r:0,maxR:40+Math.random()*80,opacity:0.5+Math.random()*0.4,rColor:c,speed:0.5+Math.random()*0.8,lw:1.5+Math.random()*3.5,delay:i*(50+Math.random()*80),life:0,decay:0.0015+Math.random()*0.002,wobble:0.08+Math.random()*0.12,phase:Math.random()*Math.PI*2});}
+    }
+    var trail=[];var MAX_TRAIL=15;
+    function addTrailPoint(x,y){var c=randColor();trail.push({x:x,y:y,r:0,maxR:10+Math.random()*18,opacity:0.5+Math.random()*0.3,color:c,lw:1.2+Math.random()*2.0,life:0,speed:0.5+Math.random()*0.8,decay:0.002+Math.random()*0.0025,wobble:0.06+Math.random()*0.10,phase:Math.random()*Math.PI*2});if(trail.length>MAX_TRAIL)trail.shift();}
+    var lastMouse={x:0,y:0};var mouseMoved=false;
+    document.addEventListener('mousedown',function(e){if(e.target.closest('.top-bar')||e.target.closest('.bottom-area')||e.target.closest('.nav-btn')||e.target.closest('.chart-modal-btn')||e.target.closest('.food-modal-btn'))return;createInkRings(e.clientX,e.clientY);});
+    document.addEventListener('mousemove',function(e){var dx=e.clientX-lastMouse.x;var dy=e.clientY-lastMouse.y;var dist=Math.sqrt(dx*dx+dy*dy);if(dist>12){var steps=Math.min(Math.floor(dist/12),4);for(var i=0;i<=steps;i++){var t=i/steps;var px=lastMouse.x+dx*t;var py=lastMouse.y+dy*t;addTrailPoint(px,py);}lastMouse.x=e.clientX;lastMouse.y=e.clientY;mouseMoved=true;}});
+    document.addEventListener('mouseenter',function(e){lastMouse.x=e.clientX;lastMouse.y=e.clientY;});
+    function animate(){
+        ctx.clearRect(0,0,W,H);
+        for(var i=rings.length-1;i>=0;i--){var ring=rings[i];if(ring.life<ring.delay){ring.life+=16;if(ring.life<ring.delay)continue;}ring.r+=ring.speed;var progress=ring.r/ring.maxR;var alpha=ring.opacity*(1-progress*progress);alpha=Math.max(0,alpha);var wobbleAmount=ring.wobble*ring.r;var r1=ring.r+wobbleAmount*Math.sin(ring.phase+progress*4);var r2=ring.r+wobbleAmount*Math.sin(ring.phase+2.3+progress*3.5);if(alpha>0.01&&ring.r<ring.maxR*1.3){ctx.beginPath();ctx.ellipse(ring.x,ring.y,r1,r2,0,0,Math.PI*2);ctx.strokeStyle='rgba('+ring.rColor[0]+','+ring.rColor[1]+','+ring.rColor[2]+','+alpha+')';ctx.lineWidth=ring.lw*(1-progress*0.6);ctx.stroke();ctx.beginPath();ctx.ellipse(ring.x,ring.y,r1*0.5,r2*0.5,0,0,Math.PI*2);ctx.fillStyle='rgba('+ring.rColor[0]+','+ring.rColor[1]+','+ring.rColor[2]+','+(alpha*0.15)+')';ctx.fill();}if(alpha<=0.01||ring.r>ring.maxR*1.5)rings.splice(i,1);}
+        for(var i=trail.length-1;i>=0;i--){var p=trail[i];p.r+=p.speed;if(p.r>p.maxR*1.3){trail.splice(i,1);continue;}var progress=p.r/p.maxR;var alpha=p.opacity*(1-progress*progress);if(alpha<0.01){trail.splice(i,1);continue;}var wobbleAmount=p.wobble*p.r;var r1=p.r+wobbleAmount*Math.sin(p.phase+progress*4);var r2=p.r+wobbleAmount*Math.sin(p.phase+2.3+progress*3.5);ctx.beginPath();ctx.ellipse(p.x,p.y,r1,r2,0,0,Math.PI*2);ctx.strokeStyle='rgba('+p.color[0]+','+p.color[1]+','+p.color[2]+','+alpha+')';ctx.lineWidth=p.lw*(1-progress*0.5);ctx.stroke();ctx.beginPath();ctx.ellipse(p.x,p.y,r1*0.4,r2*0.4,0,0,Math.PI*2);ctx.fillStyle='rgba('+p.color[0]+','+p.color[1]+','+p.color[2]+','+(alpha*0.12)+')';ctx.fill();}
+        requestAnimationFrame(animate);
+    }
+    animate();
+})();
+</script>
+</body>
+</html>

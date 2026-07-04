@@ -1,0 +1,1899 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>永定牛肉丸 | 食在闽西，味在客家</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=ZCOOL+XiaoWei&family=Noto+Serif+SC:wght@400;700&display=swap');
+
+        /* ===== 全局重置 ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            font-family: "Ma Shan Zheng", "ZCOOL XiaoWei", "Noto Serif SC", "STXingkai", "霞鹜臻楷 GB 常规", "KaiTi", "楷体", serif;
+            background: #1a1410;
+        }
+
+        /* ===== 背景 ===== */
+        .bg-img {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            background: url('images/永定牛肉丸/永定牛肉丸了解背景.png') center/cover no-repeat;
+        }
+        .bg-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+            background: rgba(255, 248, 235, 0.07);
+            pointer-events: none;
+        }
+
+        /* ===== 顶部返回按钮 ===== */
+        .top-bar {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 18px 40px;
+            pointer-events: none;
+        }
+        .top-bar > * { pointer-events: auto; }
+
+        .back-btn {
+            display: inline-block;
+            padding: 10px 22px;
+            font-size: 18px;
+            font-family: "Ma Shan Zheng", "ZCOOL XiaoWei", "STXingkai", "霞鹜臻楷 GB 常规", "KaiTi", serif;
+            color: #ffffff;
+            text-decoration: none;
+            letter-spacing: 4px;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            position: relative;
+            text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+            background: rgba(40, 28, 18, 0.55);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(180, 150, 110, 0.35);
+            box-shadow: 0 2px 16px rgba(0, 0, 0, 0.15), inset 0 0 20px rgba(180, 150, 110, 0.05);
+            cursor: pointer;
+        }
+        .back-btn::after {
+            content: "";
+            position: absolute;
+            bottom: 4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 2px;
+            background: #e8c87a;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 8px rgba(232, 200, 122, 0.4);
+        }
+        .back-btn:hover::after { width: 60%; }
+        .back-btn:hover {
+            color: #fff6e0;
+            background: rgba(200, 160, 80, 0.25);
+            text-shadow: 0 0 16px rgba(232, 200, 122, 0.5);
+        }
+
+        /* ===== 主容器 ===== */
+        .main-wrap {
+            position: relative;
+            z-index: 10;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 2% 20px;
+            gap: 4px;
+        }
+
+        /* ===== 顶部标题区 ===== */
+        .title-section {
+            flex: 0 0 auto;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            margin-top: -12px;
+        }
+        .title-section img {
+            height: clamp(44px, 4.2vw, 72px);
+            width: auto;
+            object-fit: contain;
+        }
+
+        /* ===== 内容行（左 + 右） ===== */
+        .content-row {
+            flex: 1;
+            width: 100%;
+            display: flex;
+            align-items: stretch;
+            justify-content: center;
+            gap: 1.8vw;
+            min-height: 0;
+        }
+
+        /* ===== 左侧工序交互区 ===== */
+        .left-panel {
+            flex: 0 0 58%;
+            height: calc(100vh - 130px);
+            max-height: 820px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 工序主框体 */
+        .craft-box {
+            flex: 1;
+            background: url('images/永定牛肉丸/交互框.png') center/100% 100% no-repeat;
+            padding: 24px 28px 70px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* — 装饰：水墨竹枝（左上+右下） — */
+
+
+        /* — 工序场景展示区 — */
+        .scene-area {
+            position: relative;
+            z-index: 5;
+            flex: 1;
+            min-height: 280px;
+        }
+
+        /* 每道工序的场景容器 */
+        .scene-slide {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.55s ease;
+            pointer-events: none;
+        }
+        .scene-slide.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* 场景画布（手绘风格） */
+        .scene-canvas {
+            flex: 1;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            min-height: 200px;
+        }
+        /* 手绘场景内容用div模拟国风插画 */
+        .scene-illustration {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            padding: 10px;
+        }
+
+        /* ===== 各步骤手绘场景SVG/样式 ===== */
+        .scene-inner-svg {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        /* 场景中的可点击热区 */
+        .hotspot {
+            position: absolute;
+            cursor: pointer;
+            z-index: 10;
+            border-radius: 50%;
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+        .hotspot:hover {
+            transform: scale(1.12);
+            box-shadow: 0 0 20px rgba(200, 160, 80, 0.35);
+        }
+        .hotspot::after {
+            content: "❓";
+            position: absolute;
+            top: -20px;
+            right: -12px;
+            font-size: 16px;
+            color: #b8863a;
+            opacity: 0.7;
+            animation: pulseHint 2s ease-in-out infinite;
+        }
+        @keyframes pulseHint {
+            0%, 100% { opacity: 0.4; transform: scale(1); }
+            50% { opacity: 0.9; transform: scale(1.15); }
+        }
+
+        /* — 热区弹窗 — */
+        .knowledge-popup {
+            position: fixed;
+            z-index: 999;
+            background: rgba(255, 248, 235, 0.96);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(180, 150, 100, 0.5);
+            border-radius: 16px;
+            padding: 20px 26px;
+            max-width: 360px;
+            box-shadow: 0 12px 48px rgba(0,0,0,0.25);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            transform: translateY(6px);
+            font-family: "ZCOOL XiaoWei", "Noto Serif SC", "KaiTi", serif;
+            color: #3a2a14;
+            font-size: 15px;
+            line-height: 1.8;
+            letter-spacing: 0.5px;
+        }
+        .knowledge-popup.show {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0);
+        }
+        .knowledge-popup .popup-title {
+            font-family: "Ma Shan Zheng", serif;
+            font-size: 20px;
+            color: #5a3e08;
+            margin-bottom: 8px;
+            border-bottom: 1px solid rgba(139, 105, 20, 0.25);
+            padding-bottom: 6px;
+            letter-spacing: 2px;
+        }
+        .knowledge-popup .popup-close {
+            position: absolute;
+            top: 10px; right: 14px;
+            font-size: 18px;
+            color: #8a7a62;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .knowledge-popup .popup-close:hover { color: #3a2a14; }
+
+        /* — 工艺解说文字 — */
+        .step-caption {
+            position: relative;
+            z-index: 5;
+            padding: 2px 16px 2px;
+            text-align: center;
+            margin-top: auto;
+        }
+        .step-caption .step-label {
+            font-family: "Ma Shan Zheng", serif;
+            font-size: clamp(18px, 1.3vw, 24px);
+            color: #5a3e08;
+            letter-spacing: 4px;
+            margin-bottom: 4px;
+        }
+        .step-caption .step-desc {
+            font-family: "ZCOOL XiaoWei", "Noto Serif SC", "KaiTi", serif;
+            font-size: clamp(14px, 0.95vw, 17px);
+            color: #4a3820;
+            letter-spacing: 1px;
+            line-height: 1.7;
+            background: rgba(245, 238, 220, 0.7);
+            border-radius: 8px;
+            padding: 6px 16px;
+            display: inline-block;
+        }
+
+        /* — 左右箭头导航 — */
+        .nav-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 20;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(90, 62, 8, 0.55);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(180, 150, 100, 0.4);
+            color: #f0e8d8;
+            font-size: 22px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            user-select: none;
+        }
+        .nav-arrow:hover {
+            background: rgba(90, 62, 8, 0.8);
+            transform: translateY(-50%) scale(1.08);
+        }
+        .nav-arrow.prev { left: 12px; }
+        .nav-arrow.next { right: 12px; }
+        .nav-arrow.disabled {
+            opacity: 0.25;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        /* — 底部进度指示器 — */
+        .progress-bar {
+            position: relative;
+            z-index: 5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 4px 0 2px;
+        }
+        .progress-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(139, 105, 20, 0.2);
+            border: 1.5px solid rgba(139, 105, 20, 0.35);
+            transition: all 0.35s ease;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .progress-dot.active {
+            background: #8b6a2a;
+            border-color: #8b6a2a;
+            box-shadow: 0 0 8px rgba(139, 106, 42, 0.4);
+            transform: scale(1.25);
+        }
+        .progress-dot:hover:not(.active) {
+            background: rgba(139, 105, 20, 0.35);
+        }
+
+        /* ===== 右侧内容区 ===== */
+        .right-panel {
+            flex: 0 0 38%;
+            height: calc(100vh - 130px);
+            max-height: 820px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* 右上：成品展示图 */
+        .right-top {
+            flex: 0 0 44%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            overflow: hidden;
+            position: relative;
+        }
+        .right-top img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            border-radius: 12px;
+            filter: drop-shadow(0 4px 20px rgba(0,0,0,0.12));
+        }
+
+        /* 右下：文化文字区 */
+        .right-bottom {
+            flex: 1;
+            background: rgba(245, 238, 225, 0.92);
+            backdrop-filter: blur(6px);
+            border-radius: 20px;
+            border: 1px solid rgba(180, 150, 100, 0.45);
+            box-shadow: 0 8px 40px rgba(0,0,0,0.12);
+            padding: 26px 30px;
+            overflow-y: auto;
+            position: relative;
+        }
+        .right-bottom::-webkit-scrollbar {
+            width: 4px;
+        }
+        .right-bottom::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .right-bottom::-webkit-scrollbar-thumb {
+            background: rgba(139, 105, 20, 0.3);
+            border-radius: 4px;
+        }
+
+        .right-bottom .rb-title {
+            font-family: "Ma Shan Zheng", serif;
+            font-size: clamp(22px, 1.6vw, 30px);
+            color: #5a3e08;
+            letter-spacing: 6px;
+            margin-bottom: 2px;
+            padding-bottom: 0;
+        }
+        .right-bottom .rb-content {
+            font-family: "ZCOOL XiaoWei", "Noto Serif SC", "KaiTi", serif;
+            font-size: clamp(17px, 1.1vw, 19px);
+            line-height: 2.1;
+            color: #4a3820;
+            letter-spacing: 0.5px;
+            text-indent: 2em;
+        }
+        .right-bottom .rb-content p {
+            margin-bottom: 10px;
+        }
+        .right-bottom .rb-content .highlight {
+            color: #7a5a2a;
+            font-weight: 700;
+        }
+
+        /* ===== 点击提示动画 ===== */
+        @keyframes pulse-hint {
+            0%, 100% { opacity: 0.7; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.05); }
+        }
+
+        /* ===== 淡入动画 ===== */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ===== 切肉交互样式 ===== */
+        .cut-scene-wrap {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .cut-scene-wrap .cut-stage-img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+            transition: opacity 0.3s ease;
+        }
+
+        /* 刀交互区 */
+        .knife-area {
+            position: absolute;
+            z-index: 15;
+            cursor: pointer;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .knife-icon {
+            width: clamp(120px, 15vw, 210px);
+            height: auto;
+            pointer-events: none;
+            filter: drop-shadow(0 4px 16px rgba(0,0,0,0.45));
+            transition: transform 0.08s ease;
+            transform: rotate(0deg);
+        }
+        .knife-icon.chop {
+            animation: knifeChop 0.35s ease;
+        }
+        @keyframes knifeChop {
+            0%   { transform: translateY(0) rotate(0deg); }
+            15%  { transform: translateY(-70px) rotate(-10deg); }
+            45%  { transform: translateY(20px) rotate(5deg); }
+            70%  { transform: translateY(-8px) rotate(-3deg); }
+            100% { transform: translateY(0) rotate(0deg); }
+        }
+
+        /* ===== 加料交互样式（第二步） ===== */
+        .seasoning-icon-area {
+            position: absolute;
+            z-index: 15;
+            cursor: pointer;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.35s ease;
+        }
+        .seasoning-spoon {
+            width: clamp(60px, 8vw, 110px);
+            height: auto;
+            pointer-events: none;
+            filter: drop-shadow(0 2px 10px rgba(0,0,0,0.35));
+            transition: transform 0.08s ease;
+        }
+        .seasoning-spoon.shake {
+            animation: spoonSprinkle 0.5s ease;
+        }
+        @keyframes spoonSprinkle {
+            0%   { transform: translateY(0) rotate(0deg); }
+            15%  { transform: translateY(-8px) rotate(-15deg); }
+            35%  { transform: translateY(2px) rotate(8deg); }
+            55%  { transform: translateY(-4px) rotate(-10deg); }
+            75%  { transform: translateY(1px) rotate(4deg); }
+            100% { transform: translateY(0) rotate(0deg); }
+        }
+
+        /* 撒料粒子 */
+        .sprinkle-particle {
+            position: absolute;
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 16;
+            opacity: 0;
+        }
+        .sprinkle-particle.fall {
+            animation: sprinkleFall 0.6s ease-out forwards;
+        }
+        @keyframes sprinkleFall {
+            0%   { opacity: 1; transform: translate(0, 0) scale(1); }
+            100% { opacity: 0; transform: translate(var(--sx), var(--sy)) scale(0.2); }
+        }
+
+        /* 捶刀图标（场景2阶段2-3使用） */
+        .season-hammer-icon {
+            width: clamp(90px, 12vw, 160px);
+            height: auto;
+            pointer-events: none;
+            filter: drop-shadow(0 3px 12px rgba(0,0,0,0.4));
+            transition: transform 0.08s ease;
+        }
+        .season-hammer-icon.smash {
+            animation: hamSmash 0.45s ease;
+        }
+        @keyframes hamSmash {
+            0%   { transform: translateY(0) rotate(0deg); }
+            15%  { transform: translateY(-80px) rotate(-18deg); }
+            45%  { transform: translateY(25px) rotate(8deg); }
+            70%  { transform: translateY(-12px) rotate(-5deg); }
+            100% { transform: translateY(0) rotate(0deg); }
+        }
+
+        /* 剪刀图标（步骤三） */
+        .scissors-icon-wrap {
+            position: absolute;
+            z-index: 15;
+            cursor: pointer;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.35s ease;
+        }
+        .scissors-icon-wrap.show {
+            opacity: 1 !important;
+            pointer-events: auto !important;
+        }
+        .scissors-svg {
+            width: clamp(60px, 8vw, 110px);
+            height: auto;
+            pointer-events: none;
+            filter: drop-shadow(0 2px 10px rgba(0,0,0,0.35));
+            transition: transform 0.08s ease;
+        }
+        .scissors-svg.snip {
+            animation: scissorSnip 0.4s ease;
+        }
+        @keyframes scissorSnip {
+            0%   { transform: rotate(0deg) scale(1); }
+            25%  { transform: rotate(-10deg) scale(0.9); }
+            50%  { transform: rotate(5deg) scale(1.05); }
+            75%  { transform: rotate(-3deg) scale(0.95); }
+            100% { transform: rotate(0deg) scale(1); }
+        }
+
+        .knife-hint {
+            position: absolute;
+            bottom: -32px;
+            left: 50%;
+            transform: translateX(-50%);
+            white-space: nowrap;
+            font-family: "Ma Shan Zheng", serif;
+            font-size: clamp(13px, 1vw, 16px);
+            color: #fff6e0;
+            background: rgba(40, 28, 18, 0.65);
+            backdrop-filter: blur(4px);
+            padding: 4px 16px;
+            border-radius: 16px;
+            border: 1px solid rgba(200, 168, 110, 0.3);
+            pointer-events: none;
+            opacity: 1;
+            transition: opacity 0.4s ease;
+            letter-spacing: 2px;
+        }
+        .knife-hint.hidden { opacity: 0; }
+
+        /* 切肉进度圆点 */
+        .cut-progress {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            z-index: 10;
+        }
+        .cut-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: rgba(139, 105, 20, 0.2);
+            border: 2px solid rgba(139, 105, 20, 0.35);
+            transition: all 0.35s ease;
+            flex-shrink: 0;
+        }
+        .cut-dot.active {
+            background: #8b6a2a;
+            border-color: #8b6a2a;
+            box-shadow: 0 0 10px rgba(139, 106, 42, 0.5);
+            transform: scale(1.3);
+        }
+        .cut-dot.done {
+            background: #5a8a4a;
+            border-color: #5a8a4a;
+        }
+
+        /* ===== 🎯 增强交互样式 ===== */
+
+        /* — 脉冲光环 — */
+        .interact-ring {
+            position: absolute;
+            pointer-events: none;
+            z-index: 12;
+            border-radius: 50%;
+            border: 2px solid rgba(200, 170, 80, 0.6);
+            animation: ringPulse 1.8s ease-in-out infinite;
+        }
+        @keyframes ringPulse {
+            0%, 100% { transform: scale(0.95); opacity: 0.4; box-shadow: 0 0 6px rgba(200,170,80,0.15); }
+            50% { transform: scale(1.12); opacity: 0.9; box-shadow: 0 0 24px rgba(200,170,80,0.35); }
+        }
+
+        /* — 点击波纹 — */
+        .click-ripple {
+            position: absolute;
+            pointer-events: none;
+            z-index: 25;
+            border-radius: 50%;
+            background: rgba(200, 170, 80, 0.3);
+            border: 1px solid rgba(200, 170, 80, 0.2);
+            animation: rippleOut 0.6s ease-out forwards;
+        }
+        @keyframes rippleOut {
+            0% { width: 0; height: 0; opacity: 0.8; }
+            100% { width: 120px; height: 120px; opacity: 0; transform: translate(-60px,-60px); }
+        }
+
+        /* — 🎉 完成庆祝粒子 — */
+        .celeb-particle {
+            position: absolute;
+            pointer-events: none;
+            z-index: 30;
+            border-radius: 50%;
+            opacity: 0;
+        }
+        .celeb-particle.burst {
+            animation: celebBurst 0.8s ease-out forwards;
+        }
+        @keyframes celebBurst {
+            0% { opacity: 1; transform: translate(0,0) scale(1); }
+            100% { opacity: 0; transform: translate(var(--cx), var(--cy)) scale(0.2); }
+        }
+
+        /* — ✨ 完成徽章 — */
+        .complete-badge {
+            position: absolute;
+            z-index: 28;
+            pointer-events: none;
+            font-size: clamp(28px, 3vw, 44px);
+            opacity: 0;
+            transform: scale(0.3);
+            transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .complete-badge.show {
+            opacity: 1;
+            transform: scale(1);
+        }
+        .complete-badge .badge-text {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(90, 138, 74, 0.92);
+            backdrop-filter: blur(8px);
+            color: #fff6e0;
+            padding: 12px 32px 12px 24px;
+            border-radius: 40px;
+            font-family: "Ma Shan Zheng", serif;
+            font-size: clamp(32px, 3.5vw, 50px);
+            letter-spacing: 4px;
+            border: 1px solid rgba(255,246,224,0.3);
+            box-shadow: 0 4px 20px rgba(90,138,74,0.4);
+        }
+
+        /* — 子步骤计数徽章 — */
+        .stage-counter {
+            position: absolute;
+            bottom: 42px;
+            right: 12px;
+            z-index: 14;
+            font-family: "Ma Shan Zheng", serif;
+            font-size: clamp(12px, 0.85vw, 15px);
+            color: #8b6a2a;
+            background: rgba(255,248,235,0.85);
+            padding: 2px 12px;
+            border-radius: 12px;
+            border: 1px solid rgba(139,106,42,0.25);
+            letter-spacing: 1px;
+            opacity: 0.7;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        /* — ⭐ 热点增强 — */
+        .hotspot {
+            box-shadow: 0 0 16px rgba(200, 160, 80, 0.25);
+            background: rgba(212, 168, 74, 0.08);
+            border: 2px solid rgba(212, 168, 74, 0.35);
+            cursor: pointer;
+        }
+        .hotspot::before {
+            content: "";
+            position: absolute;
+            inset: -8px;
+            border-radius: 50%;
+            border: 2.5px solid rgba(212, 168, 74, 0.4);
+            animation: hotspotGlow 1.8s ease-in-out infinite;
+        }
+        @keyframes hotspotGlow {
+            0%, 100% { transform: scale(1); opacity: 0.4; box-shadow: 0 0 6px rgba(212,168,74,0.15); }
+            50% { transform: scale(1.2); opacity: 0.9; box-shadow: 0 0 20px rgba(212,168,74,0.35); }
+        }
+        .hotspot::after {
+            content: "🔍";
+            position: absolute;
+            top: -24px;
+            right: -14px;
+            font-size: 20px;
+            color: #d4a84a;
+            opacity: 1;
+            animation: hintTwinkle 1.2s ease-in-out infinite;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+        }
+        @keyframes hintTwinkle {
+            0%, 100% { opacity: 0.4; transform: scale(1) rotate(0deg); }
+            50% { opacity: 1; transform: scale(1.3) rotate(180deg); }
+        }
+
+        /* — 浮动提示增强 — */
+        .knife-hint {
+            box-shadow: 0 0 20px rgba(200,168,110,0.15), 0 0 60px rgba(200,168,110,0.05);
+            animation: hintBreathe 2.2s ease-in-out infinite;
+        }
+        .knife-hint.hidden {
+            animation: none;
+        }
+        @keyframes hintBreathe {
+            0%, 100% { transform: translateX(-50%) scale(1); box-shadow: 0 0 20px rgba(200,168,110,0.1); }
+            50% { transform: translateX(-50%) scale(1.05); box-shadow: 0 0 30px rgba(200,168,110,0.25); }
+        }
+        .knife-hint::before {
+            content: "";
+            display: inline;
+        }
+
+        /* — 子步骤圆点增强 — */
+        .cut-dot {
+            position: relative;
+        }
+        .cut-dot.done::after {
+            content: "✓";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #fff;
+            font-size: 10px;
+            font-weight: bold;
+        }
+        .cut-dot.active:not(.done) {
+            animation: dotActive 1.2s ease-in-out infinite;
+        }
+        @keyframes dotActive {
+            0%, 100% { box-shadow: 0 0 8px rgba(139,106,42,0.4); }
+            50% { box-shadow: 0 0 18px rgba(139,106,42,0.7); transform: scale(1.4); }
+        }
+
+        /* — 左右箭头闪烁提示 — */
+        .nav-arrow.next:not(.disabled) {
+            animation: arrowGlow 2.5s ease-in-out infinite;
+        }
+        @keyframes arrowGlow {
+            0%, 100% { box-shadow: 0 0 4px rgba(180,150,100,0.1); }
+            50% { box-shadow: 0 0 16px rgba(200,170,80,0.25); }
+        }
+
+        .left-panel { animation: fadeInUp 0.7s 0.1s both; }
+        .right-top  { animation: fadeInUp 0.7s 0.2s both; }
+        .right-bottom { animation: fadeInUp 0.7s 0.35s both; }
+        .title-section { animation: fadeInUp 0.6s 0.05s both; }
+
+        /* ===== 隐藏子步骤小圆点（保留功能） ===== */
+        .cut-dot {
+            display: none !important;
+        }
+
+        /* ===== 响应式 ===== */
+        @media (max-width: 1200px) {
+            .main-wrap { gap: 1vw; padding: 54px 1.5% 14px; }
+            .content-row { gap: 1.2vw; }
+            .left-panel { flex: 0 0 56%; }
+            .right-panel { flex: 0 0 40%; }
+            .craft-box { padding: 18px 20px 14px; }
+        }
+        @media (max-width: 900px) {
+            .main-wrap { padding: 54px 2% 12px; gap: 6px; }
+            .content-row { flex-direction: column; gap: 10px; }
+            .left-panel { flex: none; width: 100%; height: 50vh; }
+            .right-panel { flex: none; width: 100%; height: 32vh; flex-direction: row; }
+            .right-top { flex: 0 0 40%; }
+            .right-bottom { flex: 1; }
+        }
+        @media (max-width: 600px) {
+            .main-wrap { padding: 48px 1.5% 8px; gap: 4px; }
+            .content-row { gap: 6px; }
+            .left-panel { height: 44vh; }
+            .right-panel { height: 34vh; flex-direction: column; }
+            .right-top { flex: 0 0 45%; }
+            .nav-arrow { width: 32px; height: 32px; font-size: 18px; }
+            .progress-dot { width: 10px; height: 10px; }
+            .seasoning-spoon { width: clamp(48px, 9vw, 80px); }
+            .season-hammer-icon { width: clamp(60px, 10vw, 110px); }
+            .scissors-svg { width: clamp(48px, 9vw, 80px); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== 背景 ===== -->
+    <div class="bg-img"></div>
+    <div class="bg-overlay"></div>
+
+    <!-- ===== 顶部返回按钮 ===== -->
+    <div class="top-bar">
+        <a class="back-btn" href="永定区盲盒打开.html">← 返回</a>
+    </div>
+
+    <!-- ===== 主容器 ===== -->
+    <div class="main-wrap">
+
+        <!-- ===== 顶部标题 ===== -->
+        <div class="title-section">
+            <img src="images/永定牛肉丸/永定牛肉丸横标题.png" alt="永定牛肉丸" />
+        </div>
+
+        <!-- ===== 内容行：左侧工序 + 右侧信息 ===== -->
+        <div class="content-row">
+
+        <!-- ==================== 左侧工序交互区 ==================== -->
+        <div class="left-panel">
+            <div class="craft-box">
+
+                <!-- 场景展示区 -->
+                <div class="scene-area" id="sceneArea">
+
+                    <!-- ===== 场景1：精密切肉（★3阶段切肉交互） ===== -->
+                    <div class="scene-slide active" data-step="0">
+                        <div class="scene-canvas">
+                            <div class="scene-illustration" id="cutScene">
+                                <div class="cut-scene-wrap">
+                                    <img class="cut-stage-img" id="cutStageImg" src="images/永定牛肉丸/第一个步骤1.png" alt="切肉步骤1" />
+                                    <!-- 可点击的刀（置于肉上方，上下切动） -->
+                                    <div class="knife-area" id="knifeArea" style="left:50%;top:12%;transform:translateX(-50%);">
+                                        <img class="knife-icon" id="knifeIcon" src="images/永定牛肉丸/刀.png" alt="刀" />
+                                        <div class="knife-hint" id="knifeHint">✂ 点击切肉</div>
+                                    </div>
+                                    <!-- 阶段进度圆点 -->
+                                    <div class="cut-progress" id="cutProgress">
+                                        <span class="cut-dot active" data-cut="0"></span>
+                                        <span class="cut-dot" data-cut="1"></span>
+                                        <span class="cut-dot" data-cut="2"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="step-caption">
+                            <div class="step-label" id="cutLabel">① 精切肉片 · 厚薄得当</div>
+                            <div class="step-desc" id="cutDesc">将洗净的本地黄牛后腿肉置于案板上，切成薄厚恰当的大肉片。</div>
+                        </div>
+                    </div>
+
+                    <!-- ===== 场景2：辅料入味（★3阶段加料交互） ===== -->
+                    <div class="scene-slide" data-step="1">
+                        <div class="scene-canvas">
+                            <div class="scene-illustration" id="seasonScene">
+                                <div class="cut-scene-wrap">
+                                    <img class="cut-stage-img" id="seasonStageImg" src="images/永定牛肉丸/第二个步骤1.png" alt="加料步骤1" />
+                                    <!-- 可点击的勺子加料（阶段1） -->
+                                    <div class="seasoning-icon-area" id="seasonSpoonArea" style="right:8%;top:22%;">
+                                        <svg class="seasoning-spoon" id="seasonSpoon" viewBox="0 0 50 90">
+                                            <rect x="22" y="38" width="6" height="46" rx="3" fill="#c8a878" stroke="#8a6a30" stroke-width="1.2"/>
+                                            <ellipse cx="25" cy="22" rx="17" ry="12" fill="#d4b888" stroke="#8a6a30" stroke-width="1.5"/>
+                                            <ellipse cx="25" cy="22" rx="13" ry="8.5" fill="#e8d4a8" opacity="0.6"/>
+                                            <circle cx="20" cy="20" r="2" fill="#c49a4a" opacity="0.7"/>
+                                            <circle cx="27" cy="18" r="1.5" fill="#d4a84a" opacity="0.6"/>
+                                            <circle cx="23" cy="24" r="1.8" fill="#b8923a" opacity="0.7"/>
+                                            <circle cx="29" cy="23" r="1.2" fill="#d4b05a" opacity="0.5"/>
+                                            <circle cx="21" cy="26" r="1" fill="#c8a050" opacity="0.6"/>
+                                        </svg>
+                                        <div class="knife-hint" id="seasonHint">🥄 点击加料</div>
+                                    </div>
+                                    <!-- 可点击的捶刀（阶段2-3，初始隐藏） -->
+                                    <div class="seasoning-icon-area" id="seasonHammerArea" style="left:50%;top:18%;transform:translateX(-50%);opacity:0;pointer-events:none;">
+                                        <img class="season-hammer-icon" id="seasonHammerIcon" src="images/永定牛肉丸/捶刀.png" alt="捶刀" />
+                                        <div class="knife-hint" id="seasonHammerHint">🔨 点击捶打</div>
+                                    </div>
+                                    <!-- 阶段进度圆点 -->
+                                    <div class="cut-progress" id="seasonProgress">
+                                        <span class="cut-dot active" data-season="0"></span>
+                                        <span class="cut-dot" data-season="1"></span>
+                                        <span class="cut-dot" data-season="2"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="step-caption">
+                            <div class="step-label" id="seasonLabel">② 辅料入味 · 精调五味</div>
+                            <div class="step-desc" id="seasonDesc">加入适当盐巴、蛤晶、木薯粉</div>
+                        </div>
+                    </div>
+
+                    <!-- ===== 场景3：鱿鱼葱花备料（★3阶段图片交互） ===== -->
+                    <div class="scene-slide" data-step="2">
+                        <div class="scene-canvas">
+                            <div class="scene-illustration" id="prepScene">
+                                <div class="cut-scene-wrap" style="position:relative;">
+                                    <!-- 阶段1点击提示 -->
+                                    <div class="stage-click-hint" id="prepClickHint" style="position:absolute;inset:0;z-index:12;display:flex;align-items:center;justify-content:center;pointer-events:none;">
+                                        <span style="background:rgba(180,80,40,0.82);color:#fff;font-size:clamp(14px,1.2vw,18px);padding:8px 22px;border-radius:30px;font-family:'Ma Shan Zheng',serif;letter-spacing:3px;backdrop-filter:blur(4px);border:1px solid rgba(255,255,255,0.2);box-shadow:0 4px 20px rgba(0,0,0,0.25);animation:pulse-hint 1.8s ease-in-out infinite;">点击图片进入下一步</span>
+                                    </div>
+                                    <img class="cut-stage-img" id="prepStageImg" src="images/永定牛肉丸/步骤三1.png" alt="备料步骤1" />
+                                    <!-- 可点击的剪刀（仅阶段2显示） -->
+                                    <div class="scissors-icon-wrap" id="prepScissorArea" style="right:8%;top:24%;">
+                                        <svg class="scissors-svg" id="prepScissorIcon" viewBox="0 0 60 60">
+                                            <circle cx="18" cy="12" r="7" fill="none" stroke="#c8a878" stroke-width="2.5"/>
+                                            <circle cx="18" cy="12" r="3" fill="#c8a878"/>
+                                            <circle cx="42" cy="12" r="7" fill="none" stroke="#c8a878" stroke-width="2.5"/>
+                                            <circle cx="42" cy="12" r="3" fill="#c8a878"/>
+                                            <path d="M22 15 L30 30 L38 15" stroke="#b89868" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+                                            <path d="M22 17 L30 32 L38 17" stroke="#d4b888" stroke-width="1.3" fill="none" stroke-linecap="round" opacity="0.6"/>
+                                            <path d="M30 32 L30 54" stroke="#b89868" stroke-width="2.5" stroke-linecap="round"/>
+                                            <path d="M30 54 L24 58" stroke="#b89868" stroke-width="2" stroke-linecap="round"/>
+                                            <path d="M30 54 L36 58" stroke="#b89868" stroke-width="2" stroke-linecap="round"/>
+                                        </svg>
+                                        <div class="knife-hint" id="prepHint">✂ 点击剪碎</div>
+                                    </div>
+                                    <!-- 阶段进度圆点 -->
+                                    <div class="cut-progress" id="prepProgress">
+                                        <span class="cut-dot active" data-prep="0"></span>
+                                        <span class="cut-dot" data-prep="1"></span>
+                                        <span class="cut-dot" data-prep="2"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="step-caption">
+                            <div class="step-label" id="prepLabel">③ 鱿鱼葱花 · 备料提鲜</div>
+                            <div class="step-desc" id="prepDesc">将鱿鱼干置于清水中，浸泡三分钟。</div>
+                        </div>
+                    </div>
+
+                    <!-- ===== 场景4：清水入锅文火烧热 ===== -->
+                    <div class="scene-slide" data-step="3">
+                        <div class="scene-canvas">
+                            <div class="scene-illustration">
+                                <div class="cut-scene-wrap">
+                                    <img class="cut-stage-img" src="images/永定牛肉丸/步骤四.png" alt="清水入锅" />
+                                    <!-- 热区：清水 -->
+                                    <div class="hotspot" data-popup="waterHeat" style="left:44%;top:38%;width:80px;height:70px;"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="step-caption">
+                            <div class="step-label">④ 清水入锅 · 文火烧热</div>
+                            <div class="step-desc">在锅里加入适量清水，烧热。</div>
+                        </div>
+                    </div>
+
+                    <!-- ===== 场景5：捏丸入锅温水定型 ===== -->
+                    <div class="scene-slide" data-step="4">
+                        <div class="scene-canvas">
+                            <div class="scene-illustration">
+                                <div class="cut-scene-wrap">
+                                    <img class="cut-stage-img" src="images/永定牛肉丸/步骤五.png" alt="捏丸入锅" style="max-width:82%;" />
+                                    <!-- 热区：入锅 -->
+                                    <div class="hotspot" data-popup="shaping" style="left:44%;top:38%;width:80px;height:70px;"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="step-caption">
+                            <div class="step-label">⑤ 捏丸入锅 · 温水定型</div>
+                            <div class="step-desc">将肉糜捏成2公分大小的丸子，下入锅中定型，在清水未沸即沸的时候就下入丸子定型，是肉丸弹而不硬、嫩而不柴的关键。</div>
+                        </div>
+                    </div>
+
+                    <!-- ===== 场景6：过凉冷却紧致口感 ===== -->
+                    <div class="scene-slide" data-step="5">
+                        <div class="scene-canvas">
+                            <div class="scene-illustration">
+                                <div class="cut-scene-wrap">
+                                    <img class="cut-stage-img" src="images/永定牛肉丸/步骤六.png" alt="过凉冷却" />
+                                    <!-- 热区：冷却 -->
+                                    <div class="hotspot" data-popup="iceWater" style="left:44%;top:38%;width:80px;height:70px;"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="step-caption">
+                            <div class="step-label">⑥ 过凉冷却 · 紧致口感</div>
+                            <div class="step-desc">将定型牛肉丸捞出，盛入凉水中冷却。</div>
+                        </div>
+                    </div>
+
+                    <!-- ===== 场景7：鱿鱼干烧沸同煮 ===== -->
+                    <div class="scene-slide" data-step="6">
+                        <div class="scene-canvas">
+                            <div class="scene-illustration">
+                                <div class="cut-scene-wrap">
+                                    <img class="cut-stage-img" src="images/永定牛肉丸/步骤七.png" alt="鱿鱼干烧沸" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="step-caption">
+                            <div class="step-label">⑦ 鱿鱼干烧沸 · 同煮提鲜</div>
+                            <div class="step-desc">锅内下入鱿鱼干，烧沸。将牛肉丸同浸泡的凉水一起下入锅中，可以使牛肉丸更加清甜爽口。</div>
+                        </div>
+                    </div>
+
+                    <!-- ===== 场景8：出锅撒料成品上桌 ===== -->
+                    <div class="scene-slide" data-step="7">
+                        <div class="scene-canvas">
+                            <div class="scene-illustration">
+                                <div class="cut-scene-wrap">
+                                    <img class="cut-stage-img" src="images/永定牛肉丸/步骤八.png" alt="出锅撒料" />
+                                    <!-- 热区：成品 -->
+                                    <div class="hotspot" data-popup="final" style="left:38%;top:30%;width:70px;height:70px;"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="step-caption">
+                            <div class="step-label">⑧ 出锅撒料 · 成品上桌</div>
+                            <div class="step-desc">将煮好的牛肉丸盛入碗中，撒上葱花、胡椒。</div>
+                        </div>
+                    </div>
+
+                    <!-- 左右箭头 -->
+                    <div class="nav-arrow prev" id="prevStep">‹</div>
+                    <div class="nav-arrow next" id="nextStep">›</div>
+                </div>
+
+                <!-- 底部进度指示器 -->
+                <div class="progress-bar" id="progressDots">
+                    <div class="progress-dot active" data-index="0"></div>
+                    <div class="progress-dot" data-index="1"></div>
+                    <div class="progress-dot" data-index="2"></div>
+                    <div class="progress-dot" data-index="3"></div>
+                    <div class="progress-dot" data-index="4"></div>
+                    <div class="progress-dot" data-index="5"></div>
+                    <div class="progress-dot" data-index="6"></div>
+                    <div class="progress-dot" data-index="7"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== 右侧内容区 ==================== -->
+        <div class="right-panel">
+
+            <!-- 右上：成品展示图 -->
+            <div class="right-top">
+                <img src="images/永定牛肉丸/永定牛肉丸.png" alt="永定牛肉丸成品" />
+            </div>
+
+            <!-- 右下：历史起源 -->
+            <div class="right-bottom">
+                <div class="rb-title">
+                    <img src="images/永定牛肉丸/历史起源.png" alt="历史起源" style="width:65%;height:auto;display:block;" />
+                </div>
+                <div class="rb-content">
+                    
+                    <p>
+                        下洋镇有着长达数百年的食牛史，当地人把吃牛开发到了极致，牛身从头到脚、从里到外，一头牛就能做出上百种菜肴，并成就最具代表性的永定特色美食——全牛宴。"永定全牛宴"涵盖了从"头"吃到"脚"，从"外"吃到"内"的各种美食：卤盘牛系列、红烧牛排、香炸牛胸仁、椒盐牛蹄、爆炒牛八脆、黄焖牛尾、牛鞭巴戟天汤、牛肉兜汤、芋子包、牛肉丸等10道牛系列菜品。在"牛系列"中，最负盛名的当数<strong>下洋牛肉丸</strong>。
+                    </p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    </div>
+
+    <!-- ===== 知识弹窗容器 ===== -->
+    <div class="knowledge-popup" id="knowledgePopup">
+        <span class="popup-close" id="popupClose">✕</span>
+        <div class="popup-title" id="popupTitle">工艺知识</div>
+        <div id="popupBody"></div>
+    </div>
+
+    <script>
+    (function() {
+        'use strict';
+
+        /* =============================
+           1. 工序数据
+           ============================= */
+        var TOTAL_STEPS = 8;
+        var currentStep = 0;
+        var isTransitioning = false;
+
+        /* =============================
+           2. 知识弹窗数据
+           ============================= */
+        var knowledgeData = {
+            meat: {
+                title: '选肉之妙',
+                body: '永定牛肉丸精选牛后腿肉，此处肉质紧实、筋膜较少，是制作牛肉丸的上佳之选。剔除筋膜后方可保证成品口感细腻无渣。'
+            },
+            mortar: {
+                title: '石臼捶打的奥秘',
+                body: '使用石臼而非机械绞肉，是因为石锤捶打能保留肉质纤维的完整性，使肉丸在口中呈现"弹、韧、滑"的层次感。千次捶打，方得一丸。'
+            },
+            warmWater: {
+                title: '控温关键',
+                body: '水温控制在80-90°C是牛肉丸定型的关键。水温过低，丸子散不成形；水温过高，丸子表面起泡变老。客家人凭经验以"蟹目水"（水底冒小泡如蟹眼）为度。'
+            },
+            waterHeat: {
+                title: '文火控温',
+                body: '永定牛肉丸制作中，水温的把控至关重要。清水入锅，文火烧至约80-90°C（蟹目水——水底冒小泡如蟹眼），此时最适宜入丸定型。水温过低丸子易散，过高则表面起泡变老，客家人凭世代经验以目测火候，尽显匠心。'
+            },
+            shaping: {
+                title: '虎口挤丸',
+                body: '"虎口挤丸"是客家师傅的绝活：左手握肉糜，拇指与食指收紧成环，用力一挤，肉糜从虎口出，圆润光滑。一挤一舀间，尽显功夫。'
+            },
+            iceWater: {
+                title: '过凉激弹',
+                body: '刚出锅的牛肉丸立刻投入冰水，利用热胀冷缩的原理使肉质骤然收紧，成就"弹牙"口感。这一步是永定牛肉丸Q弹爽脆的关键所在。'
+            },
+            final: {
+                title: '地道吃法',
+                body: '地道的永定牛肉丸汤，汤色清澈见底，丸体饱满圆润。咬开时肉汁在口中迸发，鲜香四溢。配以永定特制辣椒酱，更是别有一番风味。'
+            }
+        };
+
+        /* =============================
+           3. 切换工序
+           ============================= */
+        function goToStep(index) {
+            if (isTransitioning) return;
+            if (index < 0 || index >= TOTAL_STEPS) return;
+            if (index === currentStep) return;
+
+            isTransitioning = true;
+
+            var slides = document.querySelectorAll('.scene-slide');
+            var dots = document.querySelectorAll('.progress-dot');
+
+            // 淡出当前
+            slides[currentStep].classList.remove('active');
+
+            // 更新步进
+            currentStep = index;
+
+            // 淡入新
+            setTimeout(function() {
+                slides.forEach(function(s, i) {
+                    s.classList.toggle('active', i === currentStep);
+                });
+                dots.forEach(function(d, i) {
+                    d.classList.toggle('active', i === currentStep);
+                });
+                updateArrows();
+                // 切到步骤0时重置切肉状态，切到步骤1时重置捶肉状态，切到步骤2时重置备料状态
+                if (currentStep === 0 && window.resetCutScene) {
+                    window.resetCutScene();
+                }
+                if (currentStep === 1 && window.resetSeasonScene) {
+                    window.resetSeasonScene();
+                }
+                if (currentStep === 2 && window.resetPrepScene) {
+                    window.resetPrepScene();
+                }
+                // 步骤八：显示制作完成
+                if (currentStep === 7) {
+                    var finalSlide = document.querySelector('.scene-slide[data-step="7"] .cut-scene-wrap');
+                    if (finalSlide) {
+                        setTimeout(function() {
+                            showCompleteBadge(finalSlide, '永定牛肉丸制作完成 ✓');
+                        }, 400);
+                    }
+                }
+                isTransitioning = false;
+            }, 80);
+        }
+
+        function nextStep() {
+            if (currentStep < TOTAL_STEPS - 1) goToStep(currentStep + 1);
+        }
+        function prevStep() {
+            if (currentStep > 0) goToStep(currentStep - 1);
+        }
+
+        function updateArrows() {
+            var prev = document.getElementById('prevStep');
+            var next = document.getElementById('nextStep');
+            prev.classList.toggle('disabled', currentStep === 0);
+            next.classList.toggle('disabled', currentStep === TOTAL_STEPS - 1);
+        }
+
+        /* =============================
+           4. 知识弹窗系统
+           ============================= */
+        var popup = document.getElementById('knowledgePopup');
+        var popupTitle = document.getElementById('popupTitle');
+        var popupBody = document.getElementById('popupBody');
+        var popupClose = document.getElementById('popupClose');
+
+        function showPopup(key, x, y) {
+            var data = knowledgeData[key];
+            if (!data) return;
+            popupTitle.textContent = data.title;
+            popupBody.textContent = data.body;
+
+            // 定位弹窗
+            var w = Math.min(360, window.innerWidth - 40);
+            var left = Math.min(x, window.innerWidth - w - 20);
+            var top = Math.min(y, window.innerHeight - 240);
+            top = Math.max(top, 100);
+            left = Math.max(left, 20);
+
+            popup.style.left = left + 'px';
+            popup.style.top = top + 'px';
+            popup.style.maxWidth = w + 'px';
+            popup.classList.add('show');
+        }
+
+        function hidePopup() {
+            popup.classList.remove('show');
+        }
+
+        // 热区点击
+        document.querySelectorAll('.hotspot').forEach(function(el) {
+            el.addEventListener('click', function(e) {
+                e.stopPropagation();
+                var key = el.getAttribute('data-popup');
+                var rect = el.getBoundingClientRect();
+                showPopup(key, rect.right + 10, rect.top - 20);
+            });
+        });
+
+        // 关闭弹窗
+        popupClose.addEventListener('click', function(e) {
+            e.stopPropagation();
+            hidePopup();
+        });
+        document.addEventListener('click', function(e) {
+            if (popup.classList.contains('show') && !popup.contains(e.target)) {
+                hidePopup();
+            }
+        });
+
+        /* =============================
+           5. 🎯 共享交互工具函数
+           ============================= */
+
+        // — 点击波纹 —
+        function createClickRipple(e, container) {
+            var rect = container.getBoundingClientRect();
+            var ripple = document.createElement('div');
+            ripple.className = 'click-ripple';
+            ripple.style.left = (e.clientX - rect.left) + 'px';
+            ripple.style.top = (e.clientY - rect.top) + 'px';
+            container.appendChild(ripple);
+            setTimeout(function() { if (ripple.parentNode) ripple.parentNode.removeChild(ripple); }, 650);
+        }
+
+        // — 🎉 庆祝粒子爆发 —
+        function createCelebration(container, count, colors) {
+            if (!container) return;
+            colors = colors || ['#d4a84a','#e8c86a','#f0e0a0','#c47a5a','#5a8a4a','#d4b888','#ffd700','#ff6b6b'];
+            var rect = container.getBoundingClientRect();
+            var cx = rect.width / 2;
+            var cy = rect.height / 2;
+            for (var i = 0; i < count; i++) {
+                (function(idx) {
+                    var p = document.createElement('div');
+                    p.className = 'celeb-particle';
+                    var angle = Math.random() * Math.PI * 2;
+                    var dist = 40 + Math.random() * 100;
+                    p.style.setProperty('--cx', Math.cos(angle) * dist + 'px');
+                    p.style.setProperty('--cy', Math.sin(angle) * dist + 'px');
+                    p.style.left = cx + 'px';
+                    p.style.top = cy + 'px';
+                    p.style.width = (4 + Math.random() * 8) + 'px';
+                    p.style.height = p.style.width;
+                    p.style.background = colors[idx % colors.length];
+                    p.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+                    container.appendChild(p);
+                    void p.offsetWidth;
+                    p.classList.add('burst');
+                    setTimeout(function() { if (p.parentNode) p.parentNode.removeChild(p); }, 900);
+                })(i);
+            }
+        }
+
+        // — ✨ 完成徽章 —
+        function showCompleteBadge(container, text) {
+            if (!container) return;
+            text = text || '完成 ✓';
+            // 移除旧徽章
+            var old = container.querySelector('.complete-badge');
+            if (old) old.remove();
+            var badge = document.createElement('div');
+            badge.className = 'complete-badge';
+            badge.innerHTML = '<div class="badge-text">' + text + '</div>';
+            badge.style.left = '50%';
+            badge.style.top = '40%';
+            badge.style.transform = 'translate(-50%,-50%) scale(0.3)';
+            container.appendChild(badge);
+            void badge.offsetWidth;
+            badge.classList.add('show');
+            // 同时爆发粒子
+            createCelebration(container, 20, ['#ffd700','#e8c86a','#ff6b6b','#5a8a4a','#d4a84a','#fff4d0']);
+            // 5秒后消失
+            setTimeout(function() {
+                badge.classList.remove('show');
+                setTimeout(function() { if (badge.parentNode) badge.parentNode.removeChild(badge); }, 500);
+            }, 4000);
+        }
+
+        // — 更新子步骤计数 —
+        function updateStageCounter(dots, stage, total) {
+            var container = dots[0] && dots[0].closest('.cut-progress');
+            if (!container) return;
+            var old = container.querySelector('.stage-counter');
+            if (!old) {
+                var c = document.createElement('div');
+                c.className = 'stage-counter';
+                container.appendChild(c);
+            }
+            var counter = container.querySelector('.stage-counter');
+            if (stage >= total - 1) {
+                counter.textContent = '';
+                counter.style.display = 'none';
+            } else {
+                counter.textContent = (stage + 1) + '/' + total;
+                counter.style.color = '#8b6a2a';
+                counter.style.borderColor = 'rgba(139,106,42,0.25)';
+            }
+        }
+
+        /* =============================
+           6. 箭头导航
+           ============================= */
+        document.getElementById('prevStep').addEventListener('click', prevStep);
+        document.getElementById('nextStep').addEventListener('click', nextStep);
+
+        // 圆点导航
+        document.querySelectorAll('.progress-dot').forEach(function(dot) {
+            dot.addEventListener('click', function() {
+                var idx = parseInt(dot.getAttribute('data-index'), 10);
+                goToStep(idx);
+            });
+        });
+
+        // 键盘导航
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'ArrowLeft') prevStep();
+            if (e.key === 'ArrowRight') nextStep();
+        });
+
+        /* =============================
+           7. ★ 核心交互：场景1 切肉三阶段
+           ============================= */
+        (function() {
+            var cutStage = 0;
+            var isCutting = false;
+            var CUT_IMAGES = [
+                'images/永定牛肉丸/第一个步骤1.png',
+                'images/永定牛肉丸/第一个步骤2.png',
+                'images/永定牛肉丸/第一个步骤3.png'
+            ];
+            var CUT_LABELS = [
+                '① 精切肉片 · 厚薄得当',
+                '① 精切肉片 · 厚薄得当',
+                '① 精切肉片 · 厚薄得当'
+            ];
+            var CUT_DESCS = [
+                '将洗净的本地黄牛后腿肉置于案板上，切成薄厚恰当的大肉片。',
+                '手起刀落，将大块牛肉均匀切开，每一刀的力度与角度都关乎口感。',
+                '肉片厚薄均匀、纹理分明，为后续捶打工序做好准备。'
+            ];
+            var TOTAL_CUT = 3;
+
+            var cutImg = document.getElementById('cutStageImg');
+            var knifeIcon = document.getElementById('knifeIcon');
+            var knifeHint = document.getElementById('knifeHint');
+            var cutLabel = document.getElementById('cutLabel');
+            var cutDesc = document.getElementById('cutDesc');
+            var cutDots = document.querySelectorAll('.cut-dot');
+            var knifeArea = document.getElementById('knifeArea');
+            var cutSceneWrap = document.querySelector('#cutScene .cut-scene-wrap');
+
+            // 暴露重置函数给 goToStep 使用
+            window.resetCutScene = function() {
+                if (cutStage === 0) return;
+                cutStage = 0;
+                isCutting = false;
+                if (cutImg) cutImg.src = CUT_IMAGES[0];
+                if (cutLabel) cutLabel.textContent = CUT_LABELS[0];
+                if (cutDesc) cutDesc.textContent = CUT_DESCS[0];
+                if (knifeHint) knifeHint.classList.remove('hidden');
+                cutDots.forEach(function(d, i) {
+                    d.classList.toggle('active', i === 0);
+                    d.classList.remove('done');
+                });
+                updateStageCounter(cutDots, 0, TOTAL_CUT);
+                // 移除完成徽章
+                if (cutSceneWrap) {
+                    var old = cutSceneWrap.querySelector('.complete-badge');
+                    if (old) old.remove();
+                }
+            };
+
+            function advanceCut(e) {
+                if (isCutting) return;
+                if (cutStage >= 2) return;
+                isCutting = true;
+
+                // 点击波纹
+                if (cutSceneWrap && e) createClickRipple(e, cutSceneWrap);
+
+                // 刀的砍切动画
+                if (knifeIcon) {
+                    knifeIcon.classList.remove('chop');
+                    void knifeIcon.offsetWidth;
+                    knifeIcon.classList.add('chop');
+                }
+
+                // 音效
+                try {
+                    var ctx = new (window.AudioContext || window.webkitAudioContext)();
+                    var osc = ctx.createOscillator();
+                    var gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.frequency.value = 300 + Math.random() * 100;
+                    osc.type = 'sine';
+                    gain.gain.setValueAtTime(0.2, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+                    osc.start(ctx.currentTime);
+                    osc.stop(ctx.currentTime + 0.15);
+                } catch(e) {}
+
+                setTimeout(function() {
+                    cutStage++;
+                    if (cutImg) cutImg.src = CUT_IMAGES[cutStage];
+                    if (cutLabel) cutLabel.textContent = CUT_LABELS[cutStage];
+                    if (cutDesc) cutDesc.textContent = CUT_DESCS[cutStage];
+                    cutDots.forEach(function(d, i) {
+                        d.classList.toggle('active', i === cutStage);
+                        if (i < cutStage) d.classList.add('done');
+                    });
+                    updateStageCounter(cutDots, cutStage, TOTAL_CUT);
+                    // 🎉 小庆祝
+                    if (cutSceneWrap) createCelebration(cutSceneWrap, 8);
+                    // ✨ 全部完成大庆祝
+                    if (cutStage === 2) {
+                        if (knifeHint) knifeHint.classList.add('hidden');
+                        setTimeout(function() {
+                            if (cutSceneWrap) showCompleteBadge(cutSceneWrap, '切肉完成 ✓');
+                        }, 300);
+                    }
+                    isCutting = false;
+                }, 450);
+            }
+
+            if (knifeArea) {
+                knifeArea.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    advanceCut(e);
+                });
+            }
+            // 初始化计数
+            updateStageCounter(cutDots, 0, TOTAL_CUT);
+        })();
+
+        /* =============================
+           8. ★ 核心交互：场景2 加料三阶段
+           ============================= */
+        (function() {
+            var seasonStage = 0;
+            var isSprinkling = false;
+            var SEASON_IMAGES = [
+                'images/永定牛肉丸/第二个步骤1.png',
+                'images/永定牛肉丸/第二个步骤2.png',
+                'images/永定牛肉丸/第二个步骤3.png'
+            ];
+            var SEASON_DESCS = [
+                '加入适当盐巴、蛤晶、木薯粉',
+                '一边捶打一边加入适当盐巴、蛤晶、木薯粉，直至锤成肉糜',
+                '使肉色转为鲜红柔韧'
+            ];
+            var TOTAL_SEASON = 3;
+
+            var img = document.getElementById('seasonStageImg');
+            var spoon = document.getElementById('seasonSpoon');
+            var hint = document.getElementById('seasonHint');
+            var label = document.getElementById('seasonLabel');
+            var desc = document.getElementById('seasonDesc');
+            var dots = document.querySelectorAll('#seasonProgress .cut-dot');
+            var spoonArea = document.getElementById('seasonSpoonArea');
+            var hammerArea = document.getElementById('seasonHammerArea');
+            var hammerIcon = document.getElementById('seasonHammerIcon');
+            var hammerHint = document.getElementById('seasonHammerHint');
+            var seasonSceneWrap = document.querySelector('#seasonScene .cut-scene-wrap');
+
+            // 创建撒料粒子容器
+            var particleContainer = document.createElement('div');
+            particleContainer.style.cssText = 'position:absolute;inset:0;pointer-events:none;z-index:16;';
+            var illus = document.getElementById('seasonScene');
+            if (illus) illus.appendChild(particleContainer);
+
+            function createSprinkle() {
+                var colors = ['#e8d4a0', '#d4b060', '#c49a4a', '#f0e0b0', '#b8923a', '#fff4d0'];
+                for (var i = 0; i < 12; i++) {
+                    var p = document.createElement('div');
+                    p.className = 'sprinkle-particle';
+                    var angle = Math.random() * Math.PI * 2;
+                    var dist = 30 + Math.random() * 60;
+                    p.style.setProperty('--sx', Math.cos(angle) * dist + 'px');
+                    p.style.setProperty('--sy', Math.sin(angle) * dist + 'px');
+                    p.style.left = (45 + Math.random() * 10) + '%';
+                    p.style.top = (30 + Math.random() * 10) + '%';
+                    p.style.width = (3 + Math.random() * 4) + 'px';
+                    p.style.height = p.style.width;
+                    p.style.background = colors[i % colors.length];
+                    particleContainer.appendChild(p);
+                    void p.offsetWidth;
+                    p.classList.add('fall');
+                    setTimeout(function(p) { if (p.parentNode) p.parentNode.removeChild(p); }, 700 + i * 30);
+                }
+            }
+
+            window.resetSeasonScene = function() {
+                if (seasonStage === 0) return;
+                seasonStage = 0;
+                isSprinkling = false;
+                if (img) img.src = SEASON_IMAGES[0];
+                if (label) label.textContent = '② 辅料入味 · 精调五味';
+                if (desc) desc.textContent = SEASON_DESCS[0];
+                if (hint) hint.classList.remove('hidden');
+                if (hammerHint) hammerHint.classList.remove('hidden');
+                if (spoonArea) { spoonArea.style.opacity = '1'; spoonArea.style.pointerEvents = 'auto'; }
+                if (hammerArea) { hammerArea.style.opacity = '0'; hammerArea.style.pointerEvents = 'none'; }
+                dots.forEach(function(d, i) {
+                    d.classList.toggle('active', i === 0);
+                    d.classList.remove('done');
+                });
+                updateStageCounter(dots, 0, TOTAL_SEASON);
+                if (particleContainer) { while (particleContainer.firstChild) particleContainer.removeChild(particleContainer.firstChild); }
+                if (seasonSceneWrap) { var old = seasonSceneWrap.querySelector('.complete-badge'); if (old) old.remove(); }
+            };
+
+            function advanceSeason(e) {
+                if (isSprinkling) return;
+                if (seasonStage >= 2) return;
+                isSprinkling = true;
+
+                // 点击波纹
+                if (seasonSceneWrap && e) createClickRipple(e, seasonSceneWrap);
+
+                if (seasonStage === 0) {
+                    if (spoon) { spoon.classList.remove('shake'); void spoon.offsetWidth; spoon.classList.add('shake'); }
+                    createSprinkle();
+                    try {
+                        var ctx = new (window.AudioContext || window.webkitAudioContext)();
+                        for (var i = 0; i < 6; i++) {
+                            (function(idx) {
+                                var osc = ctx.createOscillator();
+                                var gain = ctx.createGain();
+                                osc.connect(gain); gain.connect(ctx.destination);
+                                osc.frequency.value = 800 + Math.random() * 1200;
+                                osc.type = 'sine';
+                                var start = ctx.currentTime + idx * 0.04;
+                                gain.gain.setValueAtTime(0.04, start);
+                                gain.gain.exponentialRampToValueAtTime(0.001, start + 0.08);
+                                osc.start(start); osc.stop(start + 0.08);
+                            })(i);
+                        }
+                    } catch(e) {}
+                } else {
+                    if (hammerIcon) { hammerIcon.classList.remove('smash'); void hammerIcon.offsetWidth; hammerIcon.classList.add('smash'); }
+                    try {
+                        var ctx2 = new (window.AudioContext || window.webkitAudioContext)();
+                        var osc2 = ctx2.createOscillator();
+                        var gain2 = ctx2.createGain();
+                        osc2.connect(gain2); gain2.connect(ctx2.destination);
+                        osc2.frequency.value = 120 + Math.random() * 60;
+                        osc2.type = 'sine';
+                        gain2.gain.setValueAtTime(0.35, ctx2.currentTime);
+                        gain2.gain.exponentialRampToValueAtTime(0.001, ctx2.currentTime + 0.25);
+                        osc2.start(ctx2.currentTime); osc2.stop(ctx2.currentTime + 0.25);
+                    } catch(e) {}
+                }
+
+                setTimeout(function() {
+                    seasonStage++;
+                    if (img) img.src = SEASON_IMAGES[seasonStage];
+                    if (desc) desc.textContent = SEASON_DESCS[seasonStage];
+                    dots.forEach(function(d, i) {
+                        d.classList.toggle('active', i === seasonStage);
+                        if (i < seasonStage) d.classList.add('done');
+                    });
+                    updateStageCounter(dots, seasonStage, TOTAL_SEASON);
+                    // 🎉 小庆祝
+                    if (seasonSceneWrap) createCelebration(seasonSceneWrap, 8);
+
+                    if (seasonStage === 1) {
+                        if (spoonArea) { spoonArea.style.opacity = '0'; spoonArea.style.pointerEvents = 'none'; }
+                        if (hammerArea) { hammerArea.style.opacity = '1'; hammerArea.style.pointerEvents = 'auto'; }
+                    }
+                    if (seasonStage === 2) {
+                        if (hint) hint.classList.add('hidden');
+                        if (hammerHint) hammerHint.classList.add('hidden');
+                        setTimeout(function() {
+                            if (seasonSceneWrap) showCompleteBadge(seasonSceneWrap, '捶打完成 ✓');
+                        }, 300);
+                    }
+                    isSprinkling = false;
+                }, 550);
+            }
+
+            if (spoonArea) {
+                spoonArea.addEventListener('click', function(e) { e.stopPropagation(); if (seasonStage === 0) advanceSeason(e); });
+            }
+            if (hammerArea) {
+                hammerArea.addEventListener('click', function(e) { e.stopPropagation(); if (seasonStage >= 1 && seasonStage < 2) advanceSeason(e); });
+            }
+            updateStageCounter(dots, 0, TOTAL_SEASON);
+        })();
+
+        /* =============================
+           8. ★ 核心交互：场景3 备料三阶段
+           ============================= */
+        (function() {
+            var prepStage = 0;
+            var isPrepping = false;
+            var TOTAL_PREP = 3;
+            var PREP_IMAGES = [
+                'images/永定牛肉丸/步骤三1.png',
+                'images/永定牛肉丸/步骤三2.png',
+                'images/永定牛肉丸/步骤三3.png'
+            ];
+            var PREP_DESCS = [
+                '将鱿鱼干置于清水中，浸泡三分钟。',
+                '泡发后，用剪刀剪碎。',
+                '葱切成葱花备用。'
+            ];
+
+            var img = document.getElementById('prepStageImg');
+            var scissor = document.getElementById('prepScissorIcon');
+            var hint = document.getElementById('prepHint');
+            var clickHint = document.getElementById('prepClickHint');
+            var label = document.getElementById('prepLabel');
+            var desc = document.getElementById('prepDesc');
+            var dots = document.querySelectorAll('#prepProgress .cut-dot');
+            var area = document.getElementById('prepScissorArea');
+            var sceneWrap = document.querySelector('#prepScene .cut-scene-wrap');
+
+            window.resetPrepScene = function() {
+                if (prepStage === 0) return;
+                prepStage = 0;
+                isPrepping = false;
+                if (img) img.src = PREP_IMAGES[0];
+                if (label) label.textContent = '③ 鱿鱼葱花 · 备料提鲜';
+                if (desc) desc.textContent = PREP_DESCS[0];
+                if (area) area.classList.remove('show');
+                if (hint) hint.classList.remove('hidden');
+                if (clickHint) clickHint.style.display = 'flex';
+                dots.forEach(function(d, i) {
+                    d.classList.toggle('active', i === 0);
+                    d.classList.remove('done');
+                });
+                updateStageCounter(dots, 0, TOTAL_PREP);
+                if (sceneWrap) { var old = sceneWrap.querySelector('.complete-badge'); if (old) old.remove(); }
+            };
+
+            function advancePrep(e) {
+                if (isPrepping) return;
+                if (prepStage >= 2) return;
+                isPrepping = true;
+
+                // 点击波纹
+                if (sceneWrap && e) createClickRipple(e, sceneWrap);
+
+                // 隐藏阶段1点击提示
+                if (prepStage === 0 && clickHint) clickHint.style.display = 'none';
+
+                if (prepStage === 1) {
+                    if (scissor) { scissor.classList.remove('snip'); void scissor.offsetWidth; scissor.classList.add('snip'); }
+                    try {
+                        var ctx = new (window.AudioContext || window.webkitAudioContext)();
+                        for (var i = 0; i < 3; i++) {
+                            (function(idx) {
+                                var osc = ctx.createOscillator();
+                                var gain = ctx.createGain();
+                                osc.connect(gain); gain.connect(ctx.destination);
+                                osc.frequency.value = 600 + idx * 400;
+                                osc.type = 'square';
+                                var start = ctx.currentTime + idx * 0.06;
+                                gain.gain.setValueAtTime(0.08, start);
+                                gain.gain.exponentialRampToValueAtTime(0.001, start + 0.05);
+                                osc.start(start); osc.stop(start + 0.05);
+                            })(i);
+                        }
+                    } catch(e) {}
+                }
+
+                setTimeout(function() {
+                    prepStage++;
+                    if (img) img.src = PREP_IMAGES[prepStage];
+                    if (desc) desc.textContent = PREP_DESCS[prepStage];
+                    dots.forEach(function(d, i) {
+                        d.classList.toggle('active', i === prepStage);
+                        if (i < prepStage) d.classList.add('done');
+                    });
+                    updateStageCounter(dots, prepStage, TOTAL_PREP);
+                    // 🎉 小庆祝
+                    if (sceneWrap) createCelebration(sceneWrap, 8);
+
+                    if (prepStage === 1) {
+                        if (area) area.classList.add('show');
+                        if (hint) hint.classList.remove('hidden');
+                    }
+                    if (prepStage === 2) {
+                        if (area) area.classList.remove('show');
+                        if (hint) hint.classList.add('hidden');
+                        setTimeout(function() {
+                            if (sceneWrap) showCompleteBadge(sceneWrap, '备菜完成 ✓');
+                        }, 300);
+                    }
+                    isPrepping = false;
+                }, 450);
+            }
+
+            if (sceneWrap) {
+                sceneWrap.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    advancePrep(e);
+                });
+            }
+            updateStageCounter(dots, 0, TOTAL_PREP);
+        })();
+
+        /* =============================
+           10. 🎯 步骤4-8互动增强
+           ============================= */
+        (function() {
+            // 为步骤4-8的静态步骤图片增加点击反馈
+            var staticSteps = [3, 4, 5, 6, 7]; // data-step 0-7, 步骤4→index3
+            staticSteps.forEach(function(n) {
+                var step = document.querySelector('.scene-slide[data-step="' + n + '"]');
+                if (!step) return;
+                var wrap = step.querySelector('.cut-scene-wrap');
+
+                // ★ 在每个hotspot旁边添加可见标签
+                var hotspots = step.querySelectorAll('.hotspot');
+                hotspots.forEach(function(h, idx) {
+                    if (h.querySelector('.hotspot-label')) return;
+                    var label = document.createElement('div');
+                    label.className = 'hotspot-label';
+                    label.textContent = '🔍 点击查看';
+                    label.style.cssText = 'position:absolute;bottom:-10px;left:50%;transform:translateX(-50%);z-index:15;background:rgba(180,80,40,0.85);color:#fff;font-size:clamp(11px,0.85vw,14px);padding:3px 12px;border-radius:14px;white-space:nowrap;font-family:"Ma Shan Zheng",serif;letter-spacing:1px;pointer-events:none;border:1px solid rgba(255,255,255,0.15);box-shadow:0 3px 12px rgba(0,0,0,0.2);animation:pulse-hint 2s ease-in-out infinite;';
+                    h.appendChild(label);
+                });
+
+                function triggerStaticClick(e) {
+                    // 波纹反馈
+                    if (e) createClickRipple(e, step);
+                    else {
+                        var fakeEv = { clientX: step.offsetLeft + step.offsetWidth/2, clientY: step.offsetTop + step.offsetHeight/2 };
+                        createClickRipple(fakeEv, step);
+                    }
+                    // 小粒子
+                    createCelebration(step, 5, ['#d4a84a','#e8c86a','#f0e0a0','#c47a5a']);
+                    // 闪烁所有热区并触发弹窗
+                    var stepHotspots = step.querySelectorAll('.hotspot');
+                    stepHotspots.forEach(function(h) {
+                        // 强烈闪烁
+                        h.style.transition = 'none';
+                        h.style.background = 'rgba(255,200,80,0.3)';
+                        h.style.borderColor = '#ffd700';
+                        h.style.boxShadow = '0 0 30px rgba(255,215,0,0.6)';
+                        setTimeout(function() {
+                            h.style.transition = 'all 0.5s ease';
+                            h.style.background = 'rgba(212,168,74,0.08)';
+                            h.style.borderColor = 'rgba(212,168,74,0.35)';
+                            h.style.boxShadow = '0 0 16px rgba(200,160,80,0.25)';
+                        }, 800);
+                        // 触发知识弹窗
+                        var popupId = h.getAttribute('data-popup');
+                        if (popupId) {
+                            var allPopups = document.querySelectorAll('.knowledge-popup');
+                            for (var k = 0; k < allPopups.length; k++) {
+                                if (allPopups[k].getAttribute('data-popup') === popupId) {
+                                    allPopups[k].classList.add('show');
+                                    setTimeout(function(p) { p.classList.remove('show'); }, 4000);
+                                }
+                            }
+                        }
+                    });
+                }
+
+                var img = step.querySelector('.cut-stage-img');
+                if (img) {
+                    img.style.cursor = 'pointer';
+                    img.addEventListener('click', function(e) { e.stopPropagation(); triggerStaticClick(e); });
+                }
+            });
+        })();
+
+        /* =============================
+           11. 初始化
+           ============================= */
+        updateArrows();
+
+        // 如果场景2处于活动状态，确保加料交互可用
+        // （已经由点击事件处理）
+
+        console.log('永定牛肉丸 · 非遗美食页面已加载');
+    })();
+    </script>
+
+    <script>
+    (function() {
+        if (window.location.search.indexOf('embed=true') !== -1) {
+            var btns = document.querySelectorAll('.back-btn');
+            for (var i = 0; i < btns.length; i++) btns[i].style.display = 'none';
+        } else {
+            var r = document.referrer || '';
+            if (r.indexOf('美食图鉴.html') !== -1) {
+                var btns = document.querySelectorAll('.back-btn');
+                for (var i = 0; i < btns.length; i++) btns[i].href = '美食图鉴.html';
+            }
+        }
+    })();
+    </script>
+
+</body>
+</html>

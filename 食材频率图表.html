@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>食材频率图表</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: transparent;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100%;
+            height: 100%;
+            padding: 0;
+            overflow: hidden;
+        }
+        html {
+            height: 100%;
+        }
+        .chart-wrap {
+            background: url('images/图表/食材背景.png') top/cover no-repeat;
+            border-radius: 16px;
+            width: 100%;
+            height: 100%;
+            min-height: 70vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 12px;
+            border: 2px solid rgba(180, 150, 110, 0.35);
+            box-shadow: inset 0 0 40px rgba(0,0,0,0.05);
+        }
+        .chart-wrap img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+    </style>
+</head>
+<body>
+    <div class="chart-wrap">
+        <img src="images/图表/食材频率图表.png" alt="食材频率图表" />
+    </div>
+</body>
+</html>

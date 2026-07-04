@@ -1,0 +1,1089 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>连城县盲盒|食在闽西，味在客家</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=ZCOOL+XiaoWei&display=swap');
+
+        /* ===== 全局重置 ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            font-family: "Ma Shan Zheng", "ZCOOL XiaoWei", "STXingkai", "霞鹜臻楷 GB 常规", "KaiTi", "楷体", serif;
+            background: #1a1410;
+        }
+
+        /* ===== 固定背景层 ===== */
+        .bg-fixed {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            background: url('images/背景图.png') center/cover no-repeat;
+        }
+
+        /* ===== 半透明遮罩 ===== */
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.08);
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        /* ===== 底部渐隐 ===== */
+        .vignette-bottom {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            height: 25%;
+            background: linear-gradient(0deg, rgba(26, 20, 16, 0.3) 0%, transparent 100%);
+            z-index: 3;
+            pointer-events: none;
+        }
+
+        /* ===== 左上角关闭按钮 ===== */
+        .close-btn {
+            position: fixed;
+            top: 20px;
+            left: 24px;
+            z-index: 50;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(40, 28, 18, 0.55);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(180, 150, 110, 0.35);
+            border-radius: 50%;
+            color: #ffffff;
+            font-size: 26px;
+            font-family: "Ma Shan Zheng", "ZCOOL XiaoWei", serif;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 16px rgba(0, 0, 0, 0.15);
+            line-height: 1;
+        }
+        .close-btn:hover {
+            background: rgba(200, 80, 80, 0.7);
+            border-color: rgba(200, 100, 100, 0.5);
+            transform: scale(1.1);
+            box-shadow: 0 4px 20px rgba(200, 80, 80, 0.3);
+        }
+
+        /* ===== 顶部导航栏（同时间长廊轮播） ===== */
+        .top-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 30;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding: 20px 50px;
+            pointer-events: none;
+        }
+        .top-bar > * {
+            pointer-events: auto;
+        }
+
+        .nav {
+            display: flex;
+            gap: 2px;
+            background: rgba(40, 28, 18, 0.55);
+            backdrop-filter: blur(10px);
+            padding: 4px 2px;
+            border-radius: 6px;
+            border: 1px solid rgba(180, 150, 110, 0.35);
+            box-shadow: 0 2px 16px rgba(0, 0, 0, 0.15), inset 0 0 20px rgba(180, 150, 110, 0.05);
+        }
+        .nav a {
+            display: block;
+            padding: 10px 22px;
+            font-size: 18px;
+            font-family: "Ma Shan Zheng", "ZCOOL XiaoWei", "STXingkai", "霞鹜臻楷 GB 常规", "KaiTi", serif;
+            color: #ffffff;
+            text-decoration: none;
+            letter-spacing: 4px;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+        }
+        .nav a:hover,
+        .nav a.active {
+            color: #fff6e0;
+            background: rgba(200, 160, 80, 0.25);
+            text-shadow: 0 0 16px rgba(232, 200, 122, 0.5);
+        }
+        .nav a.active {
+            background: rgba(200, 160, 80, 0.3);
+            color: #fff6e0;
+        }
+        .nav a + a {
+            border-left: 1px solid rgba(180, 150, 110, 0.12);
+        }
+
+        /* ===== 汉堡菜单按钮（移动端 - 固定在右上角） ===== */
+        .hamburger-btn {
+            display: none;
+            position: fixed;
+            top: 14px;
+            right: 18px;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+            width: 44px;
+            height: 44px;
+            background: rgba(40, 28, 18, 0.65);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(180, 150, 110, 0.35);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 1200;
+            padding: 0;
+        }
+        .hamburger-btn:hover {
+            background: rgba(60, 44, 30, 0.75);
+            border-color: rgba(200, 170, 130, 0.5);
+        }
+        .hamburger-btn span {
+            display: block;
+            width: 24px;
+            height: 2px;
+            background: #ffffff;
+            border-radius: 2px;
+            transition: all 0.3s ease;
+            transform-origin: center;
+        }
+        /* 汉堡图标 → 叉叉动画 */
+        .hamburger-btn.active span:nth-child(1) {
+            transform: translateY(7px) rotate(45deg);
+        }
+        .hamburger-btn.active span:nth-child(2) {
+            opacity: 0;
+            transform: scaleX(0);
+        }
+        .hamburger-btn.active span:nth-child(3) {
+            transform: translateY(-7px) rotate(-45deg);
+        }
+
+        /* ===== 移动端下拉菜单 ===== */
+        .mobile-nav-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 1101;
+            background: rgba(0, 0, 0, 0.25);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+        .mobile-nav-overlay.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .mobile-nav {
+            position: fixed;
+            top: 76px;
+            right: 18px;
+            width: 200px;
+            z-index: 1150;
+            background: rgba(35, 24, 16, 0.92);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(180, 150, 110, 0.25);
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            padding: 8px 0;
+            opacity: 0;
+            transform: translateY(-10px) scale(0.95);
+            transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+            pointer-events: none;
+        }
+        .mobile-nav.open {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            pointer-events: auto;
+        }
+        .mobile-nav a {
+            display: block;
+            padding: 12px 20px;
+            font-size: 17px;
+            font-family: "Ma Shan Zheng", "ZCOOL XiaoWei", "STXingkai", "霞鹜臻楷 GB 常规", "KaiTi", serif;
+            color: #e8d5b8;
+            text-decoration: none;
+            letter-spacing: 4px;
+            transition: all 0.25s ease;
+            text-align: center;
+        }
+        .mobile-nav a:hover,
+        .mobile-nav a.active {
+            color: #fff6e0;
+            background: rgba(200, 160, 80, 0.2);
+            text-shadow: 0 0 12px rgba(232, 200, 122, 0.3);
+        }
+        .mobile-nav a.active {
+            color: #ffd966;
+        }
+        .mobile-nav a + a {
+            border-top: 1px solid rgba(180, 150, 110, 0.08);
+        }
+
+        /* ===== 主体容器 — 横向三分布局 ===== */
+        .main-container {
+            position: fixed;
+            inset: 0;
+            z-index: 5;
+            display: flex;
+            align-items: stretch;
+            justify-content: center;
+            padding: 85px 40px 60px;
+            gap: 30px;
+        }
+
+        /* ===== 三个横向区块公用样式（无框框） ===== */
+        .col {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+        }
+
+        /* ===== 左列 ===== */
+        .col-left {
+            flex: 0 0 32%;
+            padding: 0;
+            justify-content: flex-start;
+            align-items: stretch;
+        }
+
+        /* 大标题图片容器 — 缩小小，给文字框留更多空间 */
+        .title-wrapper {
+            width: 60%;
+            margin: 0 auto 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            padding-top: 0;
+            transform: translateY(-18px);
+        }
+        .title-wrapper .title-img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* 地图边框容器 — 自适应高度，不限制宽高比 */
+        .map-border-wrapper {
+            position: relative;
+            width: 86%;
+            flex: 0 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 4px auto 0;
+            overflow: hidden;
+            background: url('images/地图边框.png') center/100% 100% no-repeat;
+        }
+        .map-border-wrapper .map-text {
+            position: relative;
+            z-index: 1;
+            font-family: "ZCOOL XiaoWei", "Noto Serif SC", "KaiTi", serif;
+            font-size: clamp(15px, 1.3vw, 19px);
+            line-height: 1.9;
+            color: #3a2210;
+            text-indent: 2em;
+            letter-spacing: 0.5px;
+            padding: 12% 14% 10%;
+            text-shadow: 0 1px 2px rgba(255, 255, 255, 0.3);
+            overflow: hidden;
+            word-break: break-word;
+        }
+
+        /* ===== 中列（32%） ===== */
+        .col-center {
+            flex: 0 0 32%;
+            justify-content: center;
+        }
+        .col-center img.center-img {
+            width: 120%;
+            height: auto;
+            object-fit: contain;
+        }
+
+        /* ===== 盲盒盖子交互 ===== */
+        .blindbox-wrapper {
+            position: relative;
+            width: 120%;
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+        .blindbox-wrapper .box-base {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        .blindbox-wrapper .lid-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: auto;
+            display: block;
+            transition: transform 0.9s cubic-bezier(0.34, 1.2, 0.64, 1);
+            will-change: transform;
+            pointer-events: none;
+        }
+        /* 初始状态：盖子向下覆盖住美食 */
+        .blindbox-wrapper .lid-overlay.closed {
+            transform: scale(1.30) translate(5%, 10%) rotate(7deg);
+        }
+        /* 点击后：盖子回到顶部（现在的初始位置） */
+        .blindbox-wrapper .lid-overlay.open {
+            transform: scale(1) translateY(0);
+        }
+        .blindbox-wrapper .click-hint {
+            position: absolute;
+            bottom: 8%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: "Ma Shan Zheng", "ZCOOL XiaoWei", "STXingkai", serif;
+            font-size: clamp(14px, 1.2vw, 20px);
+            color: #fff6e0;
+            text-shadow: 0 2px 12px rgba(0,0,0,0.6);
+            letter-spacing: 3px;
+            background: rgba(40, 28, 18, 0.6);
+            backdrop-filter: blur(4px);
+            padding: 6px 20px;
+            border-radius: 20px;
+            border: 1px solid rgba(200, 168, 110, 0.3);
+            pointer-events: none;
+            opacity: 1;
+            transition: opacity 0.5s ease;
+            animation: hintPulse 2.5s ease-in-out infinite;
+        }
+        .blindbox-wrapper .click-hint.hidden {
+            opacity: 0;
+        }
+        @keyframes hintPulse {
+            0%, 100% { transform: translateX(-50%) scale(1); opacity: 0.8; }
+            50% { transform: translateX(-50%) scale(1.05); opacity: 1; }
+        }
+
+        /* ===== 盲盒晃动效果 ===== */
+        @keyframes shakeBox {
+            0%   { transform: translateX(0) rotate(0deg); }
+            10%  { transform: translateX(-8px) rotate(-3deg); }
+            20%  { transform: translateX(8px) rotate(3deg); }
+            30%  { transform: translateX(-10px) rotate(-4deg); }
+            40%  { transform: translateX(10px) rotate(4deg); }
+            50%  { transform: translateX(-8px) rotate(-3deg); }
+            60%  { transform: translateX(8px) rotate(3deg); }
+            70%  { transform: translateX(-4px) rotate(-2deg); }
+            80%  { transform: translateX(4px) rotate(2deg); }
+            90%  { transform: translateX(-2px) rotate(-1deg); }
+            100% { transform: translateX(0) rotate(0deg); }
+        }
+        .blindbox-wrapper.shaking {
+            animation: shakeBox 0.6s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+        }
+        .blindbox-wrapper.shaking .click-hint {
+            animation: none;
+            opacity: 0;
+        }
+
+        /* ===== 右列（36%） — 上为文字框，下为美食图片 ===== */
+        .col-right {
+            flex: 0 0 36%;
+            justify-content: flex-start;
+            align-items: stretch;
+            padding-bottom: 140px;
+        }
+
+        /* 右侧文字框 — 与左下角地图边框文字框同风格 */
+        .right-text-wrapper {
+            position: relative;
+            width: 94%;
+            flex: 0 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 4px;
+            overflow: hidden;
+            background: url('images/文字边框.png') center/100% 100% no-repeat;
+        }
+        .right-text-wrapper .right-text {
+            position: relative;
+            z-index: 1;
+            font-family: "ZCOOL XiaoWei", "Noto Serif SC", "KaiTi", serif;
+            font-size: clamp(15px, 1.3vw, 19px);
+            line-height: 1.9;
+            color: #3a2210;
+            text-indent: 2em;
+            letter-spacing: 0.5px;
+            padding: 10% 14% 8%;
+            text-shadow: 0 1px 2px rgba(255, 255, 255, 0.3);
+            overflow: hidden;
+            word-break: break-word;
+        }
+
+        .food-section {
+            position: absolute;
+            bottom: 10px;
+            left: 0;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+        .food-section .food-label {
+            font-size: clamp(18px, 1.3vw, 24px);
+            color: #3a2210;
+            letter-spacing: 4px;
+            text-shadow: 0 1px 2px rgba(255, 255, 255, 0.3);
+            border-bottom: 2px solid rgba(120, 100, 75, 0.25);
+            padding-bottom: 8px;
+            width: 80%;
+            text-align: center;
+        }
+        .food-images-row {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+        }
+        .food-images-row img {
+            width: 40%;
+            max-width: 180px;
+            height: auto;
+            transition: transform 0.4s ease;
+            cursor: pointer;
+        }
+        .food-images-row img:hover {
+            transform: scale(1.12) translateY(-6px);
+        }
+
+        /* ===== 美食详情全屏弹窗 ===== */
+        .food-detail-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 10000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(6px);
+            animation: fadeInOverlay 0.4s ease;
+        }
+        .food-detail-overlay.show {
+            display: flex;
+        }
+        @keyframes fadeInOverlay {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+        }
+
+        .food-detail-inner {
+            position: relative;
+            width: 85vw;
+            max-width: 1200px;
+            height: 80vh;
+            max-height: 800px;
+            border-radius: 20px;
+            border: 2px solid rgba(200, 170, 130, 0.4);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: zoomIn 0.4s cubic-bezier(0.34, 1.2, 0.64, 1);
+            overflow: hidden;
+        }
+        .food-detail-inner--xiyu {
+            background: url('images/连城溪鱼焖豆腐/连城溪鱼焖豆腐背景图.png') center/cover no-repeat;
+        }
+        .food-detail-inner--baiyateng {
+            background: url('images/连城白鸭汤/连城白鸭汤背景图.png') center/cover no-repeat;
+        }
+        @keyframes zoomIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to   { transform: scale(1); opacity: 1; }
+        }
+
+        /* 左上角关闭按钮（弹窗内） */
+        .food-detail-close {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            z-index: 10;
+            width: 42px;
+            height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.35);
+            backdrop-filter: blur(6px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 50%;
+            color: #ffffff;
+            font-size: 28px;
+            font-family: "Ma Shan Zheng", serif;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            line-height: 1;
+            text-decoration: none;
+        }
+        .food-detail-close:hover {
+            background: rgba(200, 80, 80, 0.7);
+            transform: scale(1.1);
+        }
+
+        /* 左侧标题文字 */
+        .food-detail-title {
+            position: absolute;
+            left: 8%;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 13%;
+            z-index: 2;
+            pointer-events: none;
+        }
+        .food-detail-title--vertical {
+            width: 22%;
+        }
+        .food-detail-title img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* 中间美食图片 */
+        .food-detail-image {
+            position: relative;
+            z-index: 1;
+            width: 55%;
+            max-width: 520px;
+            filter: drop-shadow(0 8px 30px rgba(0, 0, 0, 0.4));
+            animation: floatFood 3s ease-in-out infinite;
+        }
+        .food-detail-image img {
+            width: 100%;
+            height: auto;
+            display: block;
+            border-radius: 12px;
+        }
+        @keyframes floatFood {
+            0%, 100% { transform: translateY(0); }
+            50%      { transform: translateY(-8px); }
+        }
+
+        /* 右下角"了解更多"按钮 */
+        .food-detail-more {
+            position: absolute;
+            bottom: 8%;
+            right: 6%;
+            z-index: 10;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 32px;
+            background: rgba(40, 28, 18, 0.7);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(200, 170, 130, 0.4);
+            border-radius: 30px;
+            color: #fff6e0;
+            font-size: clamp(16px, 1.4vw, 22px);
+            font-family: "Ma Shan Zheng", "ZCOOL XiaoWei", serif;
+            letter-spacing: 4px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+        .food-detail-more:hover {
+            background: rgba(200, 160, 80, 0.35);
+            border-color: rgba(232, 200, 122, 0.6);
+            transform: scale(1.05);
+            box-shadow: 0 6px 30px rgba(200, 160, 80, 0.2);
+        }
+        .food-detail-more::after {
+            content: "\279C";
+            font-size: 1.4em;
+            font-weight: 700;
+            transition: transform 0.3s ease;
+        }
+        .food-detail-more:hover::after {
+            transform: translateX(4px);
+        }
+
+        /* --- 再抽一次按钮（弹框外部下方） --- */
+        .food-detail-retry {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 36px;
+            background: rgba(40, 28, 18, 0.7);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(200, 170, 130, 0.35);
+            border-radius: 30px;
+            color: #e8d5b0;
+            font-size: clamp(16px, 1.3vw, 20px);
+            font-family: "Ma Shan Zheng", "ZCOOL XiaoWei", serif;
+            letter-spacing: 4px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+        .food-detail-retry:hover {
+            background: rgba(200, 160, 80, 0.35);
+            border-color: rgba(232, 200, 122, 0.6);
+            transform: scale(1.05);
+            color: #fff6e0;
+            box-shadow: 0 6px 30px rgba(200, 160, 80, 0.2);
+        }
+        .food-detail-retry::before {
+            content: "🔄";
+            font-size: 1.2em;
+        }
+
+        /* ===== 入场动画 ===== */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        .col {
+            animation: fadeInUp 0.9s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+            opacity: 0;
+        }
+        .col-left {
+            animation-delay: 0.2s;
+        }
+        .col-center {
+            animation-delay: 0.4s;
+        }
+        .col-right {
+            animation-delay: 0.6s;
+        }
+
+        /* ===== 响应式 ===== */
+        @media (max-width: 1200px) {
+            .main-container {
+                gap: 16px;
+                padding: 85px 16px 50px;
+            }
+            .col-left { flex: 0 0 30%; }
+            .col-center { flex: 0 0 32%; }
+            .col-right { flex: 0 0 36%; }
+            .title-wrapper { width: 60%; }
+            .map-border-wrapper { width: 86%; }
+            .map-border-wrapper .map-text { font-size: clamp(13px, 1.15vw, 16px); padding: 10% 12% 8%; line-height: 1.8; }
+            .right-text-wrapper { width: 94%; flex: 0 0 auto; }
+            .right-text-wrapper .right-text { font-size: clamp(13px, 1.15vw, 16px); padding: 8% 12% 6%; }
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                flex-direction: column;
+                padding: 75px 12px 50px;
+                gap: 10px;
+            }
+            .col {
+                flex: none !important;
+                width: 100%;
+                height: 30%;
+                justify-content: center;
+            }
+
+            .title-wrapper { width: 40%; padding-top: 0; }
+            .title-wrapper .title-text { font-size: 20px; letter-spacing: 6px; }
+
+            .map-border-wrapper { width: 66%; flex: 1; margin: 4px auto; }
+            .map-border-wrapper .map-text {
+                font-size: 13px;
+                line-height: 1.7;
+                padding: 10% 12% 8%;
+                text-indent: 1.5em;
+            }
+
+            .right-text-wrapper { width: 60%; flex: 1; margin: 4px auto; }
+            .right-text-wrapper .right-text {
+                font-size: 13px;
+                line-height: 1.7;
+                padding: 8% 12% 6%;
+                text-indent: 1.5em;
+            }
+
+            .col-center img.center-img {
+                width: 90%;
+            }
+            .blindbox-wrapper {
+                width: 90%;
+            }
+
+            .food-images-row img {
+                width: 35%;
+                max-width: 100px;
+            }
+            .food-section .food-label {
+                font-size: 16px;
+            }
+
+            .nav a {
+                padding: 6px 12px;
+                font-size: 14px;
+            }
+            .top-bar {
+                padding: 12px 16px;
+            }
+            .hamburger-btn {
+                display: flex;
+            }
+            .nav {
+                display: none;
+            }
+            .mobile-nav-overlay {
+                display: block;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== 固定背景 ===== -->
+    <div class="bg-fixed"></div>
+
+    <!-- ===== 遮罩与渐隐 ===== -->
+    <div class="overlay"></div>
+    <div class="vignette-bottom"></div>
+
+    <!-- ===== 左上角关闭按钮 ===== -->
+    <a class="close-btn" href="地图页面.html" title="关闭">&times;</a>
+
+    <!-- ===== 顶部导航栏（同时间长廊轮播，无返回键） ===== -->
+    <div class="top-bar">
+        <nav class="nav">
+            <a href="index.html">首页</a>
+            <a href="时间长廊轮播.html">时间长廊</a>
+            <a href="地图页面.html">地图</a>
+            <a href="美食图鉴.html">美食图鉴</a>
+        </nav>
+        <!-- 汉堡菜单按钮 -->
+        <button class="hamburger-btn" id="hamburgerBtn" aria-label="菜单">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+    </div>
+
+    <!-- ===== 移动端下拉菜单 ===== -->
+    <div class="mobile-nav-overlay" id="mobileOverlay"></div>
+    <div class="mobile-nav" id="mobileNav">
+        <a href="index.html">首页</a>
+        <a href="时间长廊轮播.html">时间长廊</a>
+        <a href="地图页面.html">地图</a>
+        <a href="美食图鉴.html">美食图鉴</a>
+    </div>
+
+    <!-- ===== 主体：三列盲盒展示 ===== -->
+    <div class="main-container">
+
+        <!-- ===== 左列：大标题 + 地图边框文字 ===== -->
+        <div class="col col-left">
+            <div class="title-wrapper">
+                <img class="title-img" src="images/连城县文字.png" alt="连城县" />
+            </div>
+            <div class="map-border-wrapper">
+                <p class="map-text">
+                    连城地处闽西腹地，是“中国客家美食名城”与“中国客家硒都”。自明清以来便是闽粤赣商贸要道，八方商旅往来，饮食文化在此交融创新，形成了“清鲜细腻、药膳同源、物尽其用”的独特风格。境内冠豸山钟灵毓秀，富硒沃土为美食传承提供了得天独厚的自然根基。
+                </p>
+            </div>
+        </div>
+
+        <!-- ===== 中列：盲盒展示 ===== -->
+        <div class="col col-center">
+            <div class="blindbox-wrapper" id="blindbox">
+                <img class="box-base" src="images/连城盲盒11.png" alt="连城盲盒" />
+                <img class="lid-overlay closed" id="lidOverlay" src="images/连城盲盒盖子.png" alt="盲盒盖子" />
+                <div class="click-hint" id="clickHint">👆 点击打开盲盒</div>
+            </div>
+        </div>
+
+        <!-- ===== 右列：文字描述 + 美食图片 ===== -->
+        <div class="col col-right">
+            <div class="right-text-wrapper">
+                <p class="right-text">
+                    连城最负盛名的当属“连城白鹜鸭”，被誉为“中国唯一药用鸭”，清代道光年间即为贡品，文火慢炖成白鸭汤，汤色澄黄清醇、不腥不腻。此外，“红心地瓜干”位列“闽西八大干”之首，“涮九品”以客家米酒慢涮牛九部位，脆嫩弹牙，酒香浓郁。连城美食不走浓油赤酱路线，靠好食材与客家千年智慧，让每一口都清爽滋养。
+                </p>
+            </div>
+            <div class="food-section">
+                <div class="food-label">连城美食</div>
+                <div class="food-images-row">
+                    <img src="images/连城白鸭汤/连城白鸭汤.png" alt="连城白鸭汤" />
+                    <img src="images/连城溪鱼焖豆腐/溪鱼焖豆腐.png" alt="溪鱼焖豆腐" />
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ===== 美食详情全屏弹窗 - 连城溪鱼焖豆腐 ===== -->
+    <div class="food-detail-overlay" id="foodDetailOverlayXiyu">
+        <div class="food-detail-inner food-detail-inner--xiyu">
+            <!-- 关闭按钮 -->
+            <a class="food-detail-close" id="foodDetailCloseXiyu" href="javascript:void(0)">&times;</a>
+            <!-- 左侧标题 -->
+            <div class="food-detail-title">
+                <img src="images/连城溪鱼焖豆腐/溪鱼焖豆腐大标题.png" alt="连城溪鱼焖豆腐" />
+            </div>
+            <!-- 中间美食图片 -->
+            <div class="food-detail-image">
+                <img src="images/连城溪鱼焖豆腐/溪鱼焖豆腐.png" alt="连城溪鱼焖豆腐" />
+            </div>
+            <!-- 右下角了解更多 -->
+            <a class="food-detail-more" href="连城溪鱼焖豆腐了解更多页面.html">了解更多</a>
+        </div>
+        <!-- 再抽一次（弹框外部下方） -->
+        <a class="food-detail-retry" id="xiyuDetailRetry" href="javascript:void(0)">再抽一次</a>
+    </div>
+
+    <!-- ===== 美食详情全屏弹窗 - 连城白鸭汤 ===== -->
+    <div class="food-detail-overlay" id="foodDetailOverlayBaiya">
+        <div class="food-detail-inner food-detail-inner--baiyateng">
+            <!-- 关闭按钮 -->
+            <a class="food-detail-close" id="foodDetailCloseBaiya" href="javascript:void(0)">&times;</a>
+            <!-- 左侧标题 -->
+            <div class="food-detail-title food-detail-title--vertical">
+                <img src="images/连城白鸭汤/连城白鸭汤竖版标题.png" alt="连城白鸭汤" />
+            </div>
+            <!-- 中间美食图片 -->
+            <div class="food-detail-image">
+                <img src="images/连城白鸭汤/连城白鸭汤.png" alt="连城白鸭汤" />
+            </div>
+            <!-- 右下角了解更多 -->
+            <a class="food-detail-more" href="连城白鸭汤了解更多页面.html">了解更多</a>
+        </div>
+        <!-- 再抽一次（弹框外部下方） -->
+        <a class="food-detail-retry" id="baiyaDetailRetry" href="javascript:void(0)">再抽一次</a>
+    </div>
+
+<!-- ===== 汉堡菜单交互 JS ===== -->
+<script>
+(function() {
+    var hamburgerBtn = document.getElementById('hamburgerBtn');
+    var mobileNav = document.getElementById('mobileNav');
+    var mobileOverlay = document.getElementById('mobileOverlay');
+    if (!hamburgerBtn || !mobileNav || !mobileOverlay) return;
+
+    function openMobileMenu() {
+        hamburgerBtn.classList.add('active');
+        mobileNav.classList.add('open');
+        mobileOverlay.classList.add('open');
+    }
+
+    function closeMobileMenu() {
+        hamburgerBtn.classList.remove('active');
+        mobileNav.classList.remove('open');
+        mobileOverlay.classList.remove('open');
+    }
+
+    hamburgerBtn.addEventListener('click', function() {
+        if (hamburgerBtn.classList.contains('active')) {
+            closeMobileMenu();
+        } else {
+            openMobileMenu();
+        }
+    });
+
+    mobileOverlay.addEventListener('click', function() {
+        closeMobileMenu();
+    });
+
+    // 点击移动端导航链接后自动关闭菜单
+    var mobileLinks = mobileNav.querySelectorAll('a');
+    for (var ml = 0; ml < mobileLinks.length; ml++) {
+        mobileLinks[ml].addEventListener('click', function() {
+            closeMobileMenu();
+        });
+    }
+
+    /* ================================================================
+     *  盲盒盖子开合交互 - 点击盲盒直接随机抽卡
+     * ================================================================ */
+    var blindbox = document.getElementById('blindbox');
+    var lidOverlay = document.getElementById('lidOverlay');
+    var clickHint = document.getElementById('clickHint');
+    var boxBase = blindbox ? blindbox.querySelector('.box-base') : null;
+    var xiyuOverlay = document.getElementById('foodDetailOverlayXiyu');
+    var xiyuClose = document.getElementById('foodDetailCloseXiyu');
+    var baiyaOverlay = document.getElementById('foodDetailOverlayBaiya');
+    var baiyaClose = document.getElementById('foodDetailCloseBaiya');
+
+    /* ===== 盲盒基底图片：11=溪鱼焖豆腐，22=白鸭汤 ===== */
+    var blindboxBaseImages = [
+        'images/连城盲盒11.png',
+        'images/连城盲盒22.png'
+    ];
+
+    if (blindbox && lidOverlay && boxBase) {
+        var isOpen = false;
+        var isShaking = false;
+
+        blindbox.addEventListener('click', function() {
+            if (isShaking) return;
+
+            if (!isOpen) {
+                // 先晃动，再打开盲盒
+                isShaking = true;
+                blindbox.classList.add('shaking');
+
+                setTimeout(function() {
+                    blindbox.classList.remove('shaking');
+                    lidOverlay.classList.remove('closed');
+                    lidOverlay.classList.add('open');
+                    if (clickHint) clickHint.classList.add('hidden');
+                    isOpen = true;
+                    isShaking = false;
+
+                    // 随机弹出溪鱼焖豆腐或白鸭汤全屏详情
+                    var foodOverlays = [xiyuOverlay, baiyaOverlay];
+                    var randomIdx = Math.floor(Math.random() * foodOverlays.length);
+                    // 切换盲盒基底图片，使其与抽到的美食一致
+                    if (boxBase && blindboxBaseImages[randomIdx]) {
+                        boxBase.src = blindboxBaseImages[randomIdx];
+                    }
+                    var chosen = foodOverlays[randomIdx];
+                    if (chosen) {
+                        chosen.classList.add('show');
+                    }
+                }, 600);
+            } else {
+                // 关闭盲盒（盖子盖回）
+                lidOverlay.classList.remove('open');
+                lidOverlay.classList.add('closed');
+                isOpen = false;
+            }
+        });
+    }
+
+    // ---- 关闭溪鱼焖豆腐弹窗 ----
+    if (xiyuClose && xiyuOverlay) {
+        xiyuClose.addEventListener('click', function(e) {
+            e.preventDefault();
+            xiyuOverlay.classList.remove('show');
+        });
+        xiyuOverlay.addEventListener('click', function(e) {
+            if (e.target === xiyuOverlay) {
+                xiyuOverlay.classList.remove('show');
+            }
+        });
+    }
+
+    // ---- 关闭白鸭汤弹窗 ----
+    if (baiyaClose && baiyaOverlay) {
+        baiyaClose.addEventListener('click', function(e) {
+            e.preventDefault();
+            baiyaOverlay.classList.remove('show');
+        });
+        baiyaOverlay.addEventListener('click', function(e) {
+            if (e.target === baiyaOverlay) {
+                baiyaOverlay.classList.remove('show');
+            }
+        });
+    }
+
+    // ===== 再抽一次：关闭当前弹窗，重新随机弹出 =====
+    function retryDraw(currentOverlay) {
+        var overlays = [xiyuOverlay, baiyaOverlay];
+        currentOverlay.classList.remove('show');
+        var randomIdx = Math.floor(Math.random() * overlays.length);
+        // 切换盲盒基底图片
+        if (boxBase && blindboxBaseImages[randomIdx]) {
+            boxBase.src = blindboxBaseImages[randomIdx];
+        }
+        var chosen = overlays[randomIdx];
+        if (chosen) {
+            setTimeout(function() { chosen.classList.add('show'); }, 200);
+        }
+    }
+
+    var xiyuRetry = document.getElementById('xiyuDetailRetry');
+    var baiyaRetry = document.getElementById('baiyaDetailRetry');
+
+    if (xiyuRetry && xiyuOverlay) {
+        xiyuRetry.addEventListener('click', function(e) {
+            e.preventDefault();
+            retryDraw(xiyuOverlay);
+        });
+    }
+    if (baiyaRetry && baiyaOverlay) {
+        baiyaRetry.addEventListener('click', function(e) {
+            e.preventDefault();
+            retryDraw(baiyaOverlay);
+        });
+    }
+})();
+</script>
+
+<!-- ===== 水墨互动效果：点击涟漪 + 毛笔拖尾 ===== -->
+<script>
+(function() {
+    var cvs = document.createElement('canvas');
+    cvs.id = 'inkCanvas';
+    cvs.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:99999;pointer-events:none;';
+    document.body.appendChild(cvs);
+    var ctx = cvs.getContext('2d');
+    var W, H;
+    function resize() { W = cvs.width = window.innerWidth; H = cvs.height = window.innerHeight; }
+    resize();
+    window.addEventListener('resize', resize);
+    var palette = [[0,188,212],[0,150,136],[38,198,218],[0,172,193],[76,175,80],[56,142,60],[102,187,106],[128,203,196],[129,199,132]];
+    function randColor() { return palette[Math.floor(Math.random()*palette.length)]; }
+    var rings = [];
+    function createInkRings(x,y) {
+        var count = 3+Math.floor(Math.random()*3);
+        for(var i=0;i<count;i++){var c=randColor();rings.push({x:x,y:y,r:0,maxR:40+Math.random()*80,opacity:0.5+Math.random()*0.4,rColor:c,speed:0.5+Math.random()*0.8,lw:1.5+Math.random()*3.5,delay:i*(50+Math.random()*80),life:0,decay:0.0015+Math.random()*0.002,wobble:0.08+Math.random()*0.12,phase:Math.random()*Math.PI*2});}
+    }
+    var trail=[];var MAX_TRAIL=15;
+    function addTrailPoint(x,y){var c=randColor();trail.push({x:x,y:y,r:0,maxR:10+Math.random()*18,opacity:0.5+Math.random()*0.3,color:c,lw:1.2+Math.random()*2.0,life:0,speed:0.5+Math.random()*0.8,decay:0.002+Math.random()*0.0025,wobble:0.06+Math.random()*0.10,phase:Math.random()*Math.PI*2});if(trail.length>MAX_TRAIL)trail.shift();}
+    var lastMouse={x:0,y:0};var mouseMoved=false;
+    document.addEventListener('mousedown',function(e){if(e.target.closest('.top-bar')||e.target.closest('.bottom-area')||e.target.closest('.nav-btn')||e.target.closest('.chart-modal-btn')||e.target.closest('.food-modal-btn'))return;createInkRings(e.clientX,e.clientY);});
+    document.addEventListener('mousemove',function(e){var dx=e.clientX-lastMouse.x;var dy=e.clientY-lastMouse.y;var dist=Math.sqrt(dx*dx+dy*dy);if(dist>12){var steps=Math.min(Math.floor(dist/12),4);for(var i=0;i<=steps;i++){var t=i/steps;var px=lastMouse.x+dx*t;var py=lastMouse.y+dy*t;addTrailPoint(px,py);}lastMouse.x=e.clientX;lastMouse.y=e.clientY;mouseMoved=true;}});
+    document.addEventListener('mouseenter',function(e){lastMouse.x=e.clientX;lastMouse.y=e.clientY;});
+    function animate(){
+        ctx.clearRect(0,0,W,H);
+        for(var i=rings.length-1;i>=0;i--){var ring=rings[i];if(ring.life<ring.delay){ring.life+=16;if(ring.life<ring.delay)continue;}ring.r+=ring.speed;var progress=ring.r/ring.maxR;var alpha=ring.opacity*(1-progress*progress);alpha=Math.max(0,alpha);var wobbleAmount=ring.wobble*ring.r;var r1=ring.r+wobbleAmount*Math.sin(ring.phase+progress*4);var r2=ring.r+wobbleAmount*Math.sin(ring.phase+2.3+progress*3.5);if(alpha>0.01&&ring.r<ring.maxR*1.3){ctx.beginPath();ctx.ellipse(ring.x,ring.y,r1,r2,0,0,Math.PI*2);ctx.strokeStyle='rgba('+ring.rColor[0]+','+ring.rColor[1]+','+ring.rColor[2]+','+alpha+')';ctx.lineWidth=ring.lw*(1-progress*0.6);ctx.stroke();ctx.beginPath();ctx.ellipse(ring.x,ring.y,r1*0.5,r2*0.5,0,0,Math.PI*2);ctx.fillStyle='rgba('+ring.rColor[0]+','+ring.rColor[1]+','+ring.rColor[2]+','+(alpha*0.15)+')';ctx.fill();}if(alpha<=0.01||ring.r>ring.maxR*1.5)rings.splice(i,1);}
+        for(var i=trail.length-1;i>=0;i--){var p=trail[i];p.r+=p.speed;if(p.r>p.maxR*1.3){trail.splice(i,1);continue;}var progress=p.r/p.maxR;var alpha=p.opacity*(1-progress*progress);if(alpha<0.01){trail.splice(i,1);continue;}var wobbleAmount=p.wobble*p.r;var r1=p.r+wobbleAmount*Math.sin(p.phase+progress*4);var r2=p.r+wobbleAmount*Math.sin(p.phase+2.3+progress*3.5);ctx.beginPath();ctx.ellipse(p.x,p.y,r1,r2,0,0,Math.PI*2);ctx.strokeStyle='rgba('+p.color[0]+','+p.color[1]+','+p.color[2]+','+alpha+')';ctx.lineWidth=p.lw*(1-progress*0.5);ctx.stroke();ctx.beginPath();ctx.ellipse(p.x,p.y,r1*0.4,r2*0.4,0,0,Math.PI*2);ctx.fillStyle='rgba('+p.color[0]+','+p.color[1]+','+p.color[2]+','+(alpha*0.12)+')';ctx.fill();}
+        requestAnimationFrame(animate);
+    }
+    animate();
+})();
+</script>
+</body>
+</html>

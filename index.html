@@ -1,0 +1,314 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>食在闽西，味在客家</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=ZCOOL+XiaoWei&display=swap');
+
+        /* ===== 全局重置 ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            font-family: "Ma Shan Zheng", "ZCOOL XiaoWei", "STXingkai", "霞鹜臻楷 GB 常规", "KaiTi", "楷体", serif;
+            background: #1a1410;
+        }
+
+        /* ===== 主容器 1920×1080 ===== */
+        .hero {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            min-width: 1920px;
+            min-height: 1080px;
+            /* 使用背景图.png作为全屏水墨背景 */
+            background: url('images/背景图.png') center/cover no-repeat;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        /* ===== 半透明遮罩提亮背景 ===== */
+        .overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.08);
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* ===== 雾气动效 ===== */
+        .mist {
+            position: absolute;
+            inset: 0;
+            z-index: 2;
+            pointer-events: none;
+            overflow: hidden;
+        }
+        .mist-layer {
+            position: absolute;
+            width: 200%;
+            height: 100%;
+            background: radial-gradient(ellipse at 50% 80%,
+                    rgba(220, 210, 195, 0.3) 0%,
+                    rgba(200, 190, 175, 0.12) 30%,
+                    transparent 70%);
+        }
+        .mist-layer:nth-child(2) {
+            background: radial-gradient(ellipse at 30% 60%,
+                    rgba(210, 200, 185, 0.2) 0%,
+                    transparent 60%);
+        }
+        .mist-layer:nth-child(3) {
+            background: radial-gradient(ellipse at 70% 75%,
+                    rgba(230, 220, 210, 0.15) 0%,
+                    transparent 50%);
+        }
+
+        /* ===== 内容层 ===== */
+        .content {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            user-select: none;
+            margin-top: -40px;
+        }
+
+        /* ===== 标题图片 ===== */
+        .title-img {
+            max-width: 80%;
+            height: auto;
+            opacity: 1;
+        }
+
+        /* ===== 小标题 ===== */
+        .subtitle {
+            font-family: "Ma Shan Zheng", "ZCOOL XiaoWei", "STXingkai", "KaiTi", serif;
+            font-size: 22px;
+            color: #3a2210;
+            letter-spacing: 8px;
+            margin: 12px 0 0 0;
+            text-shadow: 0 1px 8px rgba(0, 0, 0, 0.3);
+            opacity: 0;
+            animation: fadeIn 1.5s 0.7s forwards;
+            text-align: left;
+            padding-left: 55%;
+            width: 90%;
+        }
+
+        /* ===== 标题与按钮之间的装饰 ===== */
+        .divider {
+            width: 300px;
+            height: 2px;
+            margin: 0 0 45px 0;
+            background: linear-gradient(90deg, transparent, rgba(180, 160, 130, 0.6), rgba(120, 100, 75, 0.8), rgba(180, 160, 130, 0.6), transparent);
+            opacity: 0;
+            animation: fadeIn 1.5s 0.9s forwards;
+        }
+
+        /* ===== 按钮组（古风） ===== */
+        .buttons {
+            display: flex;
+            gap: 50px;
+            opacity: 1;
+        }
+
+        .btn {
+            position: relative;
+            width: 300px;
+            height: 110px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            font-family: "Ma Shan Zheng", "ZCOOL XiaoWei", "STXingkai", "霞鹜臻楷 GB 常规", "KaiTi", serif;
+            font-weight: normal;
+            color: #3a2210;
+            letter-spacing: 14px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            background: url('images/标题文字框.png') center/100% 100% no-repeat;
+            overflow: hidden;
+            text-shadow: 0 1px 3px rgba(255, 255, 255, 0.3);
+        }
+        .btn:hover {
+            transform: translateY(-4px) scale(1.03);
+            color: #2d5a27;
+            text-shadow: 0 0 12px rgba(45, 90, 39, 0.4), 0 1px 3px rgba(255, 255, 255, 0.3);
+            filter: drop-shadow(0 0 8px rgba(45, 90, 39, 0.25));
+        }
+        .btn:active {
+            transform: translateY(0px) scale(0.98);
+            color: #1e4d2b;
+            text-shadow: 0 0 8px rgba(30, 77, 43, 0.5);
+        }
+        .btn-text {
+            position: relative;
+            z-index: 2;
+        }
+
+        /* ===== 底部渐隐 ===== */
+        .vignette {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 30%;
+            background: linear-gradient(0deg,
+                    rgba(26, 20, 16, 0.4) 0%,
+                    transparent 100%);
+            z-index: 3;
+            pointer-events: none;
+        }
+        .vignette-top {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 20%;
+            background: linear-gradient(180deg,
+                    rgba(26, 20, 16, 0.3) 0%,
+                    transparent 100%);
+            z-index: 3;
+            pointer-events: none;
+        }
+
+        /* ===== 左右底端前景 ===== */
+        .foreground-left {
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            height: auto;
+            max-height: 55%;
+            z-index: 5;
+            pointer-events: none;
+            opacity: 0.95;
+        }
+        .foreground-right {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            height: auto;
+            max-height: 35%;
+            z-index: 5;
+            pointer-events: none;
+            opacity: 0.85;
+        }
+
+        /* ===== 关键帧 ===== */
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        /* ===== 响应式缩放 ===== */
+        @media (max-width: 1920px) {
+            .hero {
+                min-width: unset;
+                min-height: unset;
+                width: 100vw;
+                height: 100vh;
+            }
+            .title-img { max-width: clamp(50%, 55vw, 70%); }
+            .btn { width: clamp(200px, 15.6vw, 300px); height: clamp(72px, 5.7vw, 110px); font-size: clamp(20px, 1.55vw, 30px); letter-spacing: clamp(8px, 0.7vw, 14px); }
+            .buttons { gap: clamp(30px, 2.6vw, 50px); }
+            .divider { width: clamp(180px, 16vw, 300px); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="hero">
+
+    <!-- ===== 半透明遮罩 ===== -->
+    <div class="overlay"></div>
+
+    <!-- ===== 雾气 ===== -->
+    <div class="mist">
+        <div class="mist-layer"></div>
+        <div class="mist-layer"></div>
+        <div class="mist-layer"></div>
+    </div>
+
+    <!-- ===== 渐隐遮罩 ===== -->
+    <div class="vignette-top"></div>
+    <div class="vignette"></div>
+
+    <!-- ===== 左右底端前景 ===== -->
+    <img src="images/首页前景.png" alt="" class="foreground-left" />
+    <img src="images/首页前景2.png" alt="" class="foreground-right" />
+
+    <!-- ===== 内容 ===== -->
+    <div class="content">
+
+        <!-- 主标题图片 -->
+        <div style="text-align:center;">
+            <img src="images/标题新.png" alt="食在闽西，味在客家" class="title-img" />
+        </div>
+
+        <!-- 小标题 -->
+        <div class="subtitle">基于龙岩客家美食的可视化设计</div>
+
+        <!-- 装饰分隔线 -->
+        <div class="divider"></div>
+
+        <!-- 按钮 -->
+        <div class="buttons">
+            <a class="btn" href="时间总览.html"><span class="btn-text">时间长廊</span></a>
+            <a class="btn" href="地图页面.html"><span class="btn-text">地图</span></a>
+            <a class="btn" href="美食图鉴.html"><span class="btn-text">美食图鉴</span></a>
+        </div>
+    </div>
+
+</div>
+
+<!-- ===== 水墨互动效果：点击涟漪 + 毛笔拖尾 ===== -->
+<script>
+(function() {
+    var cvs = document.createElement('canvas');
+    cvs.id = 'inkCanvas';
+    cvs.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:99999;pointer-events:none;';
+    document.body.appendChild(cvs);
+    var ctx = cvs.getContext('2d');
+    var W, H;
+    function resize() { W = cvs.width = window.innerWidth; H = cvs.height = window.innerHeight; }
+    resize();
+    window.addEventListener('resize', resize);
+    var palette = [[0,188,212],[0,150,136],[38,198,218],[0,172,193],[76,175,80],[56,142,60],[102,187,106],[128,203,196],[129,199,132]];
+    function randColor() { return palette[Math.floor(Math.random()*palette.length)]; }
+    var rings = [];
+    function createInkRings(x,y) {
+        var count = 3+Math.floor(Math.random()*3);
+        for(var i=0;i<count;i++){var c=randColor();rings.push({x:x,y:y,r:0,maxR:40+Math.random()*80,opacity:0.5+Math.random()*0.4,rColor:c,speed:0.5+Math.random()*0.8,lw:1.5+Math.random()*3.5,delay:i*(50+Math.random()*80),life:0,decay:0.0015+Math.random()*0.002,wobble:0.08+Math.random()*0.12,phase:Math.random()*Math.PI*2});}
+    }
+    var trail=[];var MAX_TRAIL=15;
+    function addTrailPoint(x,y){var c=randColor();trail.push({x:x,y:y,r:0,maxR:10+Math.random()*18,opacity:0.5+Math.random()*0.3,color:c,lw:1.2+Math.random()*2.0,life:0,speed:0.5+Math.random()*0.8,decay:0.002+Math.random()*0.0025,wobble:0.06+Math.random()*0.10,phase:Math.random()*Math.PI*2});if(trail.length>MAX_TRAIL)trail.shift();}
+    var lastMouse={x:0,y:0};var mouseMoved=false;
+    document.addEventListener('mousedown',function(e){if(e.target.closest('.top-bar')||e.target.closest('.bottom-area')||e.target.closest('.nav-btn')||e.target.closest('.chart-modal-btn')||e.target.closest('.food-modal-btn'))return;createInkRings(e.clientX,e.clientY);});
+    document.addEventListener('mousemove',function(e){var dx=e.clientX-lastMouse.x;var dy=e.clientY-lastMouse.y;var dist=Math.sqrt(dx*dx+dy*dy);if(dist>12){var steps=Math.min(Math.floor(dist/12),4);for(var i=0;i<=steps;i++){var t=i/steps;var px=lastMouse.x+dx*t;var py=lastMouse.y+dy*t;addTrailPoint(px,py);}lastMouse.x=e.clientX;lastMouse.y=e.clientY;mouseMoved=true;}});
+    document.addEventListener('mouseenter',function(e){lastMouse.x=e.clientX;lastMouse.y=e.clientY;});
+    function animate(){
+        ctx.clearRect(0,0,W,H);
+        for(var i=rings.length-1;i>=0;i--){var ring=rings[i];if(ring.life<ring.delay){ring.life+=16;if(ring.life<ring.delay)continue;}ring.r+=ring.speed;var progress=ring.r/ring.maxR;var alpha=ring.opacity*(1-progress*progress);alpha=Math.max(0,alpha);var wobbleAmount=ring.wobble*ring.r;var r1=ring.r+wobbleAmount*Math.sin(ring.phase+progress*4);var r2=ring.r+wobbleAmount*Math.sin(ring.phase+2.3+progress*3.5);if(alpha>0.01&&ring.r<ring.maxR*1.3){ctx.beginPath();ctx.ellipse(ring.x,ring.y,r1,r2,0,0,Math.PI*2);ctx.strokeStyle='rgba('+ring.rColor[0]+','+ring.rColor[1]+','+ring.rColor[2]+','+alpha+')';ctx.lineWidth=ring.lw*(1-progress*0.6);ctx.stroke();ctx.beginPath();ctx.ellipse(ring.x,ring.y,r1*0.5,r2*0.5,0,0,Math.PI*2);ctx.fillStyle='rgba('+ring.rColor[0]+','+ring.rColor[1]+','+ring.rColor[2]+','+(alpha*0.15)+')';ctx.fill();}if(alpha<=0.01||ring.r>ring.maxR*1.5)rings.splice(i,1);}
+        for(var i=trail.length-1;i>=0;i--){var p=trail[i];p.r+=p.speed;if(p.r>p.maxR*1.3){trail.splice(i,1);continue;}var progress=p.r/p.maxR;var alpha=p.opacity*(1-progress*progress);if(alpha<0.01){trail.splice(i,1);continue;}var wobbleAmount=p.wobble*p.r;var r1=p.r+wobbleAmount*Math.sin(p.phase+progress*4);var r2=p.r+wobbleAmount*Math.sin(p.phase+2.3+progress*3.5);ctx.beginPath();ctx.ellipse(p.x,p.y,r1,r2,0,0,Math.PI*2);ctx.strokeStyle='rgba('+p.color[0]+','+p.color[1]+','+p.color[2]+','+alpha+')';ctx.lineWidth=p.lw*(1-progress*0.5);ctx.stroke();ctx.beginPath();ctx.ellipse(p.x,p.y,r1*0.4,r2*0.4,0,0,Math.PI*2);ctx.fillStyle='rgba('+p.color[0]+','+p.color[1]+','+p.color[2]+','+(alpha*0.12)+')';ctx.fill();}
+        requestAnimationFrame(animate);
+    }
+    animate();
+})();
+</script>
+</body>
+</html>

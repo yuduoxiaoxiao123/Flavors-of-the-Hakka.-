@@ -1,0 +1,1176 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>武平簸箕粄 — 工艺排序小游戏</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=ZCOOL+XiaoWei&family=Noto+Serif+SC:wght@400;700&display=swap');
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            font-family: "ZCOOL XiaoWei", "Noto Serif SC", "KaiTi", serif;
+            background: #e8f0e0;
+            position: relative;
+        }
+
+        /* ===== 背景图 ===== */
+        .bg-ink {
+            position: fixed; inset: 0; z-index: 0;
+            background: url('images/武平簸箕粄/武平簸箕粄详情页背景.png') center/cover no-repeat;
+        }
+
+        /* ===== 宣纸纹理叠加 ===== */
+        .paper-texture {
+            position: fixed; inset: 0; z-index: 1;
+            background:
+                repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(200, 215, 185, 0.08) 2px, rgba(200, 215, 185, 0.08) 4px),
+                repeating-linear-gradient(90deg, transparent, transparent 3px, rgba(190, 210, 175, 0.05) 3px, rgba(190, 210, 175, 0.05) 6px);
+            pointer-events: none;
+        }
+
+        /* ===== 云纹边框 ===== */
+        .cloud-border {
+            position: fixed; inset: 12px; z-index: 2;
+            border: 2px solid rgba(140, 175, 120, 0.25);
+            border-radius: 28px;
+            pointer-events: none;
+            box-shadow:
+                inset 0 0 40px rgba(160, 195, 140, 0.15),
+                0 0 30px rgba(160, 195, 140, 0.1);
+        }
+        .cloud-border::before,
+        .cloud-border::after {
+            content: "";
+            position: absolute;
+            inset: -1px;
+            border-radius: 28px;
+            border: 1px solid rgba(140, 175, 120, 0.12);
+            pointer-events: none;
+        }
+        .cloud-border::before { top: 4px; left: 4px; right: 4px; bottom: 4px; }
+        .cloud-border::after { top: 8px; left: 8px; right: 8px; bottom: 8px; border-color: rgba(140, 175, 120, 0.08); }
+
+        /* ===== 云纹角落装饰 ===== */
+        .corner-deco {
+            position: fixed; z-index: 3;
+            width: 60px; height: 60px;
+            pointer-events: none;
+            opacity: 0.15;
+        }
+        .corner-deco svg { width: 100%; height: 100%; }
+        .corner-tl { top: 18px; left: 18px; }
+        .corner-tr { top: 18px; right: 18px; transform: scaleX(-1); }
+        .corner-bl { bottom: 18px; left: 18px; transform: scaleY(-1); }
+        .corner-br { bottom: 18px; right: 18px; transform: scale(-1, -1); }
+
+
+
+        /* ===== 顶部标题 ===== */
+        .header-area {
+            position: fixed;
+            top: 22px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 25;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            pointer-events: none;
+        }
+        .header-title-img {
+            height: 90px;
+            width: auto;
+            display: block;
+        }
+
+        /* ===== 顶部栏 ===== */
+        .top-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 30;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 20px 50px;
+            pointer-events: none;
+        }
+        .top-bar > * { pointer-events: auto; }
+
+        /* ===== 返回按钮 ===== */
+        .back-btn {
+            display: inline-block;
+            padding: 10px 22px;
+            font-size: 18px;
+            font-family: "Ma Shan Zheng", "ZCOOL XiaoWei", "STXingkai", "华文行楷", "KaiTi", serif;
+            color: #ffffff;
+            text-decoration: none;
+            letter-spacing: 4px;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            position: relative;
+            text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+            background: rgba(40, 28, 18, 0.55);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(180, 150, 110, 0.35);
+            box-shadow: 0 2px 16px rgba(0, 0, 0, 0.15), inset 0 0 20px rgba(180, 150, 110, 0.05);
+            cursor: pointer;
+        }
+        .back-btn::after {
+            content: "";
+            position: absolute;
+            bottom: 4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 2px;
+            background: #e8c87a;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 8px rgba(232, 200, 122, 0.4);
+        }
+        .back-btn:hover::after { width: 60%; }
+        .back-btn:hover {
+            color: #fff6e0;
+            background: rgba(200, 160, 80, 0.25);
+            text-shadow: 0 0 16px rgba(232, 200, 122, 0.5);
+        }
+
+        /* ===== 主布局容器 ===== */
+        .main-layout {
+            position: fixed;
+            inset: 70px 20px 20px 55px;
+            z-index: 10;
+            display: flex;
+            gap: 24px;
+            pointer-events: none;
+            align-items: stretch;
+        }
+        .main-layout > * { pointer-events: auto; }
+
+        /* ===== 左侧区域标题 ===== */
+        .left-section-title {
+            font-family: "Ma Shan Zheng", "ZCOOL XiaoWei", serif;
+            font-size: clamp(20px, 1.6vw, 28px);
+            color: #3a5a30;
+            letter-spacing: 10px;
+            text-shadow: 0 1px 4px rgba(60, 100, 50, 0.1);
+            text-align: center;
+            flex: 0 0 auto;
+            padding: 10px 40px;
+            background: rgba(160, 200, 140, 0.4);
+            backdrop-filter: blur(6px);
+            border-radius: 14px;
+            border: 1px solid rgba(140, 175, 120, 0.25);
+            box-shadow: 0 2px 8px rgba(60, 100, 50, 0.08);
+        }
+
+        /* ===== 左侧区域 ===== */
+        .left-area {
+            flex: 0 0 58%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-width: 0;
+            min-height: 0;
+            position: relative;
+            height: 100%;
+            gap: 10px;
+            padding-top: 50px;
+        }
+        .left-content {
+            position: relative;
+            width: 100%;
+            max-height: 78%;
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            padding: 6px 10px;
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow: hidden;
+        }
+        .left-content .left-area-bg {
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+            border-radius: 16px;
+        }
+        .left-content .left-area-bg img {
+            width: 100%;
+            height: 100%;
+            object-fit: fill;
+            display: block;
+        }
+        .left-content > :not(.left-area-bg) {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ===== 卡片网格 2行3列 ===== */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: minmax(110px, 1fr) minmax(110px, 1fr);
+            column-gap: 4px;
+            row-gap: 0;
+            flex: 1 1 auto;
+            min-height: 0;
+        }
+        .craft-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: grab;
+            transition: all 0.3s ease;
+            user-select: none;
+        }
+        .craft-card:active { cursor: grabbing; }
+        .craft-card:hover {
+            transform: scale(1.08);
+        }
+        .craft-card.dragging {
+            opacity: 0.5;
+            transform: scale(0.95);
+        }
+        .craft-card .card-illustration {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 0;
+        }
+        .craft-card .card-illustration .step-img,
+        .craft-card .card-illustration svg {
+            max-width: 90%;
+            max-height: 90%;
+            display: block;
+            object-fit: contain;
+        }
+
+        /* ===== 排序卡槽区域 ===== */
+        .slot-area {
+            flex: 0 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-top: 4px;
+            background: rgba(215, 235, 205, 0.3);
+            border-radius: 14px;
+            padding: 8px 6px 6px;
+            border: 1px solid rgba(140, 175, 120, 0.15);
+        }
+        .slot-area-label {
+            font-size: clamp(14px, 1.1vw, 18px);
+            color: #3a5a30;
+            letter-spacing: 4px;
+            text-align: center;
+            padding: 4px 0 6px;
+            border-bottom: 1px solid rgba(140, 175, 120, 0.2);
+            font-weight: 700;
+            text-shadow: 0 1px 2px rgba(60, 100, 50, 0.08);
+        }
+        .slots-row {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            grid-template-rows: auto;
+            gap: 6px;
+        }
+        .sort-slot {
+            background: rgba(235, 248, 225, 0.55);
+            border: 2.5px dashed rgba(120, 165, 100, 0.5);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            transition: all 0.3s ease;
+            position: relative;
+            min-height: 72px;
+            padding: 6px 4px;
+            box-shadow: inset 0 0 12px rgba(140, 175, 120, 0.08);
+        }
+        .sort-slot .slot-number {
+            font-family: "Noto Serif SC", serif;
+            font-size: clamp(13px, 0.9vw, 16px);
+            color: rgba(100, 140, 80, 0.5);
+            font-weight: 700;
+            position: absolute;
+            top: 5px;
+            left: 8px;
+        }
+        .sort-slot.drag-over {
+            border-color: rgba(100, 150, 80, 0.9);
+            background: rgba(220, 240, 210, 0.6);
+            box-shadow: 0 0 18px rgba(100, 150, 80, 0.25);
+            transform: scale(1.04);
+        }
+        .sort-slot.filled {
+            border-style: solid;
+            border-color: rgba(120, 165, 100, 0.5);
+            background: rgba(240, 250, 235, 0.6);
+            box-shadow: 0 1px 6px rgba(140, 175, 120, 0.1);
+        }
+        .sort-slot .placed-card {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1px;
+            padding: 2px;
+        }
+        .sort-slot .placed-card svg,
+        .sort-slot .placed-card .step-img {
+            width: 45%;
+            height: auto;
+            max-height: 32px;
+            object-fit: contain;
+        }
+        .sort-slot .placed-card .placed-label {
+            font-family: "Noto Serif SC", "SimSun", serif;
+            font-size: clamp(10px, 0.65vw, 13px);
+            color: #3a5a30;
+            font-weight: 700;
+            text-align: center;
+            line-height: 1.2;
+        }
+        .sort-slot .remove-card {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: rgba(200, 80, 80, 0.8);
+            border: 1px solid rgba(200, 80, 80, 0.3);
+            color: #fff;
+            font-size: 14px;
+            line-height: 20px;
+            text-align: center;
+            cursor: pointer;
+            display: none;
+            transition: all 0.2s ease;
+            z-index: 5;
+        }
+        .sort-slot.filled .remove-card {
+            display: block;
+        }
+        .sort-slot .remove-card:hover {
+            background: rgba(200, 80, 80, 0.9);
+            transform: scale(1.15);
+        }
+
+        /* ===== 右侧区域 ===== */
+        .right-area {
+            flex: 0 0 calc(42% - 24px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 14px;
+            min-width: 0;
+            padding-top: 60px;
+        }
+
+        /* ===== 右侧大图 ===== */
+        .big-image-wrap {
+            width: 90%;
+            flex: 0 0 auto;
+            max-height: 40vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .big-image-wrap img {
+            width: 100%;
+            height: auto;
+            max-height: 40vh;
+            object-fit: contain;
+            display: block;
+            filter: drop-shadow(0 4px 12px rgba(60, 100, 50, 0.1));
+        }
+
+        /* ===== 提交按钮 ===== */
+        .submit-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 48px;
+            background: linear-gradient(135deg, #3a6a30, #2d5a25);
+            border: 1px solid rgba(60, 100, 50, 0.3);
+            border-radius: 4px;
+            color: #f5fce8;
+            font-family: "Ma Shan Zheng", "ZCOOL XiaoWei", serif;
+            font-size: clamp(18px, 1.3vw, 22px);
+            letter-spacing: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 12px rgba(60, 100, 50, 0.2);
+        }
+        .submit-btn:hover {
+            background: linear-gradient(135deg, #4a7a3a, #3a6a30);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(60, 100, 50, 0.3);
+        }
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+        .submit-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .submit-feedback {
+            font-family: "Noto Serif SC", "SimSun", serif;
+            font-size: clamp(14px, 0.9vw, 17px);
+            color: #b85a5a;
+            background: rgba(220, 160, 160, 0.12);
+            border: 1px solid rgba(200, 100, 100, 0.15);
+            border-radius: 10px;
+            padding: 8px 16px;
+            letter-spacing: 1px;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            text-align: center;
+        }
+        .submit-feedback.show {
+            opacity: 1;
+        }
+
+        /* ===== 栏目标题共用样式 ===== */
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(140, 175, 120, 0.15);
+        }
+        .section-title-img {
+            height: 60px;
+            width: auto;
+            display: block;
+        }
+
+        /* ===== 历史起源框 ===== */
+        .origin-box {
+            width: 100%;
+            flex: 1 1 auto;
+            max-height: none;
+            min-height: 120px;
+            background: rgba(245, 252, 240, 0.35);
+            backdrop-filter: blur(4px);
+            border: 1px dashed rgba(140, 175, 120, 0.3);
+            border-radius: 14px;
+            padding: 16px 20px;
+            display: flex;
+            flex-direction: column;
+            overflow-y: visible;
+        }
+        .origin-box .origin-content {
+            font-family: inherit;
+            font-size: clamp(15px, 1.3vw, 20px);
+            line-height: 2;
+            color: #4a3820;
+            letter-spacing: 1px;
+            text-indent: 2em;
+        }
+
+        /* ===== 完成弹窗 ===== */
+        .complete-overlay {
+            position: fixed; inset: 0; z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: rgba(180, 210, 170, 0.25);
+            backdrop-filter: blur(8px);
+        }
+        .complete-overlay.show { display: flex; }
+        /* 隐藏底部行内反馈提示（不再显示红色信息） */
+        .submit-feedback { display: none !important; }
+        /* ===== 错误弹窗（用于排序错误提示 - 局部，位于 .left-area 内） ===== */
+        .error-overlay {
+            position: absolute; inset: 0; z-index: 60;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: transparent; /* 去掉透明底框 */
+            pointer-events: none; /* 让弹窗不拦截左区外的交互，模态本体再接管事件 */
+        }
+        .error-overlay.show { display: flex; }
+        .error-modal {
+            background: rgba(255, 250, 250, 0.98);
+            border: 1px solid rgba(200, 80, 80, 0.18);
+            border-radius: 12px;
+            padding: 16px 20px;
+            text-align: center;
+            max-width: 420px;
+            width: 86%;
+            box-shadow: 0 12px 28px rgba(120, 40, 40, 0.08);
+            animation: popIn 0.32s cubic-bezier(0.34, 1.2, 0.64, 1);
+            pointer-events: auto; /* 允许点击弹窗内部按钮 */
+        }
+        .error-modal .err-icon { font-size: clamp(28px, 2.6vw, 36px); margin-bottom: 6px; }
+        .error-modal .err-msg { font-size: 16px; color: #6a1717; margin-bottom: 10px; }
+        .error-modal .ok-btn { background: linear-gradient(180deg,#ee8b8b,#d85b5b); color: #fff; border: none; padding: 8px 14px; border-radius: 8px; cursor: pointer; }
+        .complete-modal {
+            background: rgba(235, 248, 225, 0.95);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(140, 175, 120, 0.3);
+            border-radius: 24px;
+            padding: 36px 44px;
+            text-align: center;
+            max-width: 520px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(60, 100, 50, 0.15), 0 0 0 1px rgba(160, 200, 140, 0.2);
+            animation: popIn 0.5s cubic-bezier(0.34, 1.2, 0.64, 1);
+        }
+        @keyframes popIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .complete-modal .check-icon {
+            font-size: clamp(48px, 4vw, 64px);
+            margin-bottom: 8px;
+        }
+        .complete-modal .msg {
+            font-family: "Ma Shan Zheng", serif;
+            font-size: clamp(22px, 1.8vw, 28px);
+            color: #3a6a30;
+            letter-spacing: 4px;
+            margin-bottom: 14px;
+            text-shadow: 0 1px 6px rgba(60, 120, 50, 0.1);
+        }
+        .complete-modal .process-list {
+            text-align: left;
+            font-family: "Noto Serif SC", "SimSun", serif;
+            font-size: clamp(12px, 0.8vw, 14px);
+            line-height: 1.9;
+            color: #3a5a30;
+            margin-bottom: 14px;
+            padding: 14px 18px;
+            background: rgba(200, 225, 190, 0.2);
+            border-radius: 12px;
+            border: 1px solid rgba(160, 200, 140, 0.15);
+            max-height: 35vh;
+            overflow-y: auto;
+        }
+        .complete-modal .process-list .step-item {
+            margin-bottom: 6px;
+            padding-left: 4px;
+        }
+        .complete-modal .process-list .step-num {
+            font-weight: 700;
+            color: #4a7a3a;
+        }
+        .complete-modal .local-tale {
+            font-family: "Noto Serif SC", "SimSun", serif;
+            font-size: clamp(11px, 0.75vw, 13px);
+            line-height: 1.7;
+            color: #5a7a4a;
+            text-align: left;
+            padding: 10px 14px;
+            background: rgba(160, 200, 140, 0.1);
+            border-radius: 10px;
+            border-left: 3px solid rgba(100, 150, 80, 0.3);
+            margin-bottom: 16px;
+        }
+        .complete-modal .local-tale::before {
+            content: "💡 小典故 ";
+            font-weight: 700;
+            color: #4a7a3a;
+        }
+        .complete-modal .ok-btn {
+            display: inline-block;
+            padding: 8px 36px;
+            background: linear-gradient(135deg, #3a6a30, #2d5a25);
+            border: none;
+            border-radius: 20px;
+            color: #f5fce8;
+            font-family: "Ma Shan Zheng", serif;
+            font-size: clamp(16px, 1.1vw, 20px);
+            letter-spacing: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 12px rgba(60, 100, 50, 0.2);
+        }
+        .complete-modal .ok-btn:hover {
+            background: linear-gradient(135deg, #4a7a3a, #3a6a30);
+            transform: scale(1.05);
+            box-shadow: 0 4px 20px rgba(60, 100, 50, 0.3);
+        }
+        .complete-modal .ok-btn:active {
+            transform: scale(1);
+        }
+        .complete-modal .replay-btn {
+            display: inline-block;
+            padding: 8px 28px;
+            margin-right: 12px;
+            background: linear-gradient(135deg,#f0b54a,#e68b2a);
+            border: none;
+            border-radius: 18px;
+            color: #3b2a10;
+            font-family: "Ma Shan Zheng", serif;
+            font-size: clamp(14px, 1vw, 18px);
+            letter-spacing: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 10px rgba(120,80,20,0.12);
+        }
+        .complete-modal .replay-btn:hover { transform: translateY(-2px); }
+        .complete-modal .deco-line {
+            width: 60px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(100, 150, 80, 0.3), transparent);
+            margin: 0 auto 14px;
+        }
+
+        /* ===== 滚动条美化 ===== */
+        .origin-box::-webkit-scrollbar { width: 4px; }
+        .origin-box::-webkit-scrollbar-track { background: transparent; }
+        .origin-box::-webkit-scrollbar-thumb { background: rgba(140, 175, 120, 0.2); border-radius: 2px; }
+
+        /* ===== 响应式 ===== */
+        @media (max-width: 1100px) {
+            .main-layout {
+                left: 40px;
+                gap: 16px;
+            }
+            .left-area { flex: 0 0 54%; }
+            .right-area { flex: 0 0 calc(46% - 16px); }
+
+        }
+
+        @media (max-width: 768px) {
+            body { overflow-y: auto; }
+            .main-layout {
+                position: relative;
+                inset: auto;
+                flex-direction: column;
+                padding: 80px 16px 20px;
+                gap: 16px;
+                min-height: 100vh;
+            }
+            .left-area, .right-area { flex: none; width: 100%; height: auto; }
+            .left-content { max-height: none; height: auto; padding: 8px 12px; }
+            .card-grid { grid-template-columns: repeat(3, 1fr); gap: 4px; grid-template-rows: minmax(100px, 1fr) minmax(100px, 1fr); }
+            .craft-card { aspect-ratio: auto; min-height: 0; }
+
+            .header-area { top: 14px; gap: 8px; }
+            .header-title { font-size: clamp(16px, 3.5vw, 22px); letter-spacing: 6px; }
+            .header-line { width: 24px; }
+            .back-btn { top: 14px; left: 50px; padding: 6px 12px; font-size: 13px; }
+            .big-image-wrap { max-height: 30vh; }
+            .big-image-wrap img { max-height: 26vh; }
+            .slots-row { gap: 5px; }
+            .slots-row .sort-slot { min-height: 56px; }
+            .cloud-border { inset: 6px; border-radius: 16px; }
+            .corner-deco { width: 30px; height: 30px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== 背景层 ===== -->
+    <div class="bg-ink"></div>
+    <div class="paper-texture"></div>
+
+    <!-- ===== 云纹边框 ===== -->
+    <div class="cloud-border"></div>
+
+    <!-- ===== 云纹角落装饰 ===== -->
+    <div class="corner-deco corner-tl">
+        <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M2 2 L28 2" stroke="#8aad70" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M2 2 L2 28" stroke="#8aad70" stroke-width="1.5" stroke-linecap="round"/>
+            <circle cx="30" cy="2" r="2" fill="#8aad70" opacity="0.4"/>
+            <circle cx="2" cy="30" r="2" fill="#8aad70" opacity="0.4"/>
+            <path d="M2 2 Q 10 6 6 14" stroke="#8aad70" stroke-width="1" fill="none" opacity="0.3"/>
+        </svg>
+    </div>
+    <div class="corner-deco corner-tr">
+        <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M2 2 L28 2" stroke="#8aad70" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M2 2 L2 28" stroke="#8aad70" stroke-width="1.5" stroke-linecap="round"/>
+            <circle cx="30" cy="2" r="2" fill="#8aad70" opacity="0.4"/>
+            <circle cx="2" cy="30" r="2" fill="#8aad70" opacity="0.4"/>
+            <path d="M2 2 Q 10 6 6 14" stroke="#8aad70" stroke-width="1" fill="none" opacity="0.3"/>
+        </svg>
+    </div>
+    <div class="corner-deco corner-bl">
+        <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M2 2 L28 2" stroke="#8aad70" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M2 2 L2 28" stroke="#8aad70" stroke-width="1.5" stroke-linecap="round"/>
+            <circle cx="30" cy="2" r="2" fill="#8aad70" opacity="0.4"/>
+            <circle cx="2" cy="30" r="2" fill="#8aad70" opacity="0.4"/>
+            <path d="M2 2 Q 10 6 6 14" stroke="#8aad70" stroke-width="1" fill="none" opacity="0.3"/>
+        </svg>
+    </div>
+    <div class="corner-deco corner-br">
+        <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M2 2 L28 2" stroke="#8aad70" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M2 2 L2 28" stroke="#8aad70" stroke-width="1.5" stroke-linecap="round"/>
+            <circle cx="30" cy="2" r="2" fill="#8aad70" opacity="0.4"/>
+            <circle cx="2" cy="30" r="2" fill="#8aad70" opacity="0.4"/>
+            <path d="M2 2 Q 10 6 6 14" stroke="#8aad70" stroke-width="1" fill="none" opacity="0.3"/>
+        </svg>
+    </div>
+
+    <!-- (错误弹窗已移动到左侧交互区内部) -->
+    <!-- ===== 顶部栏 ===== -->
+    <div class="top-bar">
+        <a class="back-btn" href="武平县盲盒打开.html">← 返回</a>
+    </div>
+
+    <!-- ===== 顶部标题图片 ===== -->
+    <div class="header-area">
+        <img src="images/武平簸箕粄/武平簸箕粄横板字体.png" alt="武平簸箕粄" class="header-title-img" />
+    </div>
+
+    <!-- ===== 主布局 ===== -->
+    <div class="main-layout">
+
+        <!-- ===== 左侧：卡片 + 排序区 + 提交 ===== -->
+        <div class="left-area">
+            <div class="left-section-title">制作工艺排序</div>
+            <div class="left-content">
+                <div class="left-area-bg"><img src="images/武平簸箕粄/绿色透明框.png" alt="" /></div>
+                <!-- 卡片网格 -->
+                <div class="card-grid" id="cardGrid">
+                    <!-- 6张卡片由 JS 动态生成 -->
+                </div>
+
+                <!-- 排序卡槽 -->
+                <div class="slot-area">
+                    <div class="slot-area-label">✧ 拖拽卡片到对应工序位置 ✧</div>
+                    <div class="slots-row" id="slotsRow">
+                        <!-- 6个卡槽由 JS 动态生成 -->
+                    </div>
+                </div>
+            </div>
+            <button class="submit-btn" id="submitBtn">提 交</button>
+            <div class="submit-feedback" id="submitFeedback"></div>
+
+            <!-- 局部错误弹窗（放在 left-area 内，覆盖交互区） -->
+            <div class="error-overlay" id="errorOverlay">
+                <div class="error-modal">
+                    <div class="err-icon">⚠️</div>
+                    <div class="err-msg" id="errorModalMsg">排序有误</div>
+                    <button class="ok-btn" id="errorOkBtn">知道了</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== 右侧：大图 + 历史框 ===== -->
+        <div class="right-area">
+            <div class="big-image-wrap">
+                <img src="images/武平簸箕粄/武平簸箕粄主图.png" alt="武平簸箕粄" />
+            </div>
+
+            <!-- 历史起源 -->
+            <div class="origin-box" id="originBox">
+                <div class="section-header">
+                    <img src="images/武平簸箕粄/历史起源.png" alt="历史起源" class="section-title-img" />
+                </div>
+                <p class="origin-content">历史可追溯至清代中期，发源于武平县万安镇。清中叶闽西山区拓垦时期，客家人为了田间劳作携带不易腐败的干粮，利用竹制簸箕蒸制米浆皮，创造了这道美食。民间流传着学艺归乡、军民融合（南武侯部下）、婚俗嫁妆（新娘携九层粄）等多种传说。</p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ===== 完成弹窗（水墨淡绿） ===== -->
+    <div class="complete-overlay" id="completeOverlay">
+        <div class="complete-modal">
+            <div class="check-icon">🎊</div>
+            <div class="msg">恭喜你掌握地道武平簸箕粄完整做法！</div>
+            <div class="deco-line"></div>
+            <div class="process-list">
+                <div class="step-item"><span class="step-num">① 米浆制作：</span>将籼米淘净后浸泡数小时，磨成细腻的米浆。传统上使用石磨慢碾，以确保米浆的细腻度和粘稠度，这是簸箕粄口感劲道的关键。</div>
+                <div class="step-item"><span class="step-num">② 蒸制粄皮：</span>将米浆倒入竹制或铁制的簸箕中，均匀摊开，放入蒸锅中蒸制。约2-3分钟后取出，此时粄皮应薄如纸张，晶莹剔透，柔软而富有韧性。</div>
+                <div class="step-item"><span class="step-num">③ 馅料准备：</span>常见的馅料有肉末、豆角、香菇、冬笋等。将瘦肉切成小块，加入葱、姜、盐、酱油等调料腌制入味；将豆角、香菇、冬笋等蔬菜切成细丝，焯水后沥干备用。</div>
+                <div class="step-item"><span class="step-num">④ 包制手法：</span>将蒸熟的簸箕粄皮划成若干小块，取一小块铺平，放入适量的肉末和蔬菜丝，然后将粄皮卷成筒状，封口捏紧，确保馅料不漏。</div>
+                <div class="step-item"><span class="step-num">⑤ 调味方法：</span>将包好的簸箕粄放入沸水中稍微煮一下，使其更加柔软。食用前淋上"葱头油"（将葱头切碎，放入热油中炸至金黄酥脆），这是簸箕粄的灵魂酱料，能极大提升其香气和风味。</div>
+                <div class="step-item"><span class="step-num">⑥ 装盘食用：</span>将煮好的簸箕粄取出，摆放在盘中，可搭配冬笋片或葱蒜末提味。入口时香气四溢，口感Q弹滑嫩，如薄纱般轻柔，是武平人早餐的首选。</div>
+            </div>
+            <div class="local-tale">武平当地流传着学艺归乡、军民融合（南武侯部下）、婚俗嫁妆（新娘携九层粄）等多种传说。相传清代中期，客家人为了田间劳作携带不易腐败的干粮，利用竹制簸箕蒸制米浆皮，由此创造了这道传承百年的客家美味。</div>
+            <button class="replay-btn" id="completeReplayBtn">再玩一次</button>
+            <button class="ok-btn" id="completeOkBtn">知道了</button>
+        </div>
+    </div>
+
+    <script>
+    (function() {
+        'use strict';
+
+        /* ===== 工序数据 ===== */
+        var steps = [
+            { id: 1, label: '米浆制作', desc: '石磨磨籼米浆' },
+            { id: 2, label: '蒸制粄皮', desc: '竹簸箕蒸薄粄皮' },
+            { id: 3, label: '馅料准备', desc: '豆角香菇肉末冬笋' },
+            { id: 4, label: '包制手法', desc: '手卷粄皮包馅料' },
+            { id: 5, label: '调味方法', desc: '葱头油淋粄' },
+            { id: 6, label: '装盘食用', desc: '成品簸箕粄摆盘' }
+        ];
+
+        /* ===== 每张卡片的插画 ===== */
+        function getStepSvg(id) {
+            var imgMap = {
+                1: 'images/武平簸箕粄/米浆制作.png',
+                2: 'images/武平簸箕粄/蒸制粄皮.png',
+                3: 'images/武平簸箕粄/馅料准备.png',
+                4: 'images/武平簸箕粄/包制手法.png',
+                5: 'images/武平簸箕粄/调味方法.png',
+                6: 'images/武平簸箕粄/装盘食用.png'
+            };
+            var src = imgMap[id];
+            return src ? '<img src="' + src + '" alt="步骤" class="step-img">' : '';
+        }
+
+        /* ===== 渲染卡片（乱序） ===== */
+        var cardGrid = document.getElementById('cardGrid');
+        var slotsRow = document.getElementById('slotsRow');
+        var submitBtn = document.getElementById('submitBtn');
+        var submitFeedback = document.getElementById('submitFeedback');
+        var completeOverlay = document.getElementById('completeOverlay');
+        var completeOkBtn = document.getElementById('completeOkBtn');
+        var completeReplayBtn = document.getElementById('completeReplayBtn');
+        var errorOverlay = document.getElementById('errorOverlay');
+        var errorModalMsg = document.getElementById('errorModalMsg');
+        var errorOkBtn = document.getElementById('errorOkBtn');
+
+        /* 打乱顺序 */
+        function shuffle(arr) {
+            for (var i = arr.length - 1; i > 0; i--) {
+                var j = Math.floor(Math.random() * (i + 1));
+                var tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp;
+            }
+            return arr;
+        }
+
+        var shuffledSteps = shuffle(steps.slice());
+
+        /* 填充卡片网格 */
+        shuffledSteps.forEach(function(step) {
+            var card = document.createElement('div');
+            card.className = 'craft-card';
+            card.draggable = true;
+            card.dataset.stepId = step.id;
+            card.innerHTML =
+                '<div class="card-illustration">' + getStepSvg(step.id) + '</div>';
+            cardGrid.appendChild(card);
+        });
+
+        /* 填充排序卡槽 */
+        for (var i = 0; i < 6; i++) {
+            var slot = document.createElement('div');
+            slot.className = 'sort-slot';
+            slot.dataset.slotIndex = i;
+            slot.innerHTML = '<span class="slot-number">' + (i + 1) + '</span>';
+            slotsRow.appendChild(slot);
+        }
+
+        var slots = slotsRow.querySelectorAll('.sort-slot');
+        var cards = cardGrid.querySelectorAll('.craft-card');
+        var placedMap = {}; // slotIndex -> stepId
+
+        /* ===== 拖拽事件 ===== */
+        var dragSrcId = null;
+
+        cards.forEach(function(card) {
+            card.addEventListener('dragstart', function(e) {
+                dragSrcId = parseInt(this.dataset.stepId);
+                this.classList.add('dragging');
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', this.dataset.stepId);
+            });
+            card.addEventListener('dragend', function(e) {
+                this.classList.remove('dragging');
+                slots.forEach(function(s) { s.classList.remove('drag-over'); });
+            });
+        });
+
+        slots.forEach(function(slot) {
+            slot.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                this.classList.add('drag-over');
+            });
+            slot.addEventListener('dragleave', function(e) {
+                this.classList.remove('drag-over');
+            });
+            slot.addEventListener('drop', function(e) {
+                e.preventDefault();
+                this.classList.remove('drag-over');
+                var stepId = parseInt(e.dataTransfer.getData('text/plain'));
+                if (!stepId) return;
+
+                var slotIndex = parseInt(this.dataset.slotIndex);
+
+                /* 如果目标卡槽已有卡片，先移除 */
+                if (placedMap[slotIndex] !== undefined) {
+                    removeCardFromSlot(slotIndex);
+                }
+
+                /* 如果这张卡片已经在别的卡槽，移除旧位置 */
+                for (var key in placedMap) {
+                    if (placedMap.hasOwnProperty(key) && placedMap[key] === stepId) {
+                        removeCardFromSlot(parseInt(key));
+                    }
+                }
+
+                /* 将原卡片隐藏 */
+                var sourceCard = cardGrid.querySelector('.craft-card[data-step-id="' + stepId + '"]');
+                if (sourceCard) {
+                    sourceCard.style.opacity = '0.2';
+                    sourceCard.draggable = false;
+                }
+
+                /* 填入卡槽 */
+                var stepData = steps.filter(function(s) { return s.id === stepId; })[0];
+                if (!stepData) return;
+
+                placedMap[slotIndex] = stepId;
+                this.classList.add('filled');
+                this.innerHTML =
+                    '<span class="slot-number">' + (slotIndex + 1) + '</span>' +
+                    '<div class="placed-card">' +
+                        getStepSvg(stepId) +
+                        '<div class="placed-label">' + stepData.label + '</div>' +
+                    '</div>' +
+                    '<div class="remove-card" data-slot="' + slotIndex + '">×</div>';
+
+                /* 绑定移除按钮 */
+                var rmBtn = this.querySelector('.remove-card');
+                rmBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    var idx = parseInt(this.dataset.slot);
+                    removeCardFromSlot(idx);
+                });
+            });
+        });
+
+        /* 移除卡槽中的卡片 */
+        function removeCardFromSlot(slotIndex) {
+            if (placedMap[slotIndex] === undefined) return;
+            var stepId = placedMap[slotIndex];
+            delete placedMap[slotIndex];
+
+            var slot = slots[slotIndex];
+            slot.classList.remove('filled');
+            slot.innerHTML = '<span class="slot-number">' + (slotIndex + 1) + '</span>';
+
+            /* 恢复卡片可拖拽 */
+            var sourceCard = cardGrid.querySelector('.craft-card[data-step-id="' + stepId + '"]');
+            if (sourceCard) {
+                sourceCard.style.opacity = '1';
+                sourceCard.draggable = true;
+            }
+
+            /* 重置反馈 */
+            submitFeedback.classList.remove('show');
+            submitBtn.disabled = false;
+            submitBtn.textContent = '提 交';
+        }
+
+        /* ===== 提交按钮 ===== */
+        submitBtn.addEventListener('click', function() {
+            var filledCount = Object.keys(placedMap).length;
+            if (filledCount < 6) {
+                submitFeedback.textContent = '⚠ 请将所有工序拖入卡槽';
+                submitFeedback.classList.add('show');
+                /* 显示局部错误弹窗（去掉前置符号） */
+                if (errorModalMsg) {
+                    errorModalMsg.textContent = '请将所有工序拖入卡槽';
+                    if (errorOverlay) errorOverlay.classList.add('show');
+                }
+                return;
+            }
+
+            /* 每道工序对应的提示文案 */
+            var errorHints = [
+                '工序顺序不对哦，想想做簸箕粄第一步要先磨米浆！',
+                '第二步应该是蒸制粄皮，用簸箕把米浆蒸熟哦～',
+                '第三步是准备馅料，豆角香菇肉末一样不能少！',
+                '第四步要把馅料卷进粄皮里，这才是包制手法～',
+                '第五步别忘了淋上葱头油，那可是簸箕粄的灵魂！',
+                '最后一步才是装盘食用，别着急吃嘛～'
+            ];
+
+            /* 正确文案 */
+            var successHints = [
+                '✓ 第一步米浆制作正确！',
+                '✓ 第二步蒸制粄皮正确！',
+                '✓ 第三步馅料准备正确！',
+                '✓ 第四步包制手法正确！',
+                '✓ 第五步调味方法正确！',
+                '✓ 第六步装盘食用正确！'
+            ];
+
+            /* 检查排序并找到第一个错误的位置 */
+            var firstWrong = -1;
+            for (var i = 0; i < 6; i++) {
+                if (placedMap[i] !== (i + 1)) {
+                    firstWrong = i;
+                    break;
+                }
+            }
+
+            if (firstWrong === -1) {
+                /* 全部正确 */
+                submitBtn.disabled = true;
+                submitBtn.textContent = '✓ 已完成';
+                submitFeedback.textContent = '✓ 全部工序排列正确！';
+                submitFeedback.classList.add('show');
+                setTimeout(function() {
+                    completeOverlay.classList.add('show');
+                }, 500);
+            } else {
+                /* 显示对应位置的错误提示 */
+                submitFeedback.textContent = '✗ ' + errorHints[firstWrong];
+                submitFeedback.classList.add('show');
+                /* 显示明显的错误弹窗提示 */
+                if (errorModalMsg) {
+                    errorModalMsg.textContent = errorHints[firstWrong];
+                    if (errorOverlay) errorOverlay.classList.add('show');
+                }
+                /* 高亮错误卡槽 */
+                slots.forEach(function(slot, idx) {
+                    if (placedMap[idx] !== (idx + 1)) {
+                        slot.style.borderColor = 'rgba(200, 80, 80, 0.5)';
+                        slot.style.background = 'rgba(220, 160, 160, 0.1)';
+                        setTimeout(function() {
+                            slot.style.borderColor = '';
+                            slot.style.background = '';
+                        }, 1500);
+                    }
+                });
+            }
+        });
+
+        /* ===== 完成弹窗关闭 ===== */
+        completeOkBtn.addEventListener('click', function() {
+            completeOverlay.classList.remove('show');
+        });
+        /* 再玩一次：重置排序游戏 */
+        if (completeReplayBtn) {
+            completeReplayBtn.addEventListener('click', function() {
+                resetGame();
+            });
+        }
+        function resetGame() {
+            /* 关闭完成弹窗 */
+            completeOverlay.classList.remove('show');
+            /* 清空放置映射 */
+            placedMap = {};
+            /* 重置卡槽 */
+            slots.forEach(function(slot, idx) {
+                slot.classList.remove('filled');
+                slot.innerHTML = '<span class="slot-number">' + (idx + 1) + '</span>';
+                slot.style.borderColor = '';
+                slot.style.background = '';
+            });
+            /* 重新渲染卡片（打乱） */
+            cardGrid.innerHTML = '';
+            var newShuffled = shuffle(steps.slice());
+            newShuffled.forEach(function(step) {
+                var card = document.createElement('div');
+                card.className = 'craft-card';
+                card.draggable = true;
+                card.dataset.stepId = step.id;
+                card.innerHTML = '<div class="card-illustration">' + getStepSvg(step.id) + '</div>';
+                cardGrid.appendChild(card);
+            });
+            /* 重新绑定卡片事件 */
+            var newCards = cardGrid.querySelectorAll('.craft-card');
+            newCards.forEach(function(card) {
+                card.addEventListener('dragstart', function(e) {
+                    dragSrcId = parseInt(this.dataset.stepId);
+                    this.classList.add('dragging');
+                    e.dataTransfer.effectAllowed = 'move';
+                    e.dataTransfer.setData('text/plain', this.dataset.stepId);
+                });
+                card.addEventListener('dragend', function(e) {
+                    this.classList.remove('dragging');
+                    slots.forEach(function(s) { s.classList.remove('drag-over'); });
+                });
+                card.addEventListener('dblclick', function() {
+                    var stepId = parseInt(this.dataset.stepId);
+                    for (var key in placedMap) {
+                        if (placedMap.hasOwnProperty(key) && placedMap[key] === stepId) {
+                            removeCardFromSlot(parseInt(key));
+                            break;
+                        }
+                    }
+                });
+            });
+            /* 启用提交按钮 */
+            submitBtn.disabled = false;
+            submitBtn.textContent = '提 交';
+            submitFeedback.classList.remove('show');
+        }
+        completeOverlay.addEventListener('click', function(e) {
+            if (e.target === completeOverlay) {
+                completeOverlay.classList.remove('show');
+            }
+        });
+
+        /* 错误弹窗关闭逻辑 */
+        if (errorOkBtn) {
+            errorOkBtn.addEventListener('click', function() {
+                if (errorOverlay) errorOverlay.classList.remove('show');
+            });
+        }
+        if (errorOverlay) {
+            errorOverlay.addEventListener('click', function(e) {
+                if (e.target === errorOverlay) {
+                    errorOverlay.classList.remove('show');
+                }
+            });
+        }
+
+        /* ===== 拖拽卡片双击可回到卡池 ===== */
+        cards.forEach(function(card) {
+            card.addEventListener('dblclick', function() {
+                var stepId = parseInt(this.dataset.stepId);
+                for (var key in placedMap) {
+                    if (placedMap.hasOwnProperty(key) && placedMap[key] === stepId) {
+                        removeCardFromSlot(parseInt(key));
+                        break;
+                    }
+                }
+            });
+        });
+
+    })();
+    </script>
+
+    <script>
+    (function() {
+        if (window.location.search.indexOf('embed=true') !== -1) {
+            var btns = document.querySelectorAll('.back-btn');
+            for (var i = 0; i < btns.length; i++) btns[i].style.display = 'none';
+        } else {
+            var r = document.referrer || '';
+            if (r.indexOf('美食图鉴.html') !== -1) {
+                var btns = document.querySelectorAll('.back-btn');
+                for (var i = 0; i < btns.length; i++) btns[i].href = '美食图鉴.html';
+            }
+        }
+    })();
+    </script>
+
+</body>
+</html>

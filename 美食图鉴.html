@@ -1,0 +1,1254 @@
+﻿<!DOCTYPE html>  <!-- 声明文档类型为 HTML5 -->
+<html lang="zh-CN">  <!-- 设置页面语言为简体中文 -->
+<head>
+    <meta charset="UTF-8">  <!-- 字符编码：支持中文显示 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">  <!-- 移动端适配：禁止用户缩放 -->
+    <title>美食图鉴 | 食在闽西，味在客家</title>  <!-- 浏览器标签标题 -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=ZCOOL+XiaoWei&display=swap');
+
+        /* === 全局样式重置 === */
+        * {
+            margin: 0;           /* 清除所有元素的外边距 */
+            padding: 0;          /* 清除所有元素的内边距 */
+            box-sizing: border-box;  /* 让 width/height 包含 padding 和 border */
+        }
+
+        /* === 页面主体样式 === */
+        body {
+            font-family: "ZCOOL XiaoWei", "Noto Serif SC", "KaiTi", serif;  /* 正文古风 */
+            background: #f5efe6;  /* 米白底色，温馨古韵 */
+            min-height: 100vh;    /* 至少撑满整个视口高度 */
+            overflow-x: hidden;   /* 防止水平滚动条 */
+        }
+
+        /* ========== 【入场动画容器】覆盖全屏 ========== */
+        #entrance-container {
+            position: fixed;    /* 固定定位，覆盖整个页面 */
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1000;      /* 层级最高，盖住所有内容 */
+            background: url('images/背景图.png') center/cover no-repeat; /* 背景图 */
+            transition: opacity 0.6s cubic-bezier(0.23, 1, 0.32, 1);  /* 动画结束时淡出 */
+        }
+
+        /* ========== 【平铺展示区域】入场动画结束后显示 ========== */
+        .gallery {
+            max-width: 1400px;     /* 最大宽度，大屏居中 */
+            margin: 0 auto;        /* 水平居中 */
+            padding: 50px 30px 80px;  /* 上 右 下 左 内边距 */
+            opacity: 0;            /* 初始隐藏（透明） */
+            transform: translateY(30px);  /* 初始向下偏移30px */
+            transition: opacity 0.8s ease, transform 0.8s ease;  /* 显示时的淡入动画 */
+            position: relative;    /* 为伪元素(背景图)提供定位参考 */
+        }
+
+        /* 平铺区域显示状态——通过JS添加此class */
+        .gallery.visible {
+            opacity: 1;            /* 变为不透明 */
+            transform: translateY(0);  /* 回到原位 */
+        }
+
+        /* 平铺区域的半透明背景图（伪元素） */
+        .gallery::before {
+            content: '';           /* 必须有 content 才能显示伪元素 */
+            position: absolute;    /* 绝对定位覆盖整个 .gallery */
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: url('images/背景图.png') center/cover fixed no-repeat;  /* 背景图片：居中/覆盖/固定 */
+            opacity: 0.15;         /* 透明度 15%，非常淡的水印效果 */
+            pointer-events: none;  /* 不阻挡鼠标事件（点击穿透） */
+            z-index: -1;           /* 放到内容下层 */
+        }
+
+        /* 页面主标题「美食图鉴」 */
+        .gallery h1 {
+            font-family: "Ma Shan Zheng", "华文楷体", "KaiTi", serif;
+            text-align: center;      /* 居中 */
+            font-size: 3rem;         /* 大号字体 */
+            margin-bottom: 10px;
+            color: #3d2b1a;          /* 深褐色 */
+            text-shadow: 0 2px 8px rgba(0,0,0,0.1);  /* 柔和文字阴影 */
+            letter-spacing: 6px;     /* 字间距加宽，更大气 */
+            font-weight: 700;        /* 粗体 */
+        }
+
+        /* 副标题/引导语 */
+        .gallery .tagline {
+            text-align: center;
+            color: #a08560;          /* 金色调 */
+            margin: -8px 0 45px 0;   /* 上边距负值，紧贴标题 */
+            font-size: 1.15rem;
+            display: block;
+            letter-spacing: 3px;
+            font-style: italic;      /* 斜体 */
+        }
+
+        /* === CSS Grid 网格布局 === */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);  /* 默认5列等宽 */
+            gap: 24px;              /* 卡片间距24px */
+            margin-top: 20px;
+        }
+
+        /* ========== 【美食卡片】网格中的每个卡片 ========== */
+        .food-card {
+            background: rgba(255, 248, 240, 0.85);     /* 半透明白色背景 */
+            backdrop-filter: blur(8px);                 /* 背景模糊效果（玻璃态） */
+            border-radius: 16px;                        /* 圆角 */
+            overflow: hidden;                           /* 圆角溢出隐藏 */
+            box-shadow: 0 8px 24px rgba(80, 50, 20, 0.12);  /* 柔和阴影 */
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);  /* 悬停过渡动画 */
+            border: 1px solid rgba(180, 140, 100, 0.25);  /* 金色半透明边框 */
+            cursor: pointer;                            /* 鼠标变为手指 */
+        }
+
+        /* 卡片悬停效果：上浮+放大+阴影加深 */
+        .food-card:hover {
+            transform: translateY(-10px) scale(1.02);   /* 上移10px + 放大1.02倍 */
+            box-shadow: 0 20px 40px rgba(80, 50, 20, 0.2);  /* 阴影更深 */
+            border-color: #b8864e;                      /* 边框变亮 */
+        }
+
+        /* 卡片图片容器 */
+        .food-card .img-wrap {
+            width: 100%;
+            aspect-ratio: 1 / 1;    /* 宽高比1:1，正方形 */
+            display: flex;          /* Flex 布局，使图片居中 */
+            align-items: center;
+            justify-content: center;
+            background: rgba(245, 239, 230, 0.5);  /* 浅色背景 */
+            overflow: hidden;       /* 防止图片溢出 */
+        }
+
+        /* 卡片中的图片 */
+        .food-card .img-wrap img {
+            max-width: 88%;          /* 最大宽度为容器的88% */
+            max-height: 88%;         /* 最大高度为容器的88% */
+            width: auto;
+            height: auto;
+            object-fit: contain;     /* 保持原始比例，完整显示 */
+            display: block;
+            transition: transform 0.5s ease;  /* 悬停放大动画 */
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.08));  /* 图片投影 */
+        }
+
+        /* 图片悬停：轻微放大 */
+        .food-card:hover .img-wrap img {
+            transform: scale(1.08);
+        }
+
+        /* 卡片底部文字区域 */
+        .card-info {
+            padding: 16px 14px 20px;
+            text-align: center;
+            background: linear-gradient(180deg, transparent, rgba(245, 239, 230, 0.9));  /* 由上到下渐变 */
+        }
+
+        .card-info h3 {              /* 美食名称 */
+            font-family: "Ma Shan Zheng", "华文楷体", "KaiTi", serif;
+            color: #4a3420;
+            font-size: 1.25rem;
+            margin-bottom: 5px;
+            font-weight: 600;
+            letter-spacing: 2px;
+        }
+
+        .card-info p {               /* 美食简介 */
+            font-family: "ZCOOL XiaoWei", "Noto Serif SC", "KaiTi", serif;
+            color: #8b7355;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+            line-height: 1.4;
+        }
+
+        /* ========== 【响应式布局】适配不同屏幕 ========== */
+        @media (max-width: 1200px) {   /* 小于1200px：4列 */
+            .grid { grid-template-columns: repeat(4, 1fr); }
+        }
+        @media (max-width: 900px) {    /* 小于900px：3列，间距缩小 */
+            .grid { grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        }
+        @media (max-width: 600px) {    /* 小于600px（手机）：2列，进一步缩小 */
+            .grid { grid-template-columns: repeat(2, 1fr); gap: 14px; }
+            .gallery { padding: 25px 16px 40px; }
+            .gallery h1 { font-size: 1.6rem; letter-spacing: 3px; }
+            .gallery .tagline { font-size: 0.95rem; }
+            .card-info h3 { font-size: 1rem; }
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 45px;
+            color: #a08560;
+            font-size: 0.85rem;
+            letter-spacing: 2px;
+            font-style: italic;
+        }
+
+        .footer-empty {
+            text-align: center;
+            margin-top: 45px;
+            color: transparent;    /* 透明文字，仅占位 */
+            font-size: 0.85rem;
+            user-select: none;     /* 禁止选中 */
+        }
+
+        /* ========== 【弹窗(Modal)样式】点击卡片后弹出 ========== */
+        .modal-overlay {
+            position: fixed;       /* 固定全屏覆盖 */
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.55);   /* 半透明黑色遮罩 */
+            backdrop-filter: blur(6px);      /* 背景模糊 */
+            z-index: 2000;                   /* 比入场动画还高 */
+            display: none;                   /* 默认隐藏 */
+            align-items: center;             /* Flex居中 */
+            justify-content: center;
+            animation: fadeIn 0.3s ease;     /* 淡入动画 */
+        }
+        .modal-overlay.active {
+            display: flex;          /* 添加active类时显示 */
+        }
+        .modal-box {                /* 弹窗主体 */
+            background: #faf3ea;    /* 暖白背景 */
+            border-radius: 20px;
+            max-width: 520px;
+            width: 90%;
+            padding: 30px 32px;
+            text-align: center;
+            position: relative;      /* 给右上角叉叉定位 */
+            box-shadow: 0 30px 60px rgba(0,0,0,0.3);  /* 大阴影，突出弹窗 */
+            animation: scaleIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);  /* 弹性放大入场 */
+            border: 1px solid rgba(180, 140, 100, 0.3);
+        }
+        .modal-box img {            /* 弹窗大图 */
+            width: 180px;
+            height: 180px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            object-fit: contain;      /* 保持完整显示 */
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .modal-box h2 {             /* 弹窗标题 */
+            font-family: "Ma Shan Zheng", "华文楷体", "KaiTi", serif;
+            color: #3d2b1a;
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+            letter-spacing: 3px;
+        }
+        .modal-box p {              /* 弹窗描述 */
+            color: #7a5c3a;
+            font-size: 1.05rem;
+            line-height: 1.9;
+            margin-bottom: 18px;
+            letter-spacing: 1px;
+            text-align: left;         /* 长文左对齐更易读 */
+        }
+        /* 弹窗右上角关闭叉叉 */
+        .modal-close-x {
+            position: absolute;
+            top: 12px;
+            right: 16px;
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 24px;
+            color: #b8956a;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            font-family: '华文楷体', 'KaiTi', serif;
+            z-index: 10;
+        }
+        .modal-close-x:hover {
+            background: rgba(180, 140, 100, 0.15);
+            color: #5a3d1a;
+            transform: rotate(90deg);
+        }
+        .modal-box .more-link {     /* 查看更多按钮 */
+            display: inline-block;
+            background: #8b691f;    /* 金色背景 */
+            color: #fff;
+            border: none;
+            padding: 10px 30px;
+            border-radius: 30px;    /* 胶囊形状 */
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: background 0.3s;
+            font-family: inherit;
+            letter-spacing: 3px;
+            text-decoration: none;
+            margin-top: 6px;
+        }
+        .modal-box .more-link:hover {
+            background: #6b4f17;    /* 悬停变深 */
+            letter-spacing: 5px;
+        }
+
+        /* ===== 全屏详情弹窗（iframe嵌入） ===== */
+        .detail-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            z-index: 3000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+        .detail-overlay.active {
+            display: flex;
+        }
+        .detail-close {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            z-index: 3001;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: rgba(180, 140, 100, 0.85);
+            backdrop-filter: blur(6px);
+            border: 1px solid rgba(255, 248, 240, 0.3);
+            color: #fff8f0;
+            font-size: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+            font-family: "Ma Shan Zheng", serif;
+            line-height: 1;
+        }
+        .detail-close:hover {
+            background: rgba(160, 120, 80, 0.95);
+            transform: scale(1.1) rotate(90deg);
+        }
+        .detail-iframe {
+            width: 95vw;
+            height: 92vh;
+            max-width: 1500px;
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+            background: #fff;
+        }
+        @media (max-width: 768px) {
+            .detail-iframe {
+                width: 100vw;
+                height: 100vh;
+                border-radius: 0;
+            }
+            .detail-close {
+                top: 12px;
+                right: 16px;
+                width: 36px;
+                height: 36px;
+                font-size: 20px;
+            }
+        }
+
+        /* 弹窗动画关键帧 */
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }          /* 遮罩淡入 */
+        @keyframes scaleIn { from { transform: scale(0.7); opacity: 0; } to { transform: scale(1); opacity: 1; } }  /* 弹窗放大 */
+
+        /* ========== 【3D 轮播卡片】CSS 3D Transform 实现 ========== */
+        .carousel-scene {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            perspective: 1200px;
+            transform-style: preserve-3d;
+        }
+        .carousel-3d {
+            position: absolute;
+            transform-style: preserve-3d;
+        }
+
+        /* ---- 光晕背景 ---- */
+        .glow-bg {
+            position: fixed;
+            top: 50%; left: 50%;
+            width: 600px;
+            height: 600px;
+            margin-left: -300px;
+            margin-top: -300px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(232, 200, 120, 0.15) 0%, rgba(232, 200, 120, 0.05) 40%, transparent 70%);
+            pointer-events: none;
+            z-index: 1001;
+            animation: glowPulse 2s ease-in-out infinite alternate;
+        }
+        @keyframes glowPulse {
+            0% { transform: scale(0.8); opacity: 0.6; }
+            100% { transform: scale(1.3); opacity: 1; }
+        }
+
+        /* ---- 旋转光辉环 ---- */
+        .ring-container {
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 0; height: 0;
+            transform-style: preserve-3d;
+            z-index: 1001;
+            pointer-events: none;
+        }
+        .ring-spark {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: #e8c878;
+            box-shadow: 0 0 12px 4px rgba(232, 200, 120, 0.6);
+            animation: sparkFade 1.5s ease-in-out infinite;
+        }
+        @keyframes sparkFade {
+            0%, 100% { opacity: 0.2; transform: scale(0.5); }
+            50% { opacity: 1; transform: scale(1.3); }
+        }
+
+        /* ---- 飘落粒子（CSS动画实现） ---- */
+        .particle {
+            position: fixed;
+            width: 3px;
+            height: 3px;
+            border-radius: 50%;
+            background: rgba(232, 200, 120, 0.5);
+            pointer-events: none;
+            z-index: 999;
+            box-shadow: 0 0 6px 1px rgba(232, 200, 120, 0.3);
+            animation: particleFall linear infinite;
+        }
+        @keyframes particleFall {
+            0% {
+                transform: translateY(-20px) translateX(0) scale(1);
+                opacity: 0;
+            }
+            10% { opacity: 1; }
+            90% { opacity: 0.6; }
+            100% {
+                transform: translateY(110vh) translateX(80px) scale(0.3);
+                opacity: 0;
+            }
+        }
+
+        .carousel-card {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            left: -100px;
+            top: -100px;
+            border-radius: 16px;
+            overflow: hidden;
+            backface-visibility: hidden;
+            box-shadow:
+                0 8px 30px rgba(0,0,0,0.2),
+                0 0 40px rgba(232, 200, 120, 0.15);
+            background: linear-gradient(145deg, #fff8f0, #f0e6d8);
+            border: 2px solid rgba(200, 168, 110, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.1s;
+        }
+        .carousel-card::before {
+            content: '';
+            position: absolute;
+            inset: 3px;
+            border-radius: 12px;
+            border: 1px solid rgba(200, 168, 110, 0.15);
+            pointer-events: none;
+            z-index: 1;
+        }
+        .carousel-card img {
+            width: 82%;
+            height: 82%;
+            object-fit: contain;
+            display: block;
+            filter: drop-shadow(0 4px 12px rgba(0,0,0,0.12));
+            z-index: 2;
+            position: relative;
+        }
+        /* 卡片光泽遮罩 */
+        .carousel-card::after {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: linear-gradient(
+                135deg,
+                transparent 30%,
+                rgba(255, 255, 255, 0.25) 50%,
+                transparent 70%
+            );
+            pointer-events: none;
+            z-index: 3;
+            animation: sheenMove 3s ease-in-out infinite;
+        }
+        @keyframes sheenMove {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+
+        /* 左下角协议提示条（暂未使用） */
+        .protocol-tip {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0,0,0,0.7);
+            color: #ffd966;
+            padding: 8px 16px;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            z-index: 1100;
+            pointer-events: none;    /* 不可点击 */
+            font-family: monospace;
+            backdrop-filter: blur(4px);
+        }
+
+        /* ===== 顶部导航栏（桌面端横向） ===== */
+        .top-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1100;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding: 20px 50px;
+            pointer-events: none;
+        }
+        .top-bar > * {
+            pointer-events: auto;
+        }
+
+        .nav {
+            display: flex;
+            gap: 2px;
+            background: rgba(40, 28, 18, 0.55);
+            backdrop-filter: blur(10px);
+            padding: 4px 2px;
+            border-radius: 6px;
+            border: 1px solid rgba(180, 150, 110, 0.35);
+            box-shadow: 0 2px 16px rgba(0, 0, 0, 0.15), inset 0 0 20px rgba(180, 150, 110, 0.05);
+        }
+        .nav a {
+            display: block;
+            padding: 10px 22px;
+            font-size: 18px;
+            font-family: "Ma Shan Zheng", "ZCOOL XiaoWei", "STXingkai", "霞鹜臻楷 GB 常规", "KaiTi", serif;
+            color: #ffffff;
+            text-decoration: none;
+            letter-spacing: 4px;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+        }
+        .nav a:hover,
+        .nav a.active {
+            color: #fff6e0;
+            background: rgba(200, 160, 80, 0.25);
+            text-shadow: 0 0 16px rgba(232, 200, 122, 0.5);
+        }
+        .nav a.active {
+            background: rgba(200, 160, 80, 0.3);
+            color: #fff6e0;
+        }
+        .nav a + a {
+            border-left: 1px solid rgba(180, 150, 110, 0.12);
+        }
+
+        /* ===== 汉堡菜单按钮（移动端 - 固定在右上角） ===== */
+        .hamburger-btn {
+            display: none;
+            position: fixed;
+            top: 14px;
+            right: 18px;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+            width: 44px;
+            height: 44px;
+            background: rgba(40, 28, 18, 0.65);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(180, 150, 110, 0.35);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 1200;
+            padding: 0;
+        }
+        .hamburger-btn:hover {
+            background: rgba(60, 44, 30, 0.75);
+            border-color: rgba(200, 170, 130, 0.5);
+        }
+        .hamburger-btn span {
+            display: block;
+            width: 24px;
+            height: 2px;
+            background: #ffffff;
+            border-radius: 2px;
+            transition: all 0.3s ease;
+            transform-origin: center;
+        }
+        /* 汉堡图标 → 叉叉动画 */
+        .hamburger-btn.active span:nth-child(1) {
+            transform: translateY(7px) rotate(45deg);
+        }
+        .hamburger-btn.active span:nth-child(2) {
+            opacity: 0;
+            transform: scaleX(0);
+        }
+        .hamburger-btn.active span:nth-child(3) {
+            transform: translateY(-7px) rotate(-45deg);
+        }
+
+        /* ===== 移动端下拉菜单 ===== */
+        .mobile-nav-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 1101;
+            background: rgba(0, 0, 0, 0.25);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+        .mobile-nav-overlay.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .mobile-nav {
+            position: fixed;
+            top: 76px;
+            right: 18px;
+            width: 200px;
+            z-index: 1150;
+            background: rgba(35, 24, 16, 0.92);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(180, 150, 110, 0.25);
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            padding: 8px 0;
+            opacity: 0;
+            transform: translateY(-10px) scale(0.95);
+            transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+            pointer-events: none;
+        }
+        .mobile-nav.open {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            pointer-events: auto;
+        }
+        .mobile-nav a {
+            display: block;
+            padding: 12px 20px;
+            font-size: 17px;
+            font-family: "Ma Shan Zheng", "ZCOOL XiaoWei", "STXingkai", "霞鹜臻楷 GB 常规", "KaiTi", serif;
+            color: #e8d5b8;
+            text-decoration: none;
+            letter-spacing: 4px;
+            transition: all 0.25s ease;
+            text-align: center;
+        }
+        .mobile-nav a:hover,
+        .mobile-nav a.active {
+            color: #fff6e0;
+            background: rgba(200, 160, 80, 0.2);
+            text-shadow: 0 0 12px rgba(232, 200, 122, 0.3);
+        }
+        .mobile-nav a.active {
+            color: #ffd966;
+        }
+        .mobile-nav a + a {
+            border-top: 1px solid rgba(180, 150, 110, 0.08);
+        }
+
+        /* 小于 768px 显示汉堡菜单 */
+        @media (max-width: 768px) {
+            .top-bar {
+                padding: 14px 18px;
+            }
+            .hamburger-btn {
+                display: flex;
+            }
+            .nav {
+                display: none;
+            }
+            .mobile-nav-overlay {
+                display: block;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- ========== HTML 结构 ========== -->
+
+    <!-- ===== 顶部导航栏 ===== -->
+    <div class="top-bar">
+        <nav class="nav">
+            <a href="index.html">首页</a>
+            <a href="时间长廊轮播.html">时间长廊</a>
+            <a href="地图页面.html">地图</a>
+            <a href="美食图鉴.html" class="active">美食图鉴</a>
+        </nav>
+        <!-- 汉堡菜单按钮 -->
+        <button class="hamburger-btn" id="hamburgerBtn" aria-label="菜单">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+    </div>
+
+    <!-- ===== 移动端下拉菜单 ===== -->
+    <div class="mobile-nav-overlay" id="mobileOverlay"></div>
+    <div class="mobile-nav" id="mobileNav">
+        <a href="index.html">首页</a>
+        <a href="时间长廊轮播.html">时间长廊</a>
+        <a href="地图页面.html">地图</a>
+        <a href="美食图鉴.html" class="active">美食图鉴</a>
+    </div>
+
+    <!-- 【3D入场动画容器】 -->
+    <div id="entrance-container">
+        <!-- 光晕背景 -->
+        <div class="glow-bg" id="glowBg"></div>
+        <!-- 旋转光辉环 -->
+        <div class="ring-container" id="ringContainer"></div>
+    </div>
+
+    <!-- 【平铺网格区域】入场动画结束后显示 -->
+    <div class="gallery" id="gallery">
+        <h1>美食图鉴</h1>  <!-- 页面大标题 -->
+        <!-- 引导语已移除 -->
+        <div class="grid" id="foodGrid"></div>  <!-- JS动态填充美食卡片 -->
+        <div class="footer-empty">.</div>  <!-- 占位留白 -->
+    </div>
+
+    <!-- 【美食详情弹窗】点击卡片后弹出 -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-box">
+            <button class="modal-close-x" id="modalCloseX">✕</button>  <!-- 右上角叉叉 -->
+            <img id="modalImg" src="" alt="">           <!-- 弹窗中的大图 -->
+            <h2 id="modalTitle"></h2>                     <!-- 美食名称 -->
+            <p id="modalDesc"></p>                         <!-- 美食描述 -->
+            <span class="more-link" id="modalMore">了解更多 →</span>  <!-- 查看更多按钮 -->
+        </div>
+    </div>
+
+    <!-- 【全屏详情弹窗】点击了解更多后显示完整页面 -->
+    <div class="detail-overlay" id="detailOverlay">
+        <button class="detail-close" id="detailClose">✕</button>
+        <iframe class="detail-iframe" id="detailIframe" src="" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
+    </div>
+
+    <script>
+        // ================================================================
+        //  【1. 美食数据配置】—— 增删改美食就在这里操作
+        // ================================================================
+        const foods = [
+            // 每项包含：name(名称), img(图片路径), desc(详细介绍), page(详情页链接)
+            { name: "武平簸箕粄", img: "images/武平簸箕粄/武平簸箕粄.png", desc: "武平簸箕粄，米浆摊于竹簸箕上蒸熟，揭下呈半透明状，裹入豆角、肉末等馅料，淋葱油或辣酱，入口爽滑弹牙。这不仅是闽西客家人的日常早餐，更是一口浓缩的故乡滋味，清晨街头蒸笼掀开，米香四溢，是无数游子魂牵梦萦的味道。", page: "武平簸箕粄了解更多页面.html" },
+            { name: "连城白鸭汤", img: "images/连城白鸭汤/连城白鸭汤.png", desc: "连城白鸭，素有「鸭中珍品」之誉，羽白如雪、嘴黑如墨，以山泉文火慢炖数小时，汤色清亮如茶，入口鲜甜润喉，不油不腻。加入少许盐巴即可，鸭肉细嫩酥烂，骨中带香。这一碗汤，是连城人待客的最高礼遇，也是冬日里最暖心的慰藉。", page: "连城白鸭汤了解更多页面.html" },
+            { name: "上杭牛兜汤", img: "images/上杭牛兜汤/上杭牛兜汤.png", desc: "上杭牛兜汤，取新鲜牛脊肉切成薄片，用地瓜粉反复揉抓上浆，入滚汤中汆烫即起，牛肉嫩滑如丝，汤底醇厚鲜浓，佐以姜丝、葱花、胡椒，一口下去暖流直抵胃腑。这道菜源自客家先民农耕劳作的智慧，一碗热汤下肚，再疲乏的身躯也能瞬间焕发活力。", page: "上杭牛兜汤了解更多页面.html" },
+            { name: "长汀豆腐干", img: "images/长汀豆腐干/长汀豆腐干.png", desc: "长汀豆腐干，始于唐代、盛于明清，是闽西千年传承的味觉名片。选用优质黄豆，经磨浆、滤渣、点卤、压榨、卤制、风干等十余道工序精制而成，成品乌黑透亮、韧劲十足，咬一口豆香四溢，越嚼越有滋味。配一壶米酒，便是客家最惬意的茶点时光。", page: "长汀豆腐干了解更多页面.html" },
+            { name: "永定牛肉丸", img: "images/永定牛肉丸/永定牛肉丸.png", desc: "永定牛肉丸，选用土黄牛后腿肉，以铁棒千锤百打至肉浆起胶，再手工挤丸入沸水，颗颗圆润饱满、弹牙爆汁。一口咬下，肉汁在口中迸发，牛香浓郁、Q弹十足，蘸上客家辣酱更是绝配。客家谚语云「无丸不成宴」，这枚丸子，藏着客家人最朴实的热情。", page: "永定牛肉丸了解更多页面.html" },
+            { name: "湖洋蒸鸡", img: "images/上杭湖洋蒸鸡/上杭湖洋蒸鸡.png", desc: "湖洋蒸鸡，取放养于山间的土鸡，仅以盐、姜片简单调味，隔水蒸至皮黄肉白，鸡汁尽收碗底。掀盖瞬间，浓郁鸡香扑鼻而来，鸡肉滑嫩脱骨，蘸以葱油酱汁，鲜甜直抵舌尖。这道菜诠释了客家菜「大道至简」的真谛——最好的食材，从不需要繁琐的修饰。", page: "上杭湖洋蒸鸡了解更多页面.html" },
+            { name: "武平酿豆腐", img: "images/武平酿豆腐/武平酿豆腐.png", desc: "武平酿豆腐，将嫩豆腐切块挖心，填入猪肉、香菇、虾米调制的三鲜馅料，煎至两面金黄后以文火焖煮。豆腐吸饱了肉汁的鲜香，外皮微焦、内里嫩滑，一筷夹起，汁水在口中四溢。这道菜是客家年夜饭的压轴名角，寓意「全家福、富足有余」。", page: "武平酿豆腐了解更多页面.html" },
+            { name: "长汀麒麟脱胎", img: "images/长汀麒麟脱胎/长汀麒麟脱胎.png", desc: "长汀麒麟脱胎，客家菜中的「功夫之王」——乳鸽藏于猪肚之内，猪肚又置于全鸡之中，层层包裹、文火慢炖四小时以上。揭开锅盖，汤色乳白如奶，鲜香直冲天灵盖。猪肚弹韧、乳鸽酥烂、鸡汤醇厚，三重滋味层层递进，一碗下去浑身通透，堪称闽西第一汤。", page: "长汀麒麟脱胎了解更多页面.html" },
+            { name: "永定泡鸭爪", img: "images/永定泡鸭爪/永定泡鸭爪.png", desc: "永定泡鸭爪，以新鲜鸭爪佐以泡椒、蒜头、米醋、冰糖腌制三天三夜，酸辣脆爽、回味无穷。鸭爪富含胶质，经充分浸泡后皮韧骨酥，轻轻一咬即可脱骨，酸辣的汁水在舌尖跳跃，开胃解腻、越吃越上瘾。是客家人酒桌上必不可少的下酒神器。", page: "永定泡鸭爪了解更多页面.html" },
+            { name: "连城溪鱼焖豆腐", img: "images/连城溪鱼焖豆腐/溪鱼焖豆腐.png", desc: "连城溪鱼焖豆腐，取山涧溪流中野生小鱼，与当地手工卤水豆腐一同入锅，加姜丝、米酒焖煮至汤汁浓白。溪鱼的鲜甜与豆腐的豆香完美交融，鱼肉细嫩无骨、豆腐饱吸汤汁入口即化。这道菜朴实无华，却道出了客家人依山傍水、靠山吃山的生存智慧。", page: "连城溪鱼焖豆腐了解更多页面.html" }
+        ];
+        
+        // 每张卡片上显示的简短描述（卡片底部）
+        const foodShortDesc = [
+            "米浆蒸皮 · 滑嫩爽口",
+            "清润滋补 · 汤醇味美",
+            "牛肉熬煮 · 暖心暖胃",
+            "汀州名产 · 韧香耐嚼",
+            "千锤百打 · 弹牙爆汁",
+            "土鸡慢蒸 · 原汁原味",
+            "豆腐藏肉 · 鲜嫩多汁",
+            "乾坤内藏 · 汤浓味厚",
+            "酸辣入味 · 脆爽弹牙",
+            "溪鱼鲜美 · 豆腐嫩滑"
+        ];
+
+        // ================================================================
+        //  【2. 获取DOM元素】—— 缓存页面中的所有重要元素
+        // ================================================================
+        const container = document.getElementById('entrance-container');   // 入场容器
+        const galleryDiv = document.getElementById('gallery');             // 平铺区域
+        const gridContainer = document.getElementById('foodGrid');         // 卡片网格容器
+        const modalOverlay = document.getElementById('modalOverlay');      // 弹窗遮罩
+        const modalImg = document.getElementById('modalImg');             // 弹窗图片
+        const modalTitle = document.getElementById('modalTitle');          // 弹窗标题
+        const modalDesc = document.getElementById('modalDesc');            // 弹窗描述
+        const modalClose = document.getElementById('modalCloseX');          // 弹窗关闭叉叉
+
+        // ================================================================
+        //  【3. 创建3D轮播卡片】—— 用 CSS 3D Transform + 真实 <img> 标签
+        // ================================================================
+        const CARD_COUNT = foods.length;
+        const RADIUS_FAR = -800;     // 起始半径（远处→小）
+        const RADIUS_NEAR = 380;     // 结束半径（近处→大）
+
+        // ---- 创建飘落粒子 ----
+        for (var p = 0; p < 50; p++) {
+            var particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.width = (2 + Math.random() * 4) + 'px';
+            particle.style.height = particle.style.width;
+            particle.style.animationDuration = (6 + Math.random() * 10) + 's';
+            particle.style.animationDelay = (Math.random() * 8) + 's';
+            particle.style.opacity = 0.2 + Math.random() * 0.4;
+            container.appendChild(particle);
+        }
+
+        // ---- 创建旋转光点环 ----
+        var ringContainer = document.getElementById('ringContainer');
+        for (var s = 0; s < 30; s++) {
+            var spark = document.createElement('div');
+            spark.className = 'ring-spark';
+            var angle = (s / 30) * 360;
+            var ringRadius = 280 + Math.random() * 60;
+            var rad = angle * Math.PI / 180;
+            spark.style.left = (Math.cos(rad) * ringRadius - 2) + 'px';
+            spark.style.top = (Math.sin(rad) * ringRadius - 2) + 'px';
+            spark.style.animationDelay = (Math.random() * 1.5) + 's';
+            spark.style.opacity = 0.1 + Math.random() * 0.5;
+            ringContainer.appendChild(spark);
+        }
+
+        // 创建3D场景容器
+        const scene3d = document.createElement('div');
+        scene3d.className = 'carousel-scene';
+        container.appendChild(scene3d);
+
+        const carousel = document.createElement('div');
+        carousel.className = 'carousel-3d';
+        scene3d.appendChild(carousel);
+
+        const cardElements = [];
+
+        for (let i = 0; i < CARD_COUNT; i++) {
+            const baseAngle = (i / CARD_COUNT) * 360;
+
+            const card = document.createElement('div');
+            card.className = 'carousel-card';
+
+            const img = document.createElement('img');
+            img.src = foods[i].img;
+            img.alt = foods[i].name;
+            card.appendChild(img);
+
+            carousel.appendChild(card);
+            cardElements.push({ el: card, baseAngle: baseAngle });
+        }
+
+        // ================================================================
+        //  【4. 入场动画控制】—— 两段式舒缓动画
+        //  Phase 1: 散落→聚拢成圆旋转1圈 (0%~55%)
+        //  Phase 2: 圆环→飞入网格 (55%~100%)
+        // ================================================================
+        let active = true;
+        let startTime = null;
+        const ANIMATION_DURATION = 4000;  // 4 秒（比之前短，更干脆）
+
+        // ---- 相位边界 ----
+        const P1 = 0.55;   // Phase 1 结束（聚拢成圆转1圈）
+        // Phase 2 已移除：中间不再转半圈，直接飞入网格
+
+        // 缓动函数
+        function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
+
+        // ---- 计算目标网格位置 ----
+        function computeGridTargets() {
+            var vw = window.innerWidth;
+            var galleryW = Math.min(1400, vw - 40);
+            var galleryLeft = (vw - galleryW) / 2;
+            var gridW = galleryW - 60; // padding 30px 左右
+            var gap = 24;
+            var cols = 5;
+            // 根据视口宽度决定列数（与CSS一致）
+            if (vw <= 600) cols = 2;
+            else if (vw <= 900) cols = 3;
+            else if (vw <= 1200) cols = 4;
+            else cols = 5;
+            var cardW = (gridW - (cols - 1) * gap) / cols;
+            var cardH = cardW + 56; // 图片1:1 + 文字区约56px
+
+            // 估算标题区高度：h1(约58px) + tagline(约55px) + margin-top(20px)
+            var titleH = 58 + 55 + 20;
+            var gridTop = 50 + titleH; // padding-top 50px
+
+            var actualCount = foods.length;
+            var rows = Math.ceil(actualCount / cols);
+            var targets = [];
+            for (var i = 0; i < actualCount; i++) {
+                var row = Math.floor(i / cols);
+                var col = i % cols;
+                targets[i] = {
+                    x: galleryLeft + 30 + col * (cardW + gap) + cardW / 2,
+                    y: gridTop + row * (cardH + gap) + cardH / 2,
+                    scale: cardW / 200  // 从200×200缩放到网格卡片宽度
+                };
+            }
+            return targets;
+        }
+        var gridTargets = computeGridTargets();
+
+        // ---- Phase 辅助函数 ----
+        function phaseProgress(progress, start, end) {
+            return Math.min(1, Math.max(0, (progress - start) / (end - start)));
+        }
+
+        // 初始：所有卡片随机散布在远处
+        cardElements.forEach(function(item, idx) {
+            var spreadX = (Math.random() - 0.5) * 600;
+            var spreadY = (Math.random() - 0.5) * 400;
+            var spreadZ = RADIUS_FAR + (Math.random() - 0.5) * 300;
+            var rotY = (Math.random() - 0.5) * 720;
+            var rotX = (Math.random() - 0.5) * 60;
+            item.el.style.transform = 'translateX(' + spreadX + 'px) translateY(' + spreadY + 'px) translateZ(' + spreadZ + 'px) rotateY(' + rotY + 'deg) rotateX(' + rotX + 'deg)';
+            item.el.style.opacity = '0.3';
+            item._scattered = true;
+            // 存储最后的2D位置（Phase 2飞入网格用到）
+            item._finalX = gridTargets[idx] ? gridTargets[idx].x : 0;
+            item._finalY = gridTargets[idx] ? gridTargets[idx].y : 0;
+            item._finalScale = gridTargets[idx] ? gridTargets[idx].scale : 1;
+        });
+
+        // 【动画结束 → 切换到平铺网格】
+        function finishAnimationAndShowGrid() {
+            if (!active) return;
+            active = false;
+
+            // 清除画廊的inline opacity，让CSS .visible 生效
+            galleryDiv.style.opacity = '';
+            // 重置容器样式
+            container.style.opacity = '';
+            container.style.display = 'none';
+            // 显示画廊（CSS transition 自动淡入+上移）
+            galleryDiv.classList.add('visible');
+
+            // 移除3D卡片
+            cardElements.forEach(function(item) {
+                if (item.el.parentNode) item.el.parentNode.removeChild(item.el);
+            });
+            if (scene3d.parentNode) scene3d.parentNode.removeChild(scene3d);
+
+            cancelAnimationFrame(animationId);
+            if (container.parentNode) container.remove();
+        }
+
+        // ================================================================
+        //  【5. 生成平铺网格卡片】
+        // ================================================================
+        foods.forEach(function(food, idx) {
+            var card = document.createElement('div');
+            card.className = 'food-card';
+            var shortDesc = foodShortDesc[idx] || food.desc;
+            card.innerHTML = '<div class="img-wrap"><img src="' + food.img + '" alt="' + food.name + '" loading="lazy"></div><div class="card-info"><h3>' + food.name + '</h3><p>' + shortDesc + '</p></div>';
+            card.addEventListener('click', function() {
+                modalImg.src = food.img;
+                modalTitle.textContent = food.name;
+                modalDesc.textContent = food.desc;
+                modalOverlay.classList.add('active');
+                modalOverlay.dataset.page = food.page;
+            });
+            gridContainer.appendChild(card);
+        });
+
+        // -------- 【弹窗逻辑】 --------
+        function closeModal() { modalOverlay.classList.remove('active'); }
+        modalClose.addEventListener('click', closeModal);
+        // ===== 全屏详情弹窗（iframe嵌入了解更多页面） =====
+        var detailOverlay = document.getElementById('detailOverlay');
+        var detailIframe = document.getElementById('detailIframe');
+        var detailClose = document.getElementById('detailClose');
+
+        document.getElementById('modalMore').addEventListener('click', function() {
+            var pageUrl = modalOverlay.dataset.page;
+            if (pageUrl) {
+                closeModal();
+                // 加载对应页面到iframe，带embed参数
+                detailIframe.src = pageUrl + '?embed=true';
+                detailOverlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+        });
+
+        function closeDetailModal() {
+            detailOverlay.classList.remove('active');
+            document.body.style.overflow = '';
+            // 延迟清空iframe以释放内存
+            setTimeout(function() { detailIframe.src = ''; }, 500);
+        }
+
+        detailClose.addEventListener('click', closeDetailModal);
+        detailOverlay.addEventListener('click', function(e) {
+            if (e.target === detailOverlay) closeDetailModal();
+        });
+
+        // ESC键关闭
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && detailOverlay.classList.contains('active')) {
+                closeDetailModal();
+            }
+        });
+
+        modalOverlay.addEventListener('click', function(e) { if (e.target === modalOverlay) closeModal(); });
+
+        // ================================================================
+        //  【6. 🚀 两段连贯动画主循环】
+        // ================================================================
+        let animationId;
+        var glowBg = document.getElementById('glowBg');
+        var cx = window.innerWidth / 2;
+        var cy = window.innerHeight / 2;
+        var CIRCLE_RADIUS = 340; // 圆环半径
+
+        function animate(timestamp) {
+            if (!active) return;
+            if (!startTime) startTime = timestamp;
+
+            var elapsed = timestamp - startTime;
+            var progress = Math.min(1, elapsed / ANIMATION_DURATION);
+
+            // ---- 光晕 & 光点环：贯穿始终 ----
+            if (glowBg) {
+                var g = Math.min(1, progress * 1.5);
+                glowBg.style.opacity = Math.max(0, 0.12 * (1 - g * 0.9));
+                glowBg.style.transform = 'scale(' + (0.8 + g * 1.2) + ')';
+            }
+            if (ringContainer) {
+                var ringSpeed = progress < P1 ? 2 : 0;
+                ringContainer.style.transform = 'rotateZ(' + (progress * 360 * ringSpeed) + 'deg) scale(' + (0.3 + progress * 0.7) + ')';
+                ringContainer.style.opacity = Math.max(0, 0.5 * (1 - progress * 0.7));
+            }
+
+            // ============================================================
+            //  Phase 1: 散落 → 聚拢成圆（仅转1圈，舒缓飞入）
+            // ============================================================
+            if (progress < P1) {
+                var p = phaseProgress(progress, 0, P1);
+                var easeP = easeOutCubic(p);
+
+                // 从远处飞近 + 仅旋转1圈
+                var currentRadius = RADIUS_FAR + (CIRCLE_RADIUS - RADIUS_FAR) * easeP;
+                var totalAngle = 360 * 1 * easeP;
+                var scaleFactor = 0.4 + easeP * 0.6;
+
+                cardElements.forEach(function(item, i) {
+                    var newAngle = item.baseAngle + totalAngle;
+                    var zVal = currentRadius;
+                    var gatherPhase = Math.min(1, Math.max(0, (easeP - i * 0.02) / (1 - i * 0.02)));
+                    var gatherRadius = zVal * (0.6 + gatherPhase * 0.4);
+                    item.el.style.transform = 'rotateY(' + newAngle + 'deg) translateZ(' + gatherRadius + 'px) scale(' + scaleFactor + ')';
+                    if (item._scattered) {
+                        item.el.style.opacity = Math.min(1, 0.3 + gatherPhase * 0.7);
+                        if (gatherPhase >= 1) item._scattered = false;
+                    }
+                    // 在 Phase 1 结束时记录卡片在圆环上的屏幕位置，供 Phase 2 飞入网格使用
+                    if (easeP >= 1) {
+                        var rad = newAngle * Math.PI / 180;
+                        var circleR = CIRCLE_RADIUS;
+                        item._circleX = cx + Math.cos(rad) * circleR;
+                        item._circleY = cy + Math.sin(rad) * circleR * 0.45;
+                    }
+                });
+            }
+
+            // ============================================================
+            //  Phase 2: 圆环→依次飞入网格（Phase 1转完1圈后直接展开）
+            // ============================================================
+            else {
+                var p = phaseProgress(progress, P1, 1.0);
+                var easeP = easeOutCubic(p);
+
+                cardElements.forEach(function(item, i) {
+                    var target = gridTargets[i];
+                    if (!target) return;
+
+                    var fromX = item._circleX || cx;
+                    var fromY = item._circleY || cy;
+                    var toX = target.x;
+                    var toY = target.y;
+                    var toScale = target.scale;
+
+                    var stagger = i * 0.03;
+                    var sp = Math.min(1, Math.max(0, (p - stagger) / (1 - stagger)));
+                    var spEase = easeOutCubic(sp);
+
+                    var curX = fromX + (toX - fromX) * spEase;
+                    var curY = fromY + (toY - fromY) * spEase;
+                    var curScale = 0.95 + (toScale - 0.95) * spEase;
+
+                    var offsetX = curX - cx;
+                    var offsetY = curY - cy;
+
+                    item.el.style.transform = 'translateX(' + offsetX + 'px) translateY(' + offsetY + 'px) translateZ(0) rotateY(0deg) scale(' + curScale + ')';
+                    item.el.style.opacity = '' + Math.min(1, spEase * 1.2);
+                });
+
+                // 无空白等待：卡片飞近目标时立即淡入网格，同时3D层淡出
+                var fadeInStart = 0.4; // 飞入进度超过40%后开始交叉淡变
+                var fadeP = Math.min(1, Math.max(0, (p - fadeInStart) / (1 - fadeInStart)));
+                galleryDiv.style.opacity = '' + fadeP;
+                container.style.opacity = '' + (1 - fadeP);
+
+                if (progress >= 1) {
+                    finishAnimationAndShowGrid();
+                    return;
+                }
+            }
+
+            animationId = requestAnimationFrame(animate);
+        }
+
+        // ===================== 启动动画 =====================
+        // 等所有图片加载完成后启动
+        var imagesLoaded = 0;
+        var totalImages = CARD_COUNT;
+
+        function checkAllLoaded() {
+            imagesLoaded++;
+            if (imagesLoaded >= totalImages) {
+                // 所有图片加载完成 → 保持散落状态一小会儿再启动
+                setTimeout(function() {
+                    animationId = requestAnimationFrame(animate);
+                }, 300);
+            }
+        }
+
+        // 给每张卡片的 img 绑定 load 事件
+        var allImgs = carousel.querySelectorAll('img');
+        for (var j = 0; j < allImgs.length; j++) {
+            if (allImgs[j].complete) {
+                checkAllLoaded();
+            } else {
+                allImgs[j].addEventListener('load', checkAllLoaded);
+                allImgs[j].addEventListener('error', checkAllLoaded);  // 加载失败也继续
+            }
+        }
+
+        // 5 秒超时兜底
+        setTimeout(function() {
+            if (active && !startTime) {
+                animationId = requestAnimationFrame(animate);
+            }
+        }, 5000);
+
+        // ===================== 窗口自适应 =====================
+        window.addEventListener('resize', function() {
+            cx = window.innerWidth / 2;
+            cy = window.innerHeight / 2;
+            gridTargets = computeGridTargets();
+            // 更新每个卡片的最终目标位置
+            cardElements.forEach(function(item, i) {
+                if (gridTargets[i]) {
+                    item._finalX = gridTargets[i].x;
+                    item._finalY = gridTargets[i].y;
+                    item._finalScale = gridTargets[i].scale;
+                }
+            });
+        });
+
+        // ================================================================
+        //  【7. 汉堡菜单交互】
+        // ================================================================
+        var hamburgerBtn = document.getElementById('hamburgerBtn');
+        var mobileNav = document.getElementById('mobileNav');
+        var mobileOverlay = document.getElementById('mobileOverlay');
+
+        function openMobileMenu() {
+            hamburgerBtn.classList.add('active');
+            mobileNav.classList.add('open');
+            mobileOverlay.classList.add('open');
+        }
+
+        function closeMobileMenu() {
+            hamburgerBtn.classList.remove('active');
+            mobileNav.classList.remove('open');
+            mobileOverlay.classList.remove('open');
+        }
+
+        hamburgerBtn.addEventListener('click', function() {
+            if (hamburgerBtn.classList.contains('active')) {
+                closeMobileMenu();
+            } else {
+                openMobileMenu();
+            }
+        });
+
+        mobileOverlay.addEventListener('click', function() {
+            closeMobileMenu();
+        });
+
+        // 点击移动端导航链接后自动关闭菜单
+        var mobileLinks = mobileNav.querySelectorAll('a');
+        for (var ml = 0; ml < mobileLinks.length; ml++) {
+            mobileLinks[ml].addEventListener('click', function() {
+                closeMobileMenu();
+            });
+        }
+
+        console.log('🏮 食在闽西，味在客家 · 美食图鉴已启动（CSS 3D 卡片 + 真实 img 标签）');
+    </script>
+<!-- ===== 水墨互动效果：点击涟漪 + 毛笔拖尾 ===== -->
+<script>
+(function() {
+    var cvs = document.createElement('canvas');
+    cvs.id = 'inkCanvas';
+    cvs.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:99999;pointer-events:none;';
+    document.body.appendChild(cvs);
+    var ctx = cvs.getContext('2d');
+    var W, H;
+    function resize() { W = cvs.width = window.innerWidth; H = cvs.height = window.innerHeight; }
+    resize();
+    window.addEventListener('resize', resize);
+    var palette = [[0,188,212],[0,150,136],[38,198,218],[0,172,193],[76,175,80],[56,142,60],[102,187,106],[128,203,196],[129,199,132]];
+    function randColor() { return palette[Math.floor(Math.random()*palette.length)]; }
+    var rings = [];
+    function createInkRings(x,y) {
+        var count = 3+Math.floor(Math.random()*3);
+        for(var i=0;i<count;i++){var c=randColor();rings.push({x:x,y:y,r:0,maxR:40+Math.random()*80,opacity:0.5+Math.random()*0.4,rColor:c,speed:0.5+Math.random()*0.8,lw:1.5+Math.random()*3.5,delay:i*(50+Math.random()*80),life:0,decay:0.0015+Math.random()*0.002,wobble:0.08+Math.random()*0.12,phase:Math.random()*Math.PI*2});}
+    }
+    var trail=[];var MAX_TRAIL=15;
+    function addTrailPoint(x,y){var c=randColor();trail.push({x:x,y:y,r:0,maxR:10+Math.random()*18,opacity:0.5+Math.random()*0.3,color:c,lw:1.2+Math.random()*2.0,life:0,speed:0.5+Math.random()*0.8,decay:0.002+Math.random()*0.0025,wobble:0.06+Math.random()*0.10,phase:Math.random()*Math.PI*2});if(trail.length>MAX_TRAIL)trail.shift();}
+    var lastMouse={x:0,y:0};var mouseMoved=false;
+    document.addEventListener('mousedown',function(e){if(e.target.closest('.top-bar')||e.target.closest('.bottom-area')||e.target.closest('.nav-btn')||e.target.closest('.chart-modal-btn')||e.target.closest('.food-modal-btn'))return;createInkRings(e.clientX,e.clientY);});
+    document.addEventListener('mousemove',function(e){var dx=e.clientX-lastMouse.x;var dy=e.clientY-lastMouse.y;var dist=Math.sqrt(dx*dx+dy*dy);if(dist>12){var steps=Math.min(Math.floor(dist/12),4);for(var i=0;i<=steps;i++){var t=i/steps;var px=lastMouse.x+dx*t;var py=lastMouse.y+dy*t;addTrailPoint(px,py);}lastMouse.x=e.clientX;lastMouse.y=e.clientY;mouseMoved=true;}});
+    document.addEventListener('mouseenter',function(e){lastMouse.x=e.clientX;lastMouse.y=e.clientY;});
+    function animate(){
+        ctx.clearRect(0,0,W,H);
+        for(var i=rings.length-1;i>=0;i--){var ring=rings[i];if(ring.life<ring.delay){ring.life+=16;if(ring.life<ring.delay)continue;}ring.r+=ring.speed;var progress=ring.r/ring.maxR;var alpha=ring.opacity*(1-progress*progress);alpha=Math.max(0,alpha);var wobbleAmount=ring.wobble*ring.r;var r1=ring.r+wobbleAmount*Math.sin(ring.phase+progress*4);var r2=ring.r+wobbleAmount*Math.sin(ring.phase+2.3+progress*3.5);if(alpha>0.01&&ring.r<ring.maxR*1.3){ctx.beginPath();ctx.ellipse(ring.x,ring.y,r1,r2,0,0,Math.PI*2);ctx.strokeStyle='rgba('+ring.rColor[0]+','+ring.rColor[1]+','+ring.rColor[2]+','+alpha+')';ctx.lineWidth=ring.lw*(1-progress*0.6);ctx.stroke();ctx.beginPath();ctx.ellipse(ring.x,ring.y,r1*0.5,r2*0.5,0,0,Math.PI*2);ctx.fillStyle='rgba('+ring.rColor[0]+','+ring.rColor[1]+','+ring.rColor[2]+','+(alpha*0.15)+')';ctx.fill();}if(alpha<=0.01||ring.r>ring.maxR*1.5)rings.splice(i,1);}
+        for(var i=trail.length-1;i>=0;i--){var p=trail[i];p.r+=p.speed;if(p.r>p.maxR*1.3){trail.splice(i,1);continue;}var progress=p.r/p.maxR;var alpha=p.opacity*(1-progress*progress);if(alpha<0.01){trail.splice(i,1);continue;}var wobbleAmount=p.wobble*p.r;var r1=p.r+wobbleAmount*Math.sin(p.phase+progress*4);var r2=p.r+wobbleAmount*Math.sin(p.phase+2.3+progress*3.5);ctx.beginPath();ctx.ellipse(p.x,p.y,r1,r2,0,0,Math.PI*2);ctx.strokeStyle='rgba('+p.color[0]+','+p.color[1]+','+p.color[2]+','+alpha+')';ctx.lineWidth=p.lw*(1-progress*0.5);ctx.stroke();ctx.beginPath();ctx.ellipse(p.x,p.y,r1*0.4,r2*0.4,0,0,Math.PI*2);ctx.fillStyle='rgba('+p.color[0]+','+p.color[1]+','+p.color[2]+','+(alpha*0.12)+')';ctx.fill();}
+        requestAnimationFrame(animate);
+    }
+    animate();
+})();
+</script>
+</body>
+</html>

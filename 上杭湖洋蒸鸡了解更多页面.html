@@ -1,0 +1,1029 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>上杭湖洋蒸鸡|食在闽西，味在客家</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=ZCOOL+XiaoWei&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            font-family: "ZCOOL XiaoWei", "Noto Serif SC", "KaiTi", serif;
+            background: #1a1410;
+        }
+
+        /* ===== 背景 ===== */
+        .bg-kraft {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            background: url('images/上杭湖洋蒸鸡/上杭湖洋蒸鸡背景图.png') center/cover no-repeat;
+        }
+
+        .overlay-mask {
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+            background: rgba(255, 255, 255, 0.06);
+            pointer-events: none;
+        }
+
+        /* ===== 顶部返回按钮 ===== */
+        .top-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 30;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 16px 40px;
+            pointer-events: none;
+        }
+        .top-bar > * { pointer-events: auto; }
+
+        .back-btn {
+            display: inline-block;
+            padding: 8px 18px;
+            font-size: 16px;
+            font-family: "Ma Shan Zheng", "ZCOOL XiaoWei", "STXingkai", "霞鹜臻楷 GB 常规", "KaiTi", serif;
+            color: #ffffff;
+            text-decoration: none;
+            letter-spacing: 3px;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+            background: rgba(40, 28, 18, 0.55);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(180, 150, 110, 0.35);
+            box-shadow: 0 2px 16px rgba(0, 0, 0, 0.15), inset 0 0 20px rgba(180, 150, 110, 0.05);
+            cursor: pointer;
+        }
+        .back-btn:hover {
+            color: #fff6e0;
+            background: rgba(200, 160, 80, 0.25);
+            text-shadow: 0 0 16px rgba(232, 200, 122, 0.5);
+        }
+
+        /* ===== 页面容器 ===== */
+        .page-wrapper {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 4% 30px;
+            transform: translateY(-150px);
+        }
+
+        /* ===== 大标题（更小、更靠上） ===== */
+        .main-title {
+            margin-top: 80px;
+            margin-bottom: 6px;
+            text-align: center;
+            line-height: 0;
+        }
+        .main-title img {
+            display: block;
+            max-width: 85vw;
+            height: auto;
+            width: 520px;
+        }
+
+        /* ===== 中间行（只放菜品，居中偏右） ===== */
+        .middle-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            max-width: 1200px;
+            margin-top: 4px;
+            margin-bottom: 6px;
+            margin-left: 80px;
+            flex-wrap: nowrap;
+            position: relative;
+        }
+
+        /* ===== 菜品图片（叠加容器） ===== */
+        .food-image {
+            flex: 0 0 auto;
+            text-align: center;
+            line-height: 0;
+            position: relative;
+        }
+        .food-image .img-stack {
+            position: relative;
+            display: inline-block;
+            line-height: 0;
+        }
+        .food-image .img-stack img {
+            display: block;
+            width: 430px;
+            max-width: 65vw;
+            height: auto;
+            border-radius: 10px;
+        }
+        .food-image .img-stack .img-pot {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 2;
+            width: 580px;
+            max-width: none;
+            opacity: 0;
+            transition: opacity 1.2s ease;
+        }
+        .food-image .img-stack .img-pot-cold {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 3;
+            width: 580px;
+            max-width: none;
+            opacity: 1;
+            transition: opacity 1.2s ease;
+        }
+        .food-image .img-stack .img-chicken {
+            position: relative;
+            z-index: 1;
+            opacity: 0;
+            transition: opacity 1.2s ease;
+        }
+        /* 加热完成：锅1.png→锅.png（闹钟2秒触发） */
+        .food-image.heating-done .img-stack .img-pot-cold {
+            opacity: 0;
+        }
+        .food-image.heating-done .img-stack .img-pot {
+            opacity: 1;
+        }
+        /* 蒸鸡出锅效果：锅消失、鸡出现 */
+        .food-image.cooking-done .img-stack .img-pot,
+        .food-image.cooking-done .img-stack .img-pot-cold {
+            opacity: 0;
+        }
+        .food-image.cooking-done .img-stack .img-chicken {
+            opacity: 1;
+        }
+
+        /* ===== 蒸汽粒子动画（刚出锅效果） ===== */
+        .steam-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 20;
+            overflow: visible;
+            border-radius: 10px;
+            opacity: 0;
+            transition: opacity 0.8s ease;
+        }
+        .food-image.cooking-done .steam-container {
+            opacity: 1;
+        }
+        .steam-particle {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(ellipse, rgba(255,255,255,0.50) 0%, rgba(255,248,235,0.20) 40%, transparent 70%);
+            animation: steamRise 3s ease-out infinite;
+        }
+        .steam-particle:nth-child(1) {
+            bottom: 45%;
+            left: 28%;
+            width: 80px;
+            height: 90px;
+            animation-delay: 0s;
+            animation-duration: 3.5s;
+        }
+        .steam-particle:nth-child(2) {
+            bottom: 50%;
+            left: 42%;
+            width: 100px;
+            height: 110px;
+            animation-delay: 1s;
+            animation-duration: 4s;
+        }
+        .steam-particle:nth-child(3) {
+            bottom: 40%;
+            left: 58%;
+            width: 70px;
+            height: 80px;
+            animation-delay: 2s;
+            animation-duration: 3s;
+        }
+        .steam-particle:nth-child(4) {
+            bottom: 52%;
+            left: 15%;
+            width: 60px;
+            height: 70px;
+            animation-delay: 0.5s;
+            animation-duration: 3.8s;
+        }
+        .steam-particle:nth-child(5) {
+            bottom: 42%;
+            left: 72%;
+            width: 65px;
+            height: 75px;
+            animation-delay: 1.5s;
+            animation-duration: 3.2s;
+        }
+        @keyframes steamRise {
+            0%   { transform: translateY(0) scale(0.5); opacity: 0.6; }
+            30%  { opacity: 0.5; }
+            60%  { opacity: 0.25; }
+            100% { transform: translateY(-150px) scale(1.6); opacity: 0; }
+        }
+
+        /* ===== 锅底火苗（三簇错落摆放，长按逐团出现） ===== */
+        .fire-under-container {
+            position: absolute;
+            bottom: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 5;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            gap: 10px;
+            pointer-events: none;
+            opacity: 1;
+            transition: opacity 0.6s ease;
+        }
+        .fire-under-item {
+            display: block;
+            width: 60px;
+            height: auto;
+            transform-origin: bottom center;
+            animation: fireSway 1.2s ease-in-out infinite;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+        .fire-under-item.fire-visible {
+            opacity: 1;
+        }
+        .fire-under-item:nth-child(1) {
+            width: 68px;
+            margin-bottom: -10px;
+            animation-delay: 0s;
+            animation-duration: 1.4s;
+        }
+        .fire-under-item:nth-child(2) {
+            width: 55px;
+            margin-bottom: 0px;
+            animation-delay: 0.3s;
+            animation-duration: 1.0s;
+        }
+        .fire-under-item:nth-child(3) {
+            width: 64px;
+            margin-bottom: -6px;
+            animation-delay: 0.6s;
+            animation-duration: 1.3s;
+        }
+        @keyframes fireSway {
+            0%   { transform: translateX(-3px) rotate(-3deg) scaleY(1); }
+            25%  { transform: translateX(0px) rotate(0deg) scaleY(0.95); }
+            50%  { transform: translateX(4px) rotate(3deg) scaleY(1); }
+            75%  { transform: translateX(0px) rotate(-1deg) scaleY(0.95); }
+            100% { transform: translateX(-3px) rotate(-3deg) scaleY(1); }
+        }
+
+        /* ===== 锅周围烟雾 ===== */
+        .smoke-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 6;
+            overflow: visible;
+            opacity: 0;
+            transition: opacity 0.8s ease;
+        }
+        .food-image.fire-on .smoke-container,
+        .food-image.heating-done .smoke-container {
+            opacity: 1;
+        }
+        .smoke-particle {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(200,190,180,0.20) 0%, transparent 70%);
+            animation: smokeDrift 4s ease-out infinite;
+        }
+        .smoke-particle:nth-child(1) {
+            width: 70px; height: 60px;
+            top: -20px; left: 5%;
+            animation-duration: 5s;
+            animation-delay: 0s;
+        }
+        .smoke-particle:nth-child(2) {
+            width: 90px; height: 80px;
+            top: -30px; left: 30%;
+            animation-duration: 4.5s;
+            animation-delay: 1s;
+        }
+        .smoke-particle:nth-child(3) {
+            width: 60px; height: 50px;
+            top: -15px; left: 55%;
+            animation-duration: 5.5s;
+            animation-delay: 0.5s;
+        }
+        .smoke-particle:nth-child(4) {
+            width: 80px; height: 70px;
+            top: -25px; right: 8%;
+            animation-duration: 4s;
+            animation-delay: 1.5s;
+        }
+        @keyframes smokeDrift {
+            0%   { transform: translateY(0) translateX(0) scale(0.6); opacity: 0.4; }
+            50%  { opacity: 0.25; }
+            100% { transform: translateY(-80px) translateX(20px) scale(1.3); opacity: 0; }
+        }
+
+        /* ===== 交互块下专属进度条 ===== */
+        .progress-bar-under {
+            width: 100%;
+            max-width: 160px;
+            height: 8px;
+            background: rgba(30, 20, 10, 0.5);
+            border-radius: 4px;
+            border: 1px solid rgba(255, 200, 100, 0.25);
+            overflow: hidden;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.35s ease;
+            margin-top: 4px;
+            flex-shrink: 0;
+        }
+        .progress-bar-under.active {
+            opacity: 1;
+        }
+        .progress-bar-under-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #ff8800, #ffc107, #ffdd44);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 16px rgba(255, 136, 0, 0.6), 0 0 6px rgba(255, 193, 7, 0.4);
+        }
+
+        /* 闹钟提示词初始隐藏（用opacity避免布局跳动） */
+        #clockHint {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity 0.4s ease, visibility 0.4s ease;
+        }
+
+        /* 火苗提示词隐藏 */
+        #fireHint.hint-hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity 0.4s ease, visibility 0.4s ease;
+        }
+
+        /* 出锅时火苗和锅周围烟雾消失 */
+        .food-image.cooking-done .fire-under-container {
+            opacity: 0;
+        }
+        .food-image.cooking-done .smoke-container {
+            opacity: 0;
+        }
+        /* 闹钟提示词隐藏（由JS控制class） */
+        #clockHint.hint-hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity 0.4s ease, visibility 0.4s ease;
+        }
+        /* 闹钟提示词显示 */
+        #clockHint.hint-visible {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+            transition: opacity 0.4s ease, visibility 0.4s ease;
+        }
+
+        /* ===== 交互块（火苗/闹钟） ===== */
+        .interact-block {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none;
+            position: relative;
+            flex: 0 0 auto;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .interact-block * {
+            pointer-events: none;
+        }
+
+        .interact-block .gif-image {
+            width: 120px;
+            height: auto;
+            display: block;
+            pointer-events: none;
+        }
+        /* 侧边火苗.png摇曳效果 */
+        .interact-block .fire-side-img {
+            width: 115px;
+            height: auto;
+            display: block;
+            pointer-events: none;
+            animation: fireSway 1.4s ease-in-out infinite;
+            transform-origin: bottom center;
+        }
+        .interact-block .clock-img {
+            width: 115px;
+            height: auto;
+            display: block;
+            pointer-events: none;
+            animation: alarmRing 1.2s ease-in-out infinite;
+            transform-origin: bottom center;
+        }
+        @keyframes alarmRing {
+            0%   { transform: translateX(0) rotate(0deg); }
+            10%  { transform: translateX(-3px) rotate(-3deg); }
+            20%  { transform: translateX(3px) rotate(3deg); }
+            30%  { transform: translateX(-2px) rotate(-2deg); }
+            40%  { transform: translateX(2px) rotate(2deg); }
+            50%  { transform: translateX(-1px) rotate(-1deg); }
+            60%  { transform: translateX(1px) rotate(1deg); }
+            70%  { transform: translateX(-0.5px) rotate(-0.5deg); }
+            80%  { transform: translateX(0.5px) rotate(0.5deg); }
+            90%  { transform: translateX(0) rotate(0deg); }
+            100% { transform: translateX(0) rotate(0deg); }
+        }
+
+        .interact-block .hint-text {
+            font-size: 18px;
+            color: #f5ede0;
+            letter-spacing: 2px;
+            white-space: nowrap;
+            background: rgba(60, 45, 30, 0.55);
+            backdrop-filter: blur(4px);
+            padding: 6px 18px;
+            border-radius: 20px;
+            border: 1px solid rgba(180, 150, 110, 0.25);
+        }
+
+        /* ===== 弹出气泡 ===== */
+        .popup-bubble {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: calc(100% + 12px);
+            background: rgba(255, 248, 235, 0.94);
+            backdrop-filter: blur(8px);
+            color: #3a2a14;
+            font-size: clamp(13px, 1vw, 16px);
+            line-height: 1.7;
+            padding: 14px 20px;
+            border-radius: 14px;
+            border: 1px solid rgba(200, 170, 130, 0.4);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            width: max-content;
+            max-width: 300px;
+            text-align: center;
+            letter-spacing: 0.5px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.35s ease;
+            z-index: 9999;
+        }
+        .popup-bubble::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 8px solid transparent;
+            border-top-color: rgba(255, 248, 235, 0.94);
+        }
+        .popup-bubble.show {
+            opacity: 1;
+        }
+
+        /* ===== 左侧固定容器（制作工艺） ===== */
+        .side-craft {
+            position: fixed;
+            left: calc(3% - 5px);
+            bottom: 20px;
+            width: min(38vw, 500px);
+            max-width: 500px;
+            z-index: 20;
+            pointer-events: none;
+            animation: fadeInLeft 0.8s 0.3s forwards;
+            opacity: 0;
+        }
+        .side-craft-card {
+            background: rgba(255, 248, 235, 0.55);
+            border-radius: 18px;
+            border: 1px solid rgba(200, 170, 130, 0.2);
+            padding: 22px 24px;
+            backdrop-filter: blur(8px);
+        }
+        .side-craft-card .section-header {
+            margin-bottom: 16px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(139, 105, 20, 0.12);
+        }
+        .side-craft-card .section-title-img {
+            height: 56px;
+            width: auto;
+            display: block;
+        }
+        .side-craft-card .step-list {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+        .side-craft-card .step-item {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+        }
+        .side-craft-card .step-content {
+            width: 100%;
+        }
+        .side-craft-card .step-label {
+            font-size: clamp(15px, 1.1vw, 18px);
+            font-weight: bold;
+            color: #5A3E08;
+            margin-bottom: 3px;
+            letter-spacing: 2px;
+            font-family: "Ma Shan Zheng", serif;
+        }
+        .side-craft-card .step-desc {
+            font-size: clamp(13px, 0.95vw, 15px);
+            line-height: 1.7;
+            color: #4a3820;
+            letter-spacing: 0.5px;
+        }
+        .side-craft-card .step-img {
+            width: auto;
+            height: 72px;
+            flex-shrink: 0;
+            border-radius: 10px;
+            object-fit: contain;
+            display: block;
+            border: 2px solid rgba(139, 105, 20, 0.15);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        @keyframes fadeInLeft {
+            from { opacity: 0; transform: translateX(-30px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+
+        /* ===== 右侧固定列（火苗在上，闹钟在下） ===== */
+        .right-column {
+            position: fixed;
+            right: 55px;
+            top: 50%;
+            transform: translateY(-30%);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            pointer-events: none;
+        }
+        .right-column > * {
+            pointer-events: auto;
+        }
+        /* 右侧火苗的弹窗气泡方向调整：向上弹出（不遮挡中间图片） */
+        .right-column:not(.clock-only) .popup-bubble,
+        #fireBlock .popup-bubble {
+            left: 50%;
+            right: auto;
+            transform: translateX(-50%);
+            bottom: calc(100% + 12px);
+            top: auto;
+        }
+        #fireBlock .popup-bubble::after {
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border-top-color: rgba(255, 248, 235, 0.94);
+            border-left-color: transparent;
+        }
+        /* 闹钟的弹窗气泡放在闹钟下方 */
+        #clockBlock .popup-bubble {
+            left: 50%;
+            right: auto;
+            transform: translateX(-50%);
+            bottom: auto;
+            top: calc(100% + 12px);
+        }
+        #clockBlock .popup-bubble::after {
+            top: -16px;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 8px solid transparent;
+            border-bottom-color: rgba(255, 248, 235, 0.94);
+            border-top-color: transparent;
+        }
+
+        /* ===== 响应式 ===== */
+        @media (max-width: 1000px) {
+            .bottom-desc { left: calc(50% - 60px); right: 160px; bottom: 20px; padding: 10px 16px; font-size: 13px; }
+            .side-craft { left: calc(2% - 5px); width: min(42vw, 380px); bottom: 20px; }
+            .side-craft-card { padding: 16px 18px; }
+            .side-craft-card .section-title-img { height: 42px; }
+            .side-craft-card .step-img { height: 56px; }
+            .side-craft-card .step-label { font-size: 14px; }
+            .side-craft-card .step-desc { font-size: 13px; }
+            .side-craft-card .step-list { gap: 14px; }
+        }
+        @media (max-width: 820px) {
+            .right-column { right: 35px; gap: 12px; }
+            .main-title img { width: 380px; }
+            .food-image .img-stack img { width: 300px; }
+            .food-image .img-stack .img-pot,
+            .food-image .img-stack .img-pot-cold { width: 420px; }
+            .interact-block .gif-image,
+            .interact-block .fire-side-img,
+            .interact-block .clock-img { width: 88px; }
+            .interact-block .hint-text { font-size: 15px; padding: 4px 14px; }
+            .popup-bubble { max-width: 260px; font-size: 14px; padding: 12px 18px; }
+            .fire-under-item { width: 48px; }
+            .fire-under-item:nth-child(1) { width: 54px; }
+            .fire-under-item:nth-child(2) { width: 44px; }
+            .fire-under-item:nth-child(3) { width: 50px; }
+            .fire-under-container { bottom: -2px; gap: 6px; }
+            .progress-bar-under { max-width: 110px; height: 6px; }
+        }
+        @media (max-width: 768px) {
+            .bottom-desc { display: none; }
+            .side-craft { display: none; }
+        }
+        @media (max-width: 600px) {
+            .right-column { right: 24px; gap: 10px; }
+            .main-title img { width: 280px; }
+            .food-image .img-stack img { width: 220px; }
+            .food-image .img-stack .img-pot,
+            .food-image .img-stack .img-pot-cold { width: 320px; }
+            .interact-block .gif-image,
+            .interact-block .fire-side-img,
+            .interact-block .clock-img { width: 68px; }
+            .popup-bubble { max-width: 220px; font-size: 12px; padding: 10px 14px; }
+            .fire-under-item { width: 38px; }
+            .fire-under-item:nth-child(1) { width: 42px; }
+            .fire-under-item:nth-child(2) { width: 36px; }
+            .fire-under-item:nth-child(3) { width: 40px; }
+            .fire-under-container { bottom: 0px; gap: 5px; }
+            .progress-bar-under { max-width: 80px; height: 5px; }
+        }
+
+        /* ===== 淡入动画 ===== */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .main-title       { animation: fadeInUp 0.7s 0.1s both; }
+        .middle-row       { animation: fadeInUp 0.7s 0.3s both; }
+
+        /* ===== 底部描述文字（从图片中心到火苗左边缘） ===== */
+        .bottom-desc {
+            position: fixed;
+            left: calc(50% - 100px);
+            right: 195px;
+            bottom: 26px;
+            z-index: 15;
+            text-align: justify;
+            font-size: clamp(15px, 1.1vw, 20px);
+            line-height: 1.9;
+            color: #4a3820;
+            letter-spacing: 0.5px;
+            background: rgba(255, 248, 235, 0.55);
+            backdrop-filter: blur(6px);
+            padding: 14px 22px;
+            border-radius: 14px;
+            border: 1px solid rgba(200, 170, 130, 0.2);
+            animation: fadeInUp 0.7s 0.5s both;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== 背景 ===== -->
+    <div class="bg-kraft"></div>
+    <div class="overlay-mask"></div>
+
+    <!-- ===== 顶部返回按钮 ===== -->
+    <div class="top-bar">
+        <a class="back-btn" href="上杭县盲盒打开.html">← 返回</a>
+    </div>
+
+    <!-- ===== 页面主体 ===== -->
+    <div class="page-wrapper">
+
+        <!-- 大标题 -->
+        <div class="main-title">
+            <img src="images/上杭湖洋蒸鸡/上杭湖洋蒸鸡横版文字.png" alt="上杭湖洋蒸鸡" />
+        </div>
+
+        <!-- 中间行：只放菜品（居中偏右） -->
+        <div class="middle-row">
+
+            <!-- 菜品图片（锅在上，鸡在下，叠加摆放） -->
+            <div class="food-image" id="foodImage">
+                <div class="img-stack">
+                    <img class="img-chicken" src="images/上杭湖洋蒸鸡/上杭湖洋蒸鸡.png" alt="上杭湖洋蒸鸡" />
+                    <!-- 加热后的锅（默认隐藏，闹钟2秒触发后显现） -->
+                    <img class="img-pot" src="images/上杭湖洋蒸鸡/锅.png" alt="锅加热" />
+                    <!-- 初始冷锅锅1.png（默认显示） -->
+                    <img class="img-pot-cold" src="images/上杭湖洋蒸鸡/锅1.png" alt="锅1" />
+                    <!-- 蒸汽粒子（出锅后） -->
+                    <div class="steam-container">
+                        <div class="steam-particle"></div>
+                        <div class="steam-particle"></div>
+                        <div class="steam-particle"></div>
+                        <div class="steam-particle"></div>
+                        <div class="steam-particle"></div>
+                    </div>
+                    <!-- 锅周围烟雾 -->
+                    <div class="smoke-container">
+                        <div class="smoke-particle"></div>
+                        <div class="smoke-particle"></div>
+                        <div class="smoke-particle"></div>
+                        <div class="smoke-particle"></div>
+                    </div>
+                </div>
+                <!-- 锅底三簇火苗 -->
+                <div class="fire-under-container">
+                    <img class="fire-under-item" src="images/上杭湖洋蒸鸡/火苗.png" alt="火" />
+                    <img class="fire-under-item" src="images/上杭湖洋蒸鸡/火苗.png" alt="火" />
+                    <img class="fire-under-item" src="images/上杭湖洋蒸鸡/火苗.png" alt="火" />
+                </div>
+                <!-- 进度条已移至闹钟下方 -->
+            </div>
+
+        </div>
+
+        <!-- 右侧固定列：火苗在上，闹钟在下 -->
+        <div class="right-column">
+            <div class="interact-block" id="fireBlock">
+                <div class="popup-bubble" id="firePopup">
+                    整鸡放入蒸锅不加一滴水直接干蒸。利用高温蒸汽快速使蛋白质凝固，锁住原汁原味。
+                </div>
+                <img class="fire-side-img" src="images/上杭湖洋蒸鸡/火苗.png" alt="火苗" />
+                <div class="hint-text" id="fireHint">先长按火苗控制温度</div>
+                <!-- 火苗专属进度条 -->
+                <div class="progress-bar-under" id="fireProgress">
+                    <div class="progress-bar-under-fill" id="fireProgressFill"></div>
+                </div>
+            </div>
+            <div class="interact-block" id="clockBlock">
+                <div class="popup-bubble" id="clockPopup">
+                    传统柴火需蒸4小时，现代电蒸锅35-45分钟。食用时切大块，保持湿润。
+                </div>
+                <img class="clock-img" src="images/上杭湖洋蒸鸡/闹钟.png" alt="闹钟" />
+                <div class="hint-text" id="clockHint">再长按闹钟控制时长</div>
+                <!-- 闹钟专属进度条 -->
+                <div class="progress-bar-under" id="clockProgress">
+                    <div class="progress-bar-under-fill" id="clockProgressFill"></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ===== 左侧固定（制作工艺） ===== -->
+    <div class="side-craft">
+        <div class="side-craft-card">
+            <div class="section-header">
+                <img src="images/上杭湖洋蒸鸡/制作工艺.png" alt="制作工艺" class="section-title-img" />
+            </div>
+            <div class="step-list">
+                <div class="step-item">
+                    <div class="step-content">
+                        <div class="step-label">① 食材选择</div>
+                        <div class="step-desc">核心食材选择1.5-1.7公斤上杭石潭鸡</div>
+                    </div>
+                    <img src="images/上杭湖洋蒸鸡/鸡.png" alt="食材选择" class="step-img" />
+                </div>
+                <div class="step-item">
+                    <div class="step-content">
+                        <div class="step-label">② 盐腌工艺</div>
+                        <div class="step-desc">整鸡宰杀洗净，周身内外均匀涂抹食盐</div>
+                    </div>
+                    <img src="images/上杭湖洋蒸鸡/盐鸡.png" alt="盐腌工艺" class="step-img" />
+                </div>
+                <div class="step-item">
+                    <div class="step-content">
+                        <div class="step-label">③ 干蒸技法</div>
+                        <div class="step-desc">整鸡放入蒸锅不加一滴水直接干蒸</div>
+                    </div>
+                    <img src="images/上杭湖洋蒸鸡/蒸鸡.png" alt="干蒸技法" class="step-img" />
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== 底部描述文字 ===== -->
+    <div class="bottom-desc">
+        上杭湖洋蒸鸡是一道仅用盐简单调味的客家美食。这道菜的灵魂在于其极致的烹饪方式——整鸡入锅，不加一滴水，只靠猛火干蒸。经过高温蒸制，鸡皮变得金黄油亮，弹润爽口，而内里的肉质却保持着惊人的鲜嫩多汁，紧实中带着恰到好处的嚼劲。将客家饮食文化中"无鸡不成宴"的习俗与西南干蒸技法巧妙融合，成为"闽西十大名菜"之一。
+    </div>
+
+    <script>
+    (function() {
+        // ===== 共享状态：火苗是否已完成 =====
+        var fireCompleted = false;
+
+        // ===== 火苗交互（长按：每秒依次出现1-3团火，第4秒换锅，第5秒弹窗） =====
+        (function() {
+            var fireBlock = document.getElementById('fireBlock');
+            var firePopup = document.getElementById('firePopup');
+            var foodImage = document.getElementById('foodImage');
+            var fireItems = document.querySelectorAll('.fire-under-item');
+            var fireProgress = document.getElementById('fireProgress');
+            var fireProgressFill = document.getElementById('fireProgressFill');
+            if (!fireBlock || !firePopup || !foodImage || !fireItems.length) return;
+
+            var interval = null;
+            var seconds = 0;
+            var completed = false;
+
+            function startFire() {
+                if (completed) return;
+                if (interval) return;
+                seconds = 0;
+                if (fireProgress) fireProgress.classList.add('active');
+                if (fireProgressFill) fireProgressFill.style.width = '0%';
+
+                interval = setInterval(function() {
+                    seconds++;
+                    var percent = seconds * 20;
+                    if (fireProgressFill) fireProgressFill.style.width = percent + '%';
+
+                    if (seconds === 1) {
+                        // 第1秒：第1团火 + 烟雾开始
+                        fireItems[0].classList.add('fire-visible');
+                        foodImage.classList.add('fire-on');
+                    }
+                    if (seconds === 2) {
+                        // 第2秒：第2团火
+                        fireItems[1].classList.add('fire-visible');
+                    }
+                    if (seconds === 3) {
+                        // 第3秒：第3团火
+                        fireItems[2].classList.add('fire-visible');
+                    }
+                    if (seconds === 4) {
+                        // 第4秒：锅1.png → 锅.png
+                        foodImage.classList.add('heating-done');
+                    }
+                    if (seconds >= 5) {
+                        // 第5秒：弹窗文字 + 完成状态
+                        completed = true;
+                        fireCompleted = true;
+                        firePopup.classList.add('show');
+                        document.getElementById('fireHint').classList.add('hint-hidden');
+                        document.getElementById('clockHint').classList.add('hint-visible');
+                        document.getElementById('clockHint').classList.remove('hint-hidden');
+                        clearInterval(interval);
+                        interval = null;
+                        // 进度条慢慢淡出
+                        setTimeout(function() {
+                            if (fireProgress) fireProgress.classList.remove('active');
+                        }, 800);
+                    }
+                }, 1000);
+            }
+
+            function cancelFire() {
+                if (completed) return;
+                if (interval) {
+                    clearInterval(interval);
+                    interval = null;
+                }
+                seconds = 0;
+                if (fireProgressFill) fireProgressFill.style.width = '0%';
+                if (fireProgress) fireProgress.classList.remove('active');
+                for (var i = 0; i < fireItems.length; i++) {
+                    fireItems[i].classList.remove('fire-visible');
+                }
+                foodImage.classList.remove('fire-on');
+                foodImage.classList.remove('heating-done');
+                firePopup.classList.remove('show');
+                document.getElementById('clockHint').classList.remove('hint-visible');
+                document.getElementById('clockHint').classList.add('hint-hidden');
+            }
+
+            fireBlock.addEventListener('mousedown', startFire);
+            fireBlock.addEventListener('mouseup', cancelFire);
+            fireBlock.addEventListener('mouseleave', cancelFire);
+            fireBlock.addEventListener('touchstart', startFire, { passive: true });
+            fireBlock.addEventListener('touchend', cancelFire, { passive: true });
+            fireBlock.addEventListener('touchcancel', cancelFire, { passive: true });
+        })();
+
+        // ===== 闹钟交互（长按：进度条每秒20%，第5秒出锅+弹窗） =====
+        (function() {
+            var clockBlock = document.getElementById('clockBlock');
+            var clockPopup = document.getElementById('clockPopup');
+            var foodImage = document.getElementById('foodImage');
+            var clockProgress = document.getElementById('clockProgress');
+            var clockProgressFill = document.getElementById('clockProgressFill');
+            if (!clockBlock || !clockPopup || !foodImage) return;
+
+            var interval = null;
+            var seconds = 0;
+            var completed = false;
+
+            function startClock() {
+                if (!fireCompleted) return;
+                if (completed) return;
+                if (interval) return;
+                seconds = 0;
+
+                // 显示闹钟图标下的进度条
+                if (clockProgress) clockProgress.classList.add('active');
+                if (clockProgressFill) clockProgressFill.style.width = '0%';
+
+                interval = setInterval(function() {
+                    seconds++;
+                    var percent = seconds * 20;
+                    if (clockProgressFill) clockProgressFill.style.width = percent + '%';
+
+                    if (seconds >= 5) {
+                        // 第5秒：进度100%，图片变化，弹窗文字
+                        completed = true;
+                        foodImage.classList.add('cooking-done');
+                        clockPopup.classList.add('show');
+                        document.getElementById('clockHint').classList.add('hint-hidden');
+                        clearInterval(interval);
+                        interval = null;
+                        // 进度条慢慢消失
+                        setTimeout(function() {
+                            if (clockProgress) clockProgress.classList.remove('active');
+                        }, 800);
+                    }
+                }, 1000);
+            }
+
+            function cancelClock() {
+                if (completed) return;
+                if (interval) {
+                    clearInterval(interval);
+                    interval = null;
+                }
+                seconds = 0;
+                if (clockProgressFill) clockProgressFill.style.width = '0%';
+                if (clockProgress) clockProgress.classList.remove('active');
+                clockPopup.classList.remove('show');
+                foodImage.classList.remove('cooking-done');
+            }
+
+            clockBlock.addEventListener('mousedown', startClock);
+            clockBlock.addEventListener('mouseup', cancelClock);
+            clockBlock.addEventListener('mouseleave', cancelClock);
+            clockBlock.addEventListener('touchstart', startClock, { passive: true });
+            clockBlock.addEventListener('touchend', cancelClock, { passive: true });
+            clockBlock.addEventListener('touchcancel', cancelClock, { passive: true });
+        })();
+    })();
+    </script>
+
+    <script>
+    (function() {
+        if (window.location.search.indexOf('embed=true') !== -1) {
+            var btns = document.querySelectorAll('.back-btn');
+            for (var i = 0; i < btns.length; i++) btns[i].style.display = 'none';
+        } else {
+            var r = document.referrer || '';
+            if (r.indexOf('美食图鉴.html') !== -1) {
+                var btns = document.querySelectorAll('.back-btn');
+                for (var i = 0; i < btns.length; i++) btns[i].href = '美食图鉴.html';
+            }
+        }
+    })();
+    </script>
+
+</body>
+</html>

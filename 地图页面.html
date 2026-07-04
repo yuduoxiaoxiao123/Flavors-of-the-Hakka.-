@@ -1,0 +1,1263 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>客家美食地图 | 食在闽西，味在客家</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=ZCOOL+XiaoWei&display=swap');
+
+        /* ===== 全局重置 ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            font-family: "Ma Shan Zheng", "ZCOOL XiaoWei", "STXingkai", "霞鹜臻楷 GB 常规", "KaiTi", "楷体", serif;
+            background: #1a1410;
+        }
+
+        /* ===== 固定背景层 ===== */
+        .bg-fixed {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            background: url('images/地图背景.png') center/cover no-repeat;
+        }
+
+        /* ===== 半透明遮罩（提亮背景） ===== */
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.4);
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        /* ===== 底部渐隐 ===== */
+        .vignette-bottom {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            height: 25%;
+            background: linear-gradient(0deg, rgba(26, 20, 16, 0.3) 0%, transparent 100%);
+            z-index: 3;
+            pointer-events: none;
+        }
+
+        /* ===== 顶部渐隐 ===== */
+        .vignette-top {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            height: 15%;
+            background: linear-gradient(180deg, rgba(26, 20, 16, 0.2) 0%, transparent 100%);
+            z-index: 3;
+            pointer-events: none;
+        }
+
+        /* ===== 顶部导航栏 ===== */
+        .top-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 30;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding: 20px 50px;
+            pointer-events: none;
+        }
+        .top-bar > * {
+            pointer-events: auto;
+        }
+
+        .nav {
+            display: flex;
+            gap: 2px;
+            background: rgba(40, 28, 18, 0.55);
+            backdrop-filter: blur(10px);
+            padding: 4px 2px;
+            border-radius: 6px;
+            border: 1px solid rgba(180, 150, 110, 0.35);
+            box-shadow: 0 2px 16px rgba(0, 0, 0, 0.15), inset 0 0 20px rgba(180, 150, 110, 0.05);
+        }
+        .nav a {
+            display: block;
+            padding: 10px 22px;
+            font-size: 18px;
+            font-family: "Ma Shan Zheng", "ZCOOL XiaoWei", "STXingkai", "霞鹜臻楷 GB 常规", "KaiTi", serif;
+            color: #ffffff;
+            text-decoration: none;
+            letter-spacing: 4px;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+        }
+        .nav a:hover,
+        .nav a.active {
+            color: #fff6e0;
+            background: rgba(200, 160, 80, 0.25);
+            text-shadow: 0 0 16px rgba(232, 200, 122, 0.5);
+        }
+        .nav a.active {
+            background: rgba(200, 160, 80, 0.3);
+            color: #fff6e0;
+        }
+        .nav a + a {
+            border-left: 1px solid rgba(180, 150, 110, 0.12);
+        }
+
+        /* ===== 汉堡菜单按钮 ===== */
+        .hamburger-btn {
+            display: none;
+            position: fixed;
+            top: 14px;
+            right: 18px;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+            width: 44px;
+            height: 44px;
+            background: rgba(40, 28, 18, 0.65);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(180, 150, 110, 0.35);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 1200;
+            padding: 0;
+        }
+        .hamburger-btn:hover {
+            background: rgba(60, 44, 30, 0.75);
+            border-color: rgba(200, 170, 130, 0.5);
+        }
+        .hamburger-btn span {
+            display: block;
+            width: 24px;
+            height: 2px;
+            background: #ffffff;
+            border-radius: 2px;
+            transition: all 0.3s ease;
+            transform-origin: center;
+        }
+        .hamburger-btn.active span:nth-child(1) {
+            transform: translateY(7px) rotate(45deg);
+        }
+        .hamburger-btn.active span:nth-child(2) {
+            opacity: 0;
+            transform: scaleX(0);
+        }
+        .hamburger-btn.active span:nth-child(3) {
+            transform: translateY(-7px) rotate(-45deg);
+        }
+
+        .mobile-nav-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 1101;
+            background: rgba(0, 0, 0, 0.25);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+        .mobile-nav-overlay.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .mobile-nav {
+            position: fixed;
+            top: 76px;
+            right: 18px;
+            width: 200px;
+            z-index: 1150;
+            background: rgba(35, 24, 16, 0.92);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(180, 150, 110, 0.25);
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            padding: 8px 0;
+            opacity: 0;
+            transform: translateY(-10px) scale(0.95);
+            transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+            pointer-events: none;
+        }
+        .mobile-nav.open {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            pointer-events: auto;
+        }
+        .mobile-nav a {
+            display: block;
+            padding: 12px 20px;
+            font-size: 17px;
+            font-family: "Ma Shan Zheng", "ZCOOL XiaoWei", "STXingkai", "霞鹜臻楷 GB 常规", "KaiTi", serif;
+            color: #e8d5b8;
+            text-decoration: none;
+            letter-spacing: 4px;
+            transition: all 0.25s ease;
+            text-align: center;
+        }
+        .mobile-nav a:hover,
+        .mobile-nav a.active {
+            color: #fff6e0;
+            background: rgba(200, 160, 80, 0.2);
+            text-shadow: 0 0 12px rgba(232, 200, 122, 0.3);
+        }
+        .mobile-nav a.active {
+            color: #ffd966;
+        }
+        .mobile-nav a + a {
+            border-top: 1px solid rgba(180, 150, 110, 0.08);
+        }
+
+        /* ===== 主容器 ===== */
+        .main-container {
+            position: fixed;
+            inset: 0;
+            z-index: 5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 70px 40px 20px;
+        }
+
+        /* ===== 标题（已移除） ===== */
+
+        /* ===== 地图容器 ===== */
+        .map-container {
+            position: relative;
+            width: min(1500px, 95vw);
+            height: min(880px, 82vh);
+            flex-shrink: 0;
+            opacity: 0;
+            animation: fadeInUp 1s 0.4s forwards;
+        }
+
+        /* ===== 县区轮廓图层（JS动态定位，与地图容器对齐） ===== */
+        .county-layers {
+            position: absolute;
+            z-index: 25;
+            pointer-events: none;
+            overflow: visible;
+        }
+        .county-layers .county-shape {
+            position: absolute;
+            display: block;
+            cursor: pointer;
+            pointer-events: auto;
+            transition: all 0.3s ease;
+            transform-origin: center center;
+        }
+        .county-layers .county-shape img {
+            width: 100%;
+            height: 100%;
+            display: block;
+            object-fit: contain;
+            pointer-events: none;
+            transition: opacity 0.3s ease, filter 0.3s ease;
+            image-rendering: auto;
+        }
+        /* 默认半透明显示轮廓线条 */
+        .county-layers .county-shape:not(:hover) img {
+            opacity: 0.5;
+        }
+        /* 悬停时高亮显示该县区轮廓 — 实色不透明，不再透过底图 */
+        .county-layers .county-shape:hover {
+            z-index: 15;
+            transform: scale(1.15);
+            transform-origin: center center;
+        }
+        .county-layers .county-shape:hover img {
+            opacity: 1;
+            filter: brightness(1.1) contrast(1.05);
+        }
+        .county-layers .county-shape:active img {
+            opacity: 1;
+            filter: brightness(0.95);
+        }
+        /* 灰色县区（新罗区、漳平市）- 始终显示为灰色，不可点击 */
+        .county-layers .county-shape.county-gray {
+            cursor: default;
+            pointer-events: auto;
+        }
+        .county-layers .county-shape.county-gray img {
+            filter: grayscale(1) brightness(0.8) !important;
+            opacity: 0.4;
+        }
+        .county-layers .county-shape.county-gray:hover {
+            transform: none !important;
+            z-index: auto;
+        }
+        .county-layers .county-shape.county-gray:hover img {
+            filter: grayscale(1) brightness(0.8) !important;
+            opacity: 0.4;
+        }
+        /* （无动画延迟，使用背景高亮方案） */
+
+
+
+        /* ===== 县级点击区域 ===== */
+        .county-hotspot {
+            position: absolute;
+            z-index: 30;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.4s ease;
+            opacity: 0;
+            animation: fadeInUp 0.6s forwards;
+        }
+        .county-hotspot:nth-child(2) { animation-delay: 0.6s; }
+        .county-hotspot:nth-child(3) { animation-delay: 0.7s; }
+        .county-hotspot:nth-child(4) { animation-delay: 0.8s; }
+        .county-hotspot:nth-child(5) { animation-delay: 0.9s; }
+        .county-hotspot:nth-child(6) { animation-delay: 1.0s; }
+        .county-hotspot:nth-child(7) { animation-delay: 1.1s; }
+        .county-hotspot:nth-child(8) { animation-delay: 1.2s; }
+
+        /* ===== 建筑图标 ===== */
+        .county-hotspot .building-icon {
+            width: 64px;
+            height: 64px;
+            object-fit: contain;
+            display: block;
+            border-radius: 50%;
+            background: rgba(255, 248, 240, 0.8);
+            backdrop-filter: blur(4px);
+            border: 2px solid rgba(200, 168, 110, 0.5);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2), 0 0 30px rgba(200, 168, 110, 0.1);
+            padding: 6px;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        /* ===== 热点区域名称标签 ===== */
+        .county-hotspot .county-label {
+            margin-top: 6px;
+            padding: 3px 16px;
+            font-size: 16px;
+            font-family: "Ma Shan Zheng", "ZCOOL XiaoWei", "STXingkai", "霞鹜臻楷 GB 常规", "KaiTi", serif;
+            color: #fff6e8;
+            letter-spacing: 3px;
+            background: rgba(40, 28, 18, 0.7);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(200, 168, 110, 0.3);
+            border-radius: 20px;
+            text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+            white-space: nowrap;
+            transition: all 0.3s ease;
+        }
+
+        /* ===== 悬停特效 ===== */
+        .county-hotspot:hover {
+            transform: scale(1.18) translateY(-8px);
+            z-index: 100;
+            filter: drop-shadow(0 0 30px rgba(232, 200, 120, 0.4));
+        }
+        .county-hotspot:hover .building-icon {
+            border-color: #e8c878;
+            box-shadow: 0 8px 40px rgba(232, 200, 120, 0.35), 0 0 60px rgba(232, 200, 120, 0.15);
+            transform: scale(1.08) rotate(-6deg);
+        }
+        .county-hotspot:hover .county-label {
+            background: rgba(200, 160, 80, 0.5);
+            border-color: #e8c878;
+            color: #fff;
+            box-shadow: 0 0 30px rgba(232, 200, 120, 0.2);
+        }
+
+        /* ===== 点击涟漪动画 ===== */
+        .ripple {
+            position: fixed;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(232, 200, 120, 0.4) 0%, transparent 70%);
+            pointer-events: none;
+            transform: scale(0);
+            animation: rippleExpand 0.8s ease-out forwards;
+            z-index: 100;
+        }
+        @keyframes rippleExpand {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+
+        /* ===== 页面过渡遮罩 ===== */
+        .page-transition {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: #1a1410;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+        .page-transition.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* ===== 右下角引导（指向县区，位于地图容器内） ===== */
+        .hint-text {
+            position: absolute;
+            left: 72%;
+            top: 82%;
+            right: auto;
+            bottom: auto;
+            transform: translate(-50%, -50%);
+            z-index: 40;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 6px;
+            opacity: 0;
+            animation: fadeIn 1.2s 1.5s forwards;
+            pointer-events: none;
+        }
+        .hint-text .hint-icon {
+            display: inline-block;
+            font-size: 28px;
+            color: #d4b48c;
+            text-shadow: 0 0 20px rgba(196, 160, 112, 0.6), 0 2px 12px rgba(0,0,0,0.3);
+            font-weight: bold;
+            animation: hintPulse 2.5s ease-in-out infinite;
+        }
+        .hint-text .hint-label {
+            font-size: 17px;
+            font-family: "Ma Shan Zheng", "ZCOOL XiaoWei", "STXingkai", "霞鹜臻楷 GB 常规", "KaiTi", serif;
+            color: #fff6e0;
+            letter-spacing: 3px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            background: rgba(40, 28, 18, 0.55);
+            backdrop-filter: blur(4px);
+            padding: 5px 16px;
+            border-radius: 20px;
+            border: 1px solid rgba(200, 168, 110, 0.3);
+            white-space: nowrap;
+        }
+        .hint-text .hint-arrow {
+            font-size: 16px;
+            color: #d4b48c;
+            text-shadow: 0 0 15px rgba(196, 160, 112, 0.5);
+            animation: hintPoint 2.5s ease-in-out infinite;
+            line-height: 1;
+        }
+        @keyframes hintPulse {
+            0%, 100% { transform: scale(1); opacity: 0.7; }
+            50% { transform: scale(1.12); opacity: 1; }
+        }
+        @keyframes hintPoint {
+            0%, 100% { transform: translateX(0); }
+            50% { transform: translateX(-8px); }
+        }
+
+        /* ===== 县名浮动介绍卡片（hover时显示） ===== */
+        .county-tooltip {
+            position: absolute;
+            bottom: calc(100% + 10px);
+            left: 50%;
+            transform: translateX(-50%) scale(0.9);
+            background: rgba(35, 24, 16, 0.92);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(200, 168, 110, 0.3);
+            border-radius: 10px;
+            padding: 12px 18px;
+            min-width: 160px;
+            text-align: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+            white-space: nowrap;
+        }
+        .county-tooltip .tooltip-title {
+            font-size: 18px;
+            color: #e8c878;
+            letter-spacing: 3px;
+            margin-bottom: 4px;
+        }
+        .county-tooltip .tooltip-sub {
+            font-size: 13px;
+            color: rgba(232, 210, 180, 0.7);
+            letter-spacing: 2px;
+        }
+        .county-tooltip .tooltip-desc {
+            font-size: 12px;
+            color: rgba(220, 200, 175, 0.85);
+            letter-spacing: 1px;
+            margin-top: 6px;
+            padding-top: 6px;
+            border-top: 1px solid rgba(200, 168, 110, 0.2);
+            line-height: 1.5;
+            white-space: normal;
+            max-width: 240px;
+            text-align: left;
+        }
+        .county-hotspot:hover .county-tooltip {
+            opacity: 1;
+            transform: translateX(-50%) scale(1);
+        }
+
+        /* ===== 装饰纹理：浅色山脉轮廓 ===== */
+        .mountain-deco {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 120px;
+            z-index: 1;
+            pointer-events: none;
+            opacity: 0.12;
+            background: url('images/移动山.png') repeat-x bottom/auto 120px;
+        }
+
+        /* ===== 图表弹窗（Tab合并版） ===== */
+        .chart-modal-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 500;
+            padding: 12px 22px;
+            font-size: 17px;
+            font-family: "Ma Shan Zheng", "ZCOOL XiaoWei", "STXingkai", "霞鹜臻楷 GB 常规", "KaiTi", serif;
+            color: #fff6e8;
+            background: rgba(40, 28, 18, 0.8);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(200, 168, 110, 0.4);
+            border-radius: 4px;
+            cursor: pointer;
+            letter-spacing: 3px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            white-space: nowrap;
+        }
+        .chart-modal-btn:hover {
+            background: rgba(200, 160, 80, 0.5);
+            border-color: #e8c878;
+            transform: scale(1.05);
+            box-shadow: 0 6px 30px rgba(232,200,120,0.3);
+        }
+        .chart-modal-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 10000;
+            background: rgba(0,0,0,0.55);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            animation: modalFadeIn 0.3s ease;
+        }
+        .chart-modal-overlay.open {
+            display: flex;
+        }
+        .chart-modal-content {
+            position: relative;
+            max-width: 1160px;
+            width: 100%;
+            max-height: 92vh;
+            background: rgba(245, 238, 225, 0.96);
+            backdrop-filter: blur(12px);
+            border-radius: 18px;
+            box-shadow: 0 16px 60px rgba(0,0,0,0.45);
+            animation: modalScaleIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .chart-modal-close {
+            position: absolute;
+            top: 12px;
+            right: 14px;
+            z-index: 10;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(40, 28, 18, 0.75);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(200, 168, 110, 0.4);
+            color: #fff6e8;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            line-height: 1;
+        }
+        .chart-modal-close:hover {
+            background: rgba(180, 80, 50, 0.8);
+            border-color: #e8a878;
+            transform: rotate(90deg) scale(1.1);
+        }
+        /* ===== Tab 标签栏 ===== */
+        .chart-modal-tabs {
+            display: flex;
+            border-bottom: 2px solid rgba(180, 150, 110, 0.3);
+            background: rgba(235, 225, 210, 0.6);
+            flex-shrink: 0;
+        }
+        .chart-modal-tab {
+            flex: 1;
+            padding: 14px 20px;
+            text-align: center;
+            font-family: "Ma Shan Zheng", "ZCOOL XiaoWei", "STXingkai", "KaiTi", serif;
+            font-size: 18px;
+            letter-spacing: 3px;
+            color: #6a5540;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+            user-select: none;
+        }
+        .chart-modal-tab:hover {
+            color: #3d2b1a;
+            background: rgba(200, 180, 155, 0.2);
+        }
+        .chart-modal-tab.active {
+            color: #3d2b1a;
+            border-bottom-color: #b8864e;
+            background: rgba(200, 180, 155, 0.15);
+            font-weight: bold;
+        }
+        .chart-modal-body {
+            flex: 1;
+            position: relative;
+            min-height: 0;
+        }
+        .chart-modal-body iframe {
+            width: 100%;
+            height: 100%;
+            min-height: 72vh;
+            border: none;
+            display: block;
+        }
+        /* ===== 图表切换箭头（圆形玻璃风格，与时间长廊轮播一致） ===== */
+        .chart-nav-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 10;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.18);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(180, 160, 130, 0.4);
+            transition: all 0.3s ease;
+            user-select: none;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+        .chart-nav-arrow:hover {
+            background: rgba(255, 255, 255, 0.35);
+            border-color: rgba(180, 160, 130, 0.6);
+            transform: translateY(-50%) scale(1.12);
+            box-shadow: 0 6px 30px rgba(0, 0, 0, 0.25);
+        }
+        .chart-nav-arrow:active {
+            transform: translateY(-50%) scale(0.95);
+        }
+        .chart-nav-arrow.prev {
+            left: 16px;
+        }
+        .chart-nav-arrow.next {
+            right: 16px;
+        }
+        .chart-nav-arrow svg {
+            width: 28px;
+            height: 28px;
+            fill: none;
+            stroke: rgba(60, 40, 25, 0.8);
+            stroke-width: 2.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+        @keyframes modalFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes modalScaleIn {
+            from { opacity: 0; transform: scale(0.85); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        @media (max-width: 768px) {
+            .chart-modal-btn {
+                bottom: 16px;
+                right: 16px;
+                padding: 8px 14px;
+                font-size: 13px;
+            }
+            .chart-modal-overlay {
+                padding: 10px;
+            }
+            .chart-modal-body iframe {
+                min-height: 50vh;
+            }
+            .chart-modal-close {
+                top: 8px;
+                right: 8px;
+                width: 30px;
+                height: 30px;
+                font-size: 14px;
+            }
+            .chart-modal-tab {
+                font-size: 15px;
+                padding: 10px 12px;
+                letter-spacing: 1px;
+            }
+            .chart-nav-arrow {
+                width: 40px;
+                height: 40px;
+            }
+            .chart-nav-arrow svg {
+                width: 20px;
+                height: 20px;
+            }
+            .chart-nav-arrow.prev {
+                left: 8px;
+            }
+            .chart-nav-arrow.next {
+                right: 8px;
+            }
+        }
+
+        /* ===== 关键帧 ===== */
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* ===== 响应式 ===== */
+        @media (max-width: 1200px) {
+            .main-container { padding: 70px 30px 30px; }
+            .map-container { width: min(1300px, 97vw); height: min(750px, 78vh); }
+            .county-hotspot .building-icon { width: 52px; height: 52px; padding: 5px; }
+            .county-hotspot .county-label { font-size: 14px; padding: 2px 12px; }
+        }
+
+        @media (max-width: 768px) {
+            .main-container { padding: 60px 16px 20px; }
+            .map-container { width: 100vw; height: 65vh; }
+            .county-hotspot .building-icon { width: 40px; height: 40px; padding: 4px; }
+            .county-hotspot .county-label { font-size: 11px; padding: 1px 8px; letter-spacing: 1px; margin-top: 3px; }
+            .hint-text { left: 72%; top: 84%; transform: translate(-50%, -50%); } .hint-text .hint-icon { font-size: 20px; } .hint-text .hint-label { font-size: 14px; padding: 4px 14px; letter-spacing: 2px; }
+            .county-tooltip { display: none; }
+
+            .nav a { padding: 6px 12px; font-size: 14px; }
+            .top-bar { padding: 12px 16px; }
+            .hamburger-btn { display: flex; }
+            .nav { display: none; }
+            .mobile-nav-overlay { display: block; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== 固定背景 ===== -->
+    <div class="bg-fixed"></div>
+
+    <!-- ===== 遮罩与渐隐 ===== -->
+    <div class="overlay"></div>
+    <div class="vignette-top"></div>
+    <div class="vignette-bottom"></div>
+
+    <!-- ===== 底部山脉装饰 ===== -->
+    <div class="mountain-deco"></div>
+
+    <!-- ===== 页面过渡遮罩 ===== -->
+    <div class="page-transition" id="pageTransition"></div>
+
+    <!-- ===== 顶部导航栏 ===== -->
+    <div class="top-bar">
+        <nav class="nav">
+            <a href="index.html">首页</a>
+            <a href="时间总览.html">时间长廊</a>
+            <a href="#" class="active">地图</a>
+            <a href="美食图鉴.html">美食图鉴</a>
+        </nav>
+        <button class="hamburger-btn" id="hamburgerBtn" aria-label="菜单">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+    </div>
+
+    <!-- ===== 移动端下拉菜单 ===== -->
+    <div class="mobile-nav-overlay" id="mobileOverlay"></div>
+    <div class="mobile-nav" id="mobileNav">
+        <a href="index.html">首页</a>
+        <a href="时间总览.html">时间长廊</a>
+        <a href="#" class="active">地图</a>
+        <a href="美食图鉴.html">美食图鉴</a>
+    </div>
+
+    <!-- ===== 主内容 ===== -->
+    <div class="main-container">
+
+        <!-- ===== 地图区域 ===== -->
+        <div class="map-container" id="mapContainer">
+
+            <!-- 地图装饰边框 -->
+            <div class="map-frame"></div>
+
+            <!-- ====== 县区轮廓图层（JS自动定位） ====== -->
+            <div class="county-layers" id="countyLayers">
+                <!-- 长汀县 -->
+                <a class="county-shape" href="长汀县盲盒打开.html"
+                   data-county="长汀" data-bbox="8,0,36.7,46.8">
+                    <img src="images/长汀县新.png" alt="长汀县" />
+                </a>
+                <!-- 上杭县 -->
+                <a class="county-shape" href="上杭县盲盒打开.html"
+                   data-county="上杭" data-bbox="22.1,35.6,36.2,43.9">
+                    <img src="images/上杭县新.png" alt="上杭县" />
+                </a>
+                <!-- 武平县 -->
+                <a class="county-shape" href="武平县盲盒打开.html"
+                   data-county="武平" data-bbox="1,33.4,29.3,44.6">
+                    <img src="images/武平县新.png" alt="武平县" />
+                </a>
+                <!-- 永定区 -->
+                <a class="county-shape" href="永定区盲盒打开.html"
+                   data-county="永定" data-bbox="29.7,57,34.5,43.1">
+                    <img src="images/永定区新.png" alt="永定区" />
+                </a>
+                <!-- 连城县 -->
+                <a class="county-shape" href="连城县盲盒打开.html"
+                   data-county="连城" data-bbox="35.5,7,34.0,43.5">
+                    <img src="images/连城县新.png" alt="连城县" />
+                </a>
+                <!-- 新罗区（灰色） -->
+                <a class="county-shape county-gray" href="javascript:void(0)"
+                   data-county="新罗" data-bbox="43.2,28.1,35.3,50.0">
+                    <img src="images/新罗区新.png" alt="新罗区" />
+                </a>
+                <!-- 漳平市（灰色） -->
+                <a class="county-shape county-gray" href="javascript:void(0)"
+                   data-county="漳平" data-bbox="65.9,15.1,33.1,55.9">
+                    <img src="images/漳平市新.png" alt="漳平市" />
+                </a>
+            </div>
+
+            <!-- ====== 7 个县区建筑图标/名称标签 ====== -->
+            <!-- 1. 长汀（西北） -->
+            <a class="county-hotspot" style="left: 35%; top: 15.6%;" href="长汀县盲盒打开.html"
+               data-county="长汀" data-building="images/长汀1.png">
+                <div class="county-tooltip">
+                    <div class="tooltip-title">长汀</div>
+                    <div class="tooltip-sub">客家首府 · 千年古城</div>
+                    <div class="tooltip-desc">长汀是客家民系形成和发展的重要区域，汀江穿城而过，被誉为&ldquo;客家母亲河&rdquo;，当地居民以客家人为主，保留了丰富的客家文化传统。</div>
+                </div>
+                <img class="building-icon" src="images/长汀1.png" alt="长汀" />
+                <span class="county-label">长汀</span>
+            </a>
+
+            <!-- 2. 上杭（中西部） -->
+            <a class="county-hotspot" style="left: 41%; top: 49.7%;" href="上杭县盲盒打开.html"
+               data-county="上杭" data-building="images/上杭土楼.png">
+                <div class="county-tooltip">
+                    <div class="tooltip-title">上杭</div>
+                    <div class="tooltip-sub">客家祖地 · 红色故土</div>
+                    <div class="tooltip-desc">上杭是客家先民迁徙的重要驿站和聚居地，上杭瓦子街被视为客家民系成长的摇篮，全县大部分人口为客家人，客家文化氛围浓厚。</div>
+                </div>
+                <img class="building-icon" src="images/上杭土楼.png" alt="上杭" />
+                <span class="county-label">上杭</span>
+            </a>
+
+            <!-- 3. 武平（西南） -->
+            <a class="county-hotspot" style="left: 29%; top: 47.9%;" href="武平县盲盒打开.html"
+               data-county="武平" data-building="images/武平梁山书院.png">
+                <div class="county-tooltip">
+                    <div class="tooltip-title">武平</div>
+                    <div class="tooltip-sub">客家百姓镇 · 闽西绿洲</div>
+                    <div class="tooltip-desc">当地聚居着上百个客家姓氏，聚族而居特征明显，语言和习俗具有典型的客家特色。</div>
+                </div>
+                <img class="building-icon" src="images/武平梁山书院.png" alt="武平" />
+                <span class="county-label">武平</span>
+            </a>
+
+            <!-- 4. 永定（南部） -->
+            <a class="county-hotspot" style="left:49%; top: 68.7%;" href="永定区盲盒打开.html"
+               data-county="永定" data-building="images/永定1.png">
+                <div class="county-tooltip">
+                    <div class="tooltip-title">永定</div>
+                    <div class="tooltip-sub">土楼之乡 · 侨客同源</div>
+                    <div class="tooltip-desc">永定是客家土楼的发源地和核心分布区，拥有23000多座土楼，其中圆楼360多座，永定客家人不仅保留了传统的客家生活方式，还通过土楼建筑展现了独特的客家文化。</div>
+                </div>
+                <img class="building-icon" src="images/永定1.png" alt="永定" />
+                <span class="county-label">永定</span>
+            </a>
+
+            <!-- 5. 连城（东部） -->
+            <a class="county-hotspot" style="left: 48%; top: 20.9%;" href="连城县盲盒打开.html"
+               data-county="连城" data-building="images/连城1.png">
+                <div class="county-tooltip">
+                    <div class="tooltip-title">连城</div>
+                    <div class="tooltip-sub">中国温泉之城 · 客家美食之乡</div>
+                    <div class="tooltip-desc">客家文化丰富，以&ldquo;游大龙&rdquo;等民俗活动闻名，当地居民多为客家人，保留了客家语言、习俗和传统手工艺。</div>
+                </div>
+                <img class="building-icon" src="images/连城1.png" alt="连城" />
+                <span class="county-label">连城</span>
+            </a>
+
+            <!-- ===== 右下角引导（指向县区） ===== -->
+            <div class="hint-text">
+                <span class="hint-icon">⬅</span>
+                <span class="hint-label">点击县区，开启美食盲盒</span>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- ===== 图表弹窗按钮（合并） ===== -->
+    <button class="chart-modal-btn" id="chartModalBtn">📊 数据图表</button>
+
+    <!-- ===== 图表弹窗（Tab合并版） ===== -->
+    <div class="chart-modal-overlay" id="chartModalOverlay">
+        <div class="chart-modal-content">
+            <button class="chart-modal-close" id="chartModalClose">✕</button>
+            <div class="chart-modal-tabs">
+                <div class="chart-modal-tab active" data-tab="heritage">🏯 非遗数据总览</div>
+                <div class="chart-modal-tab" data-tab="ingredient">🥬 食材频率分析</div>
+            </div>
+            <div class="chart-modal-body">
+                <div class="chart-nav-arrow prev" id="chartArrowPrev">
+                    <svg viewBox="0 0 24 24"><polyline points="15,18 9,12 15,6"/></svg>
+                </div>
+                <div class="chart-nav-arrow next" id="chartArrowNext">
+                    <svg viewBox="0 0 24 24"><polyline points="9,6 15,12 9,18"/></svg>
+                </div>
+                <iframe id="chartIframe" src="图表三角形.html" title="非遗数据三角形图表" loading="lazy" scrolling="no"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    (function() {
+        'use strict';
+
+        /* ================================================================
+         *  1. 汉堡菜单交互
+         * ================================================================ */
+        var hamburgerBtn = document.getElementById('hamburgerBtn');
+        var mobileNav = document.getElementById('mobileNav');
+        var mobileOverlay = document.getElementById('mobileOverlay');
+
+        if (hamburgerBtn && mobileNav && mobileOverlay) {
+            function openMobileMenu() {
+                hamburgerBtn.classList.add('active');
+                mobileNav.classList.add('open');
+                mobileOverlay.classList.add('open');
+            }
+            function closeMobileMenu() {
+                hamburgerBtn.classList.remove('active');
+                mobileNav.classList.remove('open');
+                mobileOverlay.classList.remove('open');
+            }
+            hamburgerBtn.addEventListener('click', function() {
+                if (hamburgerBtn.classList.contains('active')) {
+                    closeMobileMenu();
+                } else {
+                    openMobileMenu();
+                }
+            });
+            mobileOverlay.addEventListener('click', closeMobileMenu);
+            var mobileLinks = mobileNav.querySelectorAll('a');
+            for (var ml = 0; ml < mobileLinks.length; ml++) {
+                mobileLinks[ml].addEventListener('click', closeMobileMenu);
+            }
+        }
+
+        /* ================================================================
+         *  2. 图表弹窗交互（Tab切换合并版）
+         * ================================================================ */
+        var modalBtn = document.getElementById('chartModalBtn');
+        var modalOverlay = document.getElementById('chartModalOverlay');
+        var modalClose = document.getElementById('chartModalClose');
+        var chartIframe = document.getElementById('chartIframe');
+        var tabs = document.querySelectorAll('.chart-modal-tab');
+
+        if (modalBtn && modalOverlay && modalClose) {
+            function openChartModal() {
+                modalOverlay.classList.add('open');
+                document.body.style.overflow = 'hidden';
+            }
+            function closeChartModal() {
+                modalOverlay.classList.remove('open');
+                document.body.style.overflow = '';
+            }
+            modalBtn.addEventListener('click', openChartModal);
+            modalClose.addEventListener('click', closeChartModal);
+            modalOverlay.addEventListener('click', function(e) {
+                if (e.target === modalOverlay) {
+                    closeChartModal();
+                }
+            });
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && modalOverlay.classList.contains('open')) {
+                    closeChartModal();
+                }
+            });
+
+            // Tab切换 - 支持Tab点击、箭头点击、鼠标滚动
+            var tabSources = {
+                'heritage': '图表三角形.html',
+                'ingredient': '食材频率图表.html'
+            };
+            var tabOrder = ['heritage', 'ingredient'];
+            var currentTabIndex = 0;
+
+            function switchTabByIndex(index) {
+                if (index < 0 || index >= tabOrder.length || index === currentTabIndex) return;
+                currentTabIndex = index;
+                var tabName = tabOrder[index];
+                for (var i = 0; i < tabs.length; i++) {
+                    tabs[i].classList.remove('active');
+                    if (tabs[i].getAttribute('data-tab') === tabName) {
+                        tabs[i].classList.add('active');
+                    }
+                }
+                if (tabSources[tabName]) {
+                    chartIframe.src = tabSources[tabName];
+                }
+            }
+
+            // Tab点击切换
+            for (var t = 0; t < tabs.length; t++) {
+                tabs[t].addEventListener('click', function() {
+                    var tab = this.getAttribute('data-tab');
+                    var idx = tabOrder.indexOf(tab);
+                    if (idx !== -1) switchTabByIndex(idx);
+                });
+            }
+
+            // 左右箭头切换
+            var arrowPrev = document.getElementById('chartArrowPrev');
+            var arrowNext = document.getElementById('chartArrowNext');
+            if (arrowPrev) {
+                arrowPrev.addEventListener('click', function() {
+                    switchTabByIndex(currentTabIndex - 1);
+                });
+            }
+            if (arrowNext) {
+                arrowNext.addEventListener('click', function() {
+                    switchTabByIndex(currentTabIndex + 1);
+                });
+            }
+
+            // 鼠标滚轮切换（带节流防抖）
+            var chartBody = document.querySelector('.chart-modal-body');
+            var wheelTimer = null;
+            if (chartBody) {
+                chartBody.addEventListener('wheel', function(e) {
+                    e.preventDefault();
+                    if (wheelTimer) return;
+                    var delta = Math.abs(e.deltaY) > Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
+                    if (delta > 15) {
+                        switchTabByIndex(currentTabIndex + 1);
+                    } else if (delta < -15) {
+                        switchTabByIndex(currentTabIndex - 1);
+                    }
+                    wheelTimer = setTimeout(function() {
+                        wheelTimer = null;
+                    }, 800);
+                }, { passive: false });
+            }
+        }
+
+        /* ================================================================
+         *  4. 点击县区 → 涟漪 + 过渡动画
+         * ================================================================ */
+        var pageTransition = document.getElementById('pageTransition');
+
+        function addRippleClick(elements) {
+            for (var i = 0; i < elements.length; i++) {
+                elements[i].addEventListener('click', function(e) {
+                    e.preventDefault();
+
+                    var link = this;
+                    var href = link.getAttribute('href');
+                    if (!href || href === '#') return;
+
+                    // 创建涟漪
+                    var rect = link.getBoundingClientRect();
+                    var ripple = document.createElement('div');
+                    ripple.className = 'ripple';
+                    var size = Math.max(rect.width, rect.height) * 2;
+                    ripple.style.width = size + 'px';
+                    ripple.style.height = size + 'px';
+                    ripple.style.left = (rect.left + rect.width / 2 - size / 2) + 'px';
+                    ripple.style.top = (rect.top + rect.height / 2 - size / 2) + 'px';
+                    document.body.appendChild(ripple);
+
+                    // 涟漪结束后移除
+                    setTimeout(function() {
+                        if (ripple.parentNode) ripple.parentNode.removeChild(ripple);
+                    }, 800);
+
+                    // 页面过渡遮罩淡入
+                    if (pageTransition) {
+                        pageTransition.classList.add('active');
+                    }
+
+                    // 延迟跳转
+                    setTimeout(function() {
+                        window.location.href = href;
+                    }, 600);
+                });
+            }
+        }
+
+        // 为建筑图标热点 + 县区轮廓（排除灰色不可点区域）都添加点击效果
+        addRippleClick(document.querySelectorAll('.county-hotspot'));
+        addRippleClick(document.querySelectorAll('.county-shape:not(.county-gray)'));
+
+        /* ================================================================
+         *  5. 县区轮廓定位：让 county-layers 与底图渲染区域精确对齐
+         * ================================================================ */
+        function positionCountyLayers() {
+            var countyLayers = document.getElementById('countyLayers');
+            var mapContainer = document.getElementById('mapContainer');
+            if (!countyLayers || !mapContainer) return;
+
+            // 容器原始比例 2225:1885（与县区轮廓设计比例一致）
+            var IMG_W = 2225, IMG_H = 1885;
+            var imgRatio = IMG_W / IMG_H;
+
+            var containerW = mapContainer.offsetWidth;
+            var containerH = mapContainer.offsetHeight;
+            var containerRatio = containerW / containerH;
+
+            var renderW, renderH, renderX, renderY;
+            if (containerRatio > imgRatio) {
+                // 容器更宽 → 高度撑满
+                renderH = containerH;
+                renderW = renderH * imgRatio;
+                renderX = (containerW - renderW) / 2;
+                renderY = 0;
+            } else {
+                // 容器更高 → 宽度撑满
+                renderW = containerW;
+                renderH = renderW / imgRatio;
+                renderX = 0;
+                renderY = (containerH - renderH) / 2;
+            }
+
+            // 设置 county-layers 的位置和尺寸
+            countyLayers.style.left = renderX + 'px';
+            countyLayers.style.top = renderY + 'px';
+            countyLayers.style.width = renderW + 'px';
+            countyLayers.style.height = renderH + 'px';
+
+            // 为每个县区轮廓设置定位（基于 data-bbox 属性：left%,top%,width%,height%）
+            var shapes = countyLayers.querySelectorAll('.county-shape');
+            shapes.forEach(function(shape) {
+                var bbox = shape.getAttribute('data-bbox');
+                if (!bbox) return;
+                var parts = bbox.split(',');
+                if (parts.length !== 4) return;
+                shape.style.left = parts[0] + '%';
+                shape.style.top = parts[1] + '%';
+                shape.style.width = parts[2] + '%';
+                shape.style.height = parts[3] + '%';
+            });
+        }
+
+        // 页面加载后 + 窗口改变时重新定位
+        function initCountyPositioning() {
+            positionCountyLayers();
+            // 延迟再执行一次，确保图片渲染完成
+            setTimeout(positionCountyLayers, 100);
+            setTimeout(positionCountyLayers, 500);
+        }
+
+        // 直接初始化定位（无需等待图片加载）
+        initCountyPositioning();
+        // 窗口缩放时重新定位
+        window.addEventListener('resize', positionCountyLayers);
+
+        // 也监听容器可能的变化
+        var mapContainer = document.getElementById('mapContainer');
+        if (mapContainer) {
+            var resizeObserver = new ResizeObserver(function() {
+                positionCountyLayers();
+            });
+            resizeObserver.observe(mapContainer);
+        }
+
+        /* ================================================================
+         *  4. 键盘导航支持
+         * ================================================================ */
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                // 按 ESC 可关闭移动端菜单
+                if (mobileNav && mobileNav.classList.contains('open')) {
+                    var btn = document.getElementById('hamburgerBtn');
+                    if (btn) btn.click();
+                }
+            }
+        });
+
+    })();
+    </script>
+
+<!-- ===== 水墨互动效果：点击涟漪 + 毛笔拖尾 ===== -->
+<script>
+(function() {
+    var cvs = document.createElement('canvas');
+    cvs.id = 'inkCanvas';
+    cvs.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:99999;pointer-events:none;';
+    document.body.appendChild(cvs);
+    var ctx = cvs.getContext('2d');
+    var W, H;
+    function resize() { W = cvs.width = window.innerWidth; H = cvs.height = window.innerHeight; }
+    resize();
+    window.addEventListener('resize', resize);
+    var palette = [[0,188,212],[0,150,136],[38,198,218],[0,172,193],[76,175,80],[56,142,60],[102,187,106],[128,203,196],[129,199,132]];
+    function randColor() { return palette[Math.floor(Math.random()*palette.length)]; }
+    var rings = [];
+    function createInkRings(x,y) {
+        var count = 3+Math.floor(Math.random()*3);
+        for(var i=0;i<count;i++){var c=randColor();rings.push({x:x,y:y,r:0,maxR:40+Math.random()*80,opacity:0.5+Math.random()*0.4,rColor:c,speed:0.5+Math.random()*0.8,lw:1.5+Math.random()*3.5,delay:i*(50+Math.random()*80),life:0,decay:0.0015+Math.random()*0.002,wobble:0.08+Math.random()*0.12,phase:Math.random()*Math.PI*2});}
+    }
+    var trail=[];var MAX_TRAIL=15;
+    function addTrailPoint(x,y){var c=randColor();trail.push({x:x,y:y,r:0,maxR:10+Math.random()*18,opacity:0.5+Math.random()*0.3,color:c,lw:1.2+Math.random()*2.0,life:0,speed:0.5+Math.random()*0.8,decay:0.002+Math.random()*0.0025,wobble:0.06+Math.random()*0.10,phase:Math.random()*Math.PI*2});if(trail.length>MAX_TRAIL)trail.shift();}
+    var lastMouse={x:0,y:0};var mouseMoved=false;
+    document.addEventListener('mousedown',function(e){if(e.target.closest('.top-bar')||e.target.closest('.bottom-area')||e.target.closest('.nav-btn')||e.target.closest('.chart-modal-btn')||e.target.closest('.food-modal-btn'))return;createInkRings(e.clientX,e.clientY);});
+    document.addEventListener('mousemove',function(e){var dx=e.clientX-lastMouse.x;var dy=e.clientY-lastMouse.y;var dist=Math.sqrt(dx*dx+dy*dy);if(dist>12){var steps=Math.min(Math.floor(dist/12),4);for(var i=0;i<=steps;i++){var t=i/steps;var px=lastMouse.x+dx*t;var py=lastMouse.y+dy*t;addTrailPoint(px,py);}lastMouse.x=e.clientX;lastMouse.y=e.clientY;mouseMoved=true;}});
+    document.addEventListener('mouseenter',function(e){lastMouse.x=e.clientX;lastMouse.y=e.clientY;});
+    function animate(){
+        ctx.clearRect(0,0,W,H);
+        for(var i=rings.length-1;i>=0;i--){var ring=rings[i];if(ring.life<ring.delay){ring.life+=16;if(ring.life<ring.delay)continue;}ring.r+=ring.speed;var progress=ring.r/ring.maxR;var alpha=ring.opacity*(1-progress*progress);alpha=Math.max(0,alpha);var wobbleAmount=ring.wobble*ring.r;var r1=ring.r+wobbleAmount*Math.sin(ring.phase+progress*4);var r2=ring.r+wobbleAmount*Math.sin(ring.phase+2.3+progress*3.5);if(alpha>0.01&&ring.r<ring.maxR*1.3){ctx.beginPath();ctx.ellipse(ring.x,ring.y,r1,r2,0,0,Math.PI*2);ctx.strokeStyle='rgba('+ring.rColor[0]+','+ring.rColor[1]+','+ring.rColor[2]+','+alpha+')';ctx.lineWidth=ring.lw*(1-progress*0.6);ctx.stroke();ctx.beginPath();ctx.ellipse(ring.x,ring.y,r1*0.5,r2*0.5,0,0,Math.PI*2);ctx.fillStyle='rgba('+ring.rColor[0]+','+ring.rColor[1]+','+ring.rColor[2]+','+(alpha*0.15)+')';ctx.fill();}if(alpha<=0.01||ring.r>ring.maxR*1.5)rings.splice(i,1);}
+        for(var i=trail.length-1;i>=0;i--){var p=trail[i];p.r+=p.speed;if(p.r>p.maxR*1.3){trail.splice(i,1);continue;}var progress=p.r/p.maxR;var alpha=p.opacity*(1-progress*progress);if(alpha<0.01){trail.splice(i,1);continue;}var wobbleAmount=p.wobble*p.r;var r1=p.r+wobbleAmount*Math.sin(p.phase+progress*4);var r2=p.r+wobbleAmount*Math.sin(p.phase+2.3+progress*3.5);ctx.beginPath();ctx.ellipse(p.x,p.y,r1,r2,0,0,Math.PI*2);ctx.strokeStyle='rgba('+p.color[0]+','+p.color[1]+','+p.color[2]+','+alpha+')';ctx.lineWidth=p.lw*(1-progress*0.5);ctx.stroke();ctx.beginPath();ctx.ellipse(p.x,p.y,r1*0.4,r2*0.4,0,0,Math.PI*2);ctx.fillStyle='rgba('+p.color[0]+','+p.color[1]+','+p.color[2]+','+(alpha*0.12)+')';ctx.fill();}
+        requestAnimationFrame(animate);
+    }
+    animate();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,1056 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>永定区盲盒|食在闽西，味在客家</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=ZCOOL+XiaoWei&display=swap');
+
+        /* ===== 全局重置 ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            font-family: "Ma Shan Zheng", "ZCOOL XiaoWei", "STXingkai", "霞鹜臻楷 GB 常规", "KaiTi", "楷体", serif;
+            background: #1a1410;
+        }
+
+        /* ===== 固定背景层 ===== */
+        .bg-fixed {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            background: url('images/背景图.png') center/cover no-repeat;
+        }
+
+        /* ===== 半透明遮罩 ===== */
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.08);
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        /* ===== 底部渐隐 ===== */
+        .vignette-bottom {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            height: 25%;
+            background: linear-gradient(0deg, rgba(26, 20, 16, 0.3) 0%, transparent 100%);
+            z-index: 3;
+            pointer-events: none;
+        }
+
+        /* ===== 左上角关闭按钮 ===== */
+        .close-btn {
+            position: fixed;
+            top: 20px;
+            left: 24px;
+            z-index: 50;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(40, 28, 18, 0.55);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(180, 150, 110, 0.35);
+            border-radius: 50%;
+            color: #ffffff;
+            font-size: 26px;
+            font-family: "Ma Shan Zheng", "ZCOOL XiaoWei", serif;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 16px rgba(0, 0, 0, 0.15);
+            line-height: 1;
+        }
+        .close-btn:hover {
+            background: rgba(200, 80, 80, 0.7);
+            border-color: rgba(200, 100, 100, 0.5);
+            transform: scale(1.1);
+            box-shadow: 0 4px 20px rgba(200, 80, 80, 0.3);
+        }
+
+        /* ===== 顶部导航栏（同时间长廊轮播） ===== */
+        .top-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 30;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding: 20px 50px;
+            pointer-events: none;
+        }
+        .top-bar > * {
+            pointer-events: auto;
+        }
+
+        .nav {
+            display: flex;
+            gap: 2px;
+            background: rgba(40, 28, 18, 0.55);
+            backdrop-filter: blur(10px);
+            padding: 4px 2px;
+            border-radius: 6px;
+            border: 1px solid rgba(180, 150, 110, 0.35);
+            box-shadow: 0 2px 16px rgba(0, 0, 0, 0.15), inset 0 0 20px rgba(180, 150, 110, 0.05);
+        }
+        .nav a {
+            display: block;
+            padding: 10px 22px;
+            font-size: 18px;
+            font-family: "Ma Shan Zheng", "ZCOOL XiaoWei", "STXingkai", "霞鹜臻楷 GB 常规", "KaiTi", serif;
+            color: #ffffff;
+            text-decoration: none;
+            letter-spacing: 4px;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+        }
+        .nav a:hover,
+        .nav a.active {
+            color: #fff6e0;
+            background: rgba(200, 160, 80, 0.25);
+            text-shadow: 0 0 16px rgba(232, 200, 122, 0.5);
+        }
+        .nav a.active {
+            background: rgba(200, 160, 80, 0.3);
+            color: #fff6e0;
+        }
+        .nav a + a {
+            border-left: 1px solid rgba(180, 150, 110, 0.12);
+        }
+
+        /* ===== 汉堡菜单按钮（移动端 - 固定在右上角） ===== */
+        .hamburger-btn {
+            display: none;
+            position: fixed;
+            top: 14px;
+            right: 18px;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+            width: 44px;
+            height: 44px;
+            background: rgba(40, 28, 18, 0.65);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(180, 150, 110, 0.35);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 1200;
+            padding: 0;
+        }
+        .hamburger-btn:hover {
+            background: rgba(60, 44, 30, 0.75);
+            border-color: rgba(200, 170, 130, 0.5);
+        }
+        .hamburger-btn span {
+            display: block;
+            width: 24px;
+            height: 2px;
+            background: #ffffff;
+            border-radius: 2px;
+            transition: all 0.3s ease;
+            transform-origin: center;
+        }
+        /* 汉堡图标 → 叉叉动画 */
+        .hamburger-btn.active span:nth-child(1) {
+            transform: translateY(7px) rotate(45deg);
+        }
+        .hamburger-btn.active span:nth-child(2) {
+            opacity: 0;
+            transform: scaleX(0);
+        }
+        .hamburger-btn.active span:nth-child(3) {
+            transform: translateY(-7px) rotate(-45deg);
+        }
+
+        /* ===== 移动端下拉菜单 ===== */
+        .mobile-nav-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 1101;
+            background: rgba(0, 0, 0, 0.25);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+        .mobile-nav-overlay.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .mobile-nav {
+            position: fixed;
+            top: 76px;
+            right: 18px;
+            width: 200px;
+            z-index: 1150;
+            background: rgba(35, 24, 16, 0.92);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(180, 150, 110, 0.25);
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            padding: 8px 0;
+            opacity: 0;
+            transform: translateY(-10px) scale(0.95);
+            transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+            pointer-events: none;
+        }
+        .mobile-nav.open {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            pointer-events: auto;
+        }
+        .mobile-nav a {
+            display: block;
+            padding: 12px 20px;
+            font-size: 17px;
+            font-family: "Ma Shan Zheng", "ZCOOL XiaoWei", "STXingkai", "霞鹜臻楷 GB 常规", "KaiTi", serif;
+            color: #e8d5b8;
+            text-decoration: none;
+            letter-spacing: 4px;
+            transition: all 0.25s ease;
+            text-align: center;
+        }
+        .mobile-nav a:hover,
+        .mobile-nav a.active {
+            color: #fff6e0;
+            background: rgba(200, 160, 80, 0.2);
+            text-shadow: 0 0 12px rgba(232, 200, 122, 0.3);
+        }
+        .mobile-nav a.active {
+            color: #ffd966;
+        }
+        .mobile-nav a + a {
+            border-top: 1px solid rgba(180, 150, 110, 0.08);
+        }
+
+        /* ===== 主体容器 — 横向三分布局 ===== */
+        .main-container {
+            position: fixed;
+            inset: 0;
+            z-index: 5;
+            display: flex;
+            align-items: stretch;
+            justify-content: center;
+            padding: 85px 40px 60px;
+            gap: 30px;
+        }
+
+        /* ===== 三个横向区块公用样式（无框框） ===== */
+        .col {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+        }
+
+        /* ===== 左列 ===== */
+        .col-left {
+            flex: 0 0 36%;
+            padding: 0;
+            justify-content: flex-start;
+            align-items: stretch;
+        }
+
+        /* 大标题图片容器 — 缩小小，给文字框留更多空间 */
+        .title-wrapper {
+            width: 60%;
+            margin: 0 auto 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            padding-top: 0;
+            transform: translateY(-18px);
+        }
+        .title-wrapper .title-img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* 地图边框容器 — 自适应高度，不限制宽高比 */
+        .map-border-wrapper {
+            position: relative;
+            width: 90%;
+            flex: 0 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 4px auto 0;
+            overflow: hidden;
+            background: url('images/地图边框.png') center/100% 100% no-repeat;
+        }
+        .map-border-wrapper .map-text {
+            position: relative;
+            z-index: 1;
+            font-family: "ZCOOL XiaoWei", "Noto Serif SC", "KaiTi", serif;
+            font-size: clamp(15px, 1.3vw, 19px);
+            line-height: 1.9;
+            color: #3a2210;
+            text-indent: 2em;
+            letter-spacing: 0.5px;
+            padding: 12% 14% 10%;
+            text-shadow: 0 1px 2px rgba(255, 255, 255, 0.3);
+            overflow: hidden;
+            word-break: break-word;
+        }
+
+        /* ===== 中列（26%） ===== */
+        .col-center {
+            flex: 0 0 26%;
+            justify-content: center;
+        }
+        .col-center img.center-img {
+            width: 120%;
+            height: auto;
+            object-fit: contain;
+        }
+
+        /* ===== 盲盒盖子交互 ===== */
+        .blindbox-wrapper {
+            position: relative;
+            width: 120%;
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+        .blindbox-wrapper .box-base {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        .blindbox-wrapper .lid-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: auto;
+            display: block;
+            transition: transform 0.9s cubic-bezier(0.34, 1.2, 0.64, 1);
+            will-change: transform;
+            pointer-events: none;
+        }
+        /* 初始状态：盖子向下覆盖住美食 */
+        .blindbox-wrapper .lid-overlay.closed {
+            transform: scale(1.30) translate(5%, 10%) rotate(7deg);
+        }
+        /* 点击后：盖子回到顶部（现在的初始位置） */
+        .blindbox-wrapper .lid-overlay.open {
+            transform: scale(1) translateY(0);
+        }
+        .blindbox-wrapper .click-hint {
+            position: absolute;
+            bottom: 8%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: "Ma Shan Zheng", "ZCOOL XiaoWei", "STXingkai", serif;
+            font-size: clamp(14px, 1.2vw, 20px);
+            color: #fff6e0;
+            text-shadow: 0 2px 12px rgba(0,0,0,0.6);
+            letter-spacing: 3px;
+            background: rgba(40, 28, 18, 0.6);
+            backdrop-filter: blur(4px);
+            padding: 6px 20px;
+            border-radius: 20px;
+            border: 1px solid rgba(200, 168, 110, 0.3);
+            pointer-events: none;
+            opacity: 1;
+            transition: opacity 0.5s ease;
+            animation: hintPulse 2.5s ease-in-out infinite;
+        }
+        .blindbox-wrapper .click-hint.hidden {
+            opacity: 0;
+        }
+        @keyframes hintPulse {
+            0%, 100% { transform: translateX(-50%) scale(1); opacity: 0.8; }
+            50% { transform: translateX(-50%) scale(1.05); opacity: 1; }
+        }
+
+        /* ===== 盲盒晃动效果 ===== */
+        @keyframes shakeBox {
+            0%   { transform: translateX(0) rotate(0deg); }
+            10%  { transform: translateX(-8px) rotate(-3deg); }
+            20%  { transform: translateX(8px) rotate(3deg); }
+            30%  { transform: translateX(-10px) rotate(-4deg); }
+            40%  { transform: translateX(10px) rotate(4deg); }
+            50%  { transform: translateX(-8px) rotate(-3deg); }
+            60%  { transform: translateX(8px) rotate(3deg); }
+            70%  { transform: translateX(-4px) rotate(-2deg); }
+            80%  { transform: translateX(4px) rotate(2deg); }
+            90%  { transform: translateX(-2px) rotate(-1deg); }
+            100% { transform: translateX(0) rotate(0deg); }
+        }
+        .blindbox-wrapper.shaking {
+            animation: shakeBox 0.6s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+        }
+        .blindbox-wrapper.shaking .click-hint {
+            animation: none;
+            opacity: 0;
+        }
+
+        /* ===== 右列（34%） ===== */
+        .col-right {
+            flex: 0 0 34%;
+            justify-content: center;
+            align-items: stretch;
+            padding-bottom: 140px;
+        }
+
+        /* 右侧文字框 — 自适应文字内容 */
+        .right-text-wrapper {
+            position: relative;
+            width: 90%;
+            flex: 0 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 8px;
+            overflow: hidden;
+            background: url('images/文字边框.png') center/100% 100% no-repeat;
+        }
+        .right-text-wrapper .right-text {
+            position: relative;
+            z-index: 1;
+            font-family: "ZCOOL XiaoWei", "Noto Serif SC", "KaiTi", serif;
+            font-size: clamp(15px, 1.3vw, 19px);
+            line-height: 1.9;
+            color: #3a2210;
+            text-indent: 2em;
+            letter-spacing: 0.5px;
+            padding: 10% 14% 8%;
+            text-shadow: 0 1px 2px rgba(255, 255, 255, 0.3);
+            overflow: hidden;
+            word-break: break-word;
+        }
+
+        .food-section {
+            position: absolute;
+            bottom: 10px;
+            left: 0;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+        .food-section .food-label {
+            font-size: clamp(18px, 1.3vw, 24px);
+            color: #3a2210;
+            letter-spacing: 4px;
+            text-shadow: 0 1px 2px rgba(255, 255, 255, 0.3);
+            border-bottom: 2px solid rgba(120, 100, 75, 0.25);
+            padding-bottom: 8px;
+            width: 80%;
+            text-align: center;
+        }
+        .food-images-row {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+        }
+        .food-images-row img {
+            width: 40%;
+            max-width: 180px;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+            transition: transform 0.4s ease, box-shadow 0.4s ease;
+            cursor: pointer;
+        }
+        .food-images-row img:hover {
+            transform: scale(1.12) translateY(-6px);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+        }
+
+        /* ===== 美食详情全屏弹窗 ===== */
+        .food-detail-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 10000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(6px);
+            animation: fadeInOverlay 0.4s ease;
+        }
+        .food-detail-overlay.show {
+            display: flex;
+        }
+        @keyframes fadeInOverlay {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+        }
+
+        .food-detail-inner {
+            position: relative;
+            width: 85vw;
+            max-width: 1200px;
+            height: 80vh;
+            max-height: 800px;
+            border-radius: 20px;
+            border: 2px solid rgba(200, 170, 130, 0.4);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: zoomIn 0.4s cubic-bezier(0.34, 1.2, 0.64, 1);
+            overflow: hidden;
+        }
+        .food-detail-inner--paoya {
+            background: url('images/永定泡鸭爪/永定泡鸭爪背景图.png') center/cover no-repeat;
+        }
+        .food-detail-inner--niurou {
+            background: url('images/永定牛肉丸/永定牛肉丸背景图.png') center/cover no-repeat;
+        }
+        @keyframes zoomIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to   { transform: scale(1); opacity: 1; }
+        }
+
+        /* 左上角关闭按钮（弹窗内） */
+        .food-detail-close {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            z-index: 10;
+            width: 42px;
+            height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.35);
+            backdrop-filter: blur(6px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 50%;
+            color: #ffffff;
+            font-size: 28px;
+            font-family: "Ma Shan Zheng", serif;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            line-height: 1;
+            text-decoration: none;
+        }
+        .food-detail-close:hover {
+            background: rgba(200, 80, 80, 0.7);
+            transform: scale(1.1);
+        }
+
+        /* 左侧标题文字 */
+        .food-detail-title {
+            position: absolute;
+            left: 8%;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 13%;
+            z-index: 2;
+            pointer-events: none;
+        }
+        .food-detail-title img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* 中间美食图片 */
+        .food-detail-image {
+            position: relative;
+            z-index: 1;
+            width: 55%;
+            max-width: 520px;
+            filter: drop-shadow(0 8px 30px rgba(0, 0, 0, 0.4));
+            animation: floatFood 3s ease-in-out infinite;
+        }
+        .food-detail-image img {
+            width: 100%;
+            height: auto;
+            display: block;
+            border-radius: 12px;
+        }
+        @keyframes floatFood {
+            0%, 100% { transform: translateY(0); }
+            50%      { transform: translateY(-8px); }
+        }
+
+        /* 右下角"了解更多"按钮 */
+        .food-detail-more {
+            position: absolute;
+            bottom: 8%;
+            right: 6%;
+            z-index: 10;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 32px;
+            background: rgba(40, 28, 18, 0.7);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(200, 170, 130, 0.4);
+            border-radius: 30px;
+            color: #fff6e0;
+            font-size: clamp(16px, 1.4vw, 22px);
+            font-family: "Ma Shan Zheng", "ZCOOL XiaoWei", serif;
+            letter-spacing: 4px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+        .food-detail-more:hover {
+            background: rgba(200, 160, 80, 0.35);
+            border-color: rgba(232, 200, 122, 0.6);
+            transform: scale(1.05);
+            box-shadow: 0 6px 30px rgba(200, 160, 80, 0.2);
+        }
+        .food-detail-more::after {
+            content: "\279C";
+            font-size: 1.4em;
+            font-weight: 700;
+            transition: transform 0.3s ease;
+        }
+        .food-detail-more:hover::after {
+            transform: translateX(4px);
+        }
+
+        /* --- 再抽一次按钮（弹框外部下方） --- */
+        .food-detail-retry {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 36px;
+            background: rgba(40, 28, 18, 0.7);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(200, 170, 130, 0.35);
+            border-radius: 30px;
+            color: #e8d5b0;
+            font-size: clamp(16px, 1.3vw, 20px);
+            font-family: "Ma Shan Zheng", "ZCOOL XiaoWei", serif;
+            letter-spacing: 4px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+        .food-detail-retry:hover {
+            background: rgba(200, 160, 80, 0.35);
+            border-color: rgba(232, 200, 122, 0.6);
+            transform: scale(1.05);
+            color: #fff6e0;
+            box-shadow: 0 6px 30px rgba(200, 160, 80, 0.2);
+        }
+        .food-detail-retry::before {
+            content: "🔄";
+            font-size: 1.2em;
+        }
+
+        /* ===== 入场动画 ===== */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        .col {
+            animation: fadeInUp 0.9s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+            opacity: 0;
+        }
+        .col-left {
+            animation-delay: 0.2s;
+        }
+        .col-center {
+            animation-delay: 0.4s;
+        }
+        .col-right {
+            animation-delay: 0.6s;
+        }
+
+        /* ===== 响应式 ===== */
+        @media (max-width: 1200px) {
+            .main-container {
+                gap: 16px;
+                padding: 85px 16px 50px;
+            }
+            .col-left { flex: 0 0 36%; }
+            .col-center { flex: 0 0 26%; }
+            .col-right { flex: 0 0 36%; }
+            .title-wrapper { width: 60%; }
+            .map-border-wrapper { width: 90%; }
+            .map-border-wrapper .map-text { font-size: clamp(14px, 1.2vw, 17px); padding: 10% 12% 8%; line-height: 1.8; }
+            .right-text-wrapper { width: 90%; flex: 0 0 auto; }
+            .right-text-wrapper .right-text { font-size: clamp(14px, 1.2vw, 17px); padding: 8% 12% 6%; }
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                flex-direction: column;
+                padding: 75px 12px 50px;
+                gap: 10px;
+            }
+            .col {
+                flex: none !important;
+                width: 100%;
+                height: 30%;
+                justify-content: center;
+            }
+
+            .title-wrapper { width: 40%; padding-top: 0; }
+            .title-wrapper .title-text { font-size: 20px; letter-spacing: 6px; }
+
+            .map-border-wrapper { width: 66%; flex: 1; margin: 4px auto; }
+            .map-border-wrapper .map-text {
+                font-size: 14px;
+                line-height: 1.7;
+                padding: 10% 12% 8%;
+                text-indent: 1.5em;
+            }
+
+            .right-text-wrapper { width: 60%; flex: 0 0 auto; margin: 4px auto; }
+            .right-text-wrapper .right-text {
+                font-size: 14px;
+                line-height: 1.7;
+                padding: 8% 12% 6%;
+                text-indent: 1.5em;
+            }
+
+            .col-center img.center-img {
+                width: 90%;
+            }
+            .blindbox-wrapper {
+                width: 90%;
+            }
+
+            .food-images-row img {
+                width: 35%;
+                max-width: 100px;
+            }
+            .food-section .food-label {
+                font-size: 16px;
+            }
+
+            .nav a {
+                padding: 6px 12px;
+                font-size: 14px;
+            }
+            .top-bar {
+                padding: 12px 16px;
+            }
+            .hamburger-btn {
+                display: flex;
+            }
+            .nav {
+                display: none;
+            }
+            .mobile-nav-overlay {
+                display: block;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== 固定背景 ===== -->
+    <div class="bg-fixed"></div>
+
+    <!-- ===== 遮罩与渐隐 ===== -->
+    <div class="overlay"></div>
+    <div class="vignette-bottom"></div>
+
+    <!-- ===== 左上角关闭按钮 ===== -->
+    <a class="close-btn" href="地图页面.html" title="关闭">&times;</a>
+
+    <!-- ===== 顶部导航栏（同时间长廊轮播，无返回键） ===== -->
+    <div class="top-bar">
+        <nav class="nav">
+            <a href="index.html">首页</a>
+            <a href="时间长廊轮播.html">时间长廊</a>
+            <a href="地图页面.html">地图</a>
+            <a href="美食图鉴.html">美食图鉴</a>
+        </nav>
+        <!-- 汉堡菜单按钮 -->
+        <button class="hamburger-btn" id="hamburgerBtn" aria-label="菜单">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+    </div>
+
+    <!-- ===== 移动端下拉菜单 ===== -->
+    <div class="mobile-nav-overlay" id="mobileOverlay"></div>
+    <div class="mobile-nav" id="mobileNav">
+        <a href="index.html">首页</a>
+        <a href="时间长廊轮播.html">时间长廊</a>
+        <a href="地图页面.html">地图</a>
+        <a href="美食图鉴.html">美食图鉴</a>
+    </div>
+
+    <!-- ===== 主体：三列盲盒展示 ===== -->
+    <div class="main-container">
+
+        <!-- ===== 左列：大标题 + 地图边框文字 ===== -->
+        <div class="col col-left">
+            <div class="title-wrapper">
+                <img class="title-img" src="images/永定区文字.png" alt="永定区" />
+            </div>
+            <div class="map-border-wrapper">
+                <p class="map-text">
+                    永定是闻名遐迩的“土楼之乡”，深厚的客家文化孕育出风味鲜明的饮食体系。当地美食融合中原传统与闽西物产，整体咸香醇厚、辛香浓郁，不求精致摆盘，重在踏实暖心的本味。土楼人家的烟火气，在一粥一饭中代代相传。
+            </div>
+        </div>
+
+        <!-- ===== 中列：盲盒展示 ===== -->
+        <div class="col col-center">
+            <div class="blindbox-wrapper" id="blindbox">
+                <img class="box-base" src="images/永定盲盒11.png" alt="永定盲盒" />
+                <img class="lid-overlay closed" id="lidOverlay" src="images/永定盲盒盖子.png" alt="盲盒盖子" />
+                <div class="click-hint" id="clickHint">👆 点击打开盲盒</div>
+            </div>
+        </div>
+
+        <!-- ===== 右列：文字描述 + 美食图片 ===== -->
+        <div class="col col-right">
+            <div class="right-text-wrapper">
+                <p class="right-text">
+                    永定美食以“全牛宴”最负盛名，从Q弹牛肉丸到香浓牛肉兜汤，一头牛从肉到骨用到极致。街头芋子包以粉糯芋泥做皮包入咸香肉馅，软糯鲜香。菜干经“三蒸三晒”制成扣肉，肥而不腻。泡鸭爪酸甜爽脆，万应茶甘醇养生。这些风物交织出永定质朴而悠长的舌尖记忆。
+                </p>
+            </div>
+            <div class="food-section">
+                <div class="food-label">永定美食</div>
+                <div class="food-images-row">
+                    <img src="images/永定牛肉丸/永定牛肉丸.png" alt="永定牛肉丸" />
+                    <img src="images/永定泡鸭爪/永定泡鸭爪.png" alt="永定泡鸭爪" />
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+<!-- ===== 美食详情全屏弹窗 - 永定泡鸭爪 ===== -->
+<div class="food-detail-overlay" id="foodDetailOverlayPaoya">
+    <div class="food-detail-inner food-detail-inner--paoya">
+        <!-- 关闭按钮 -->
+        <a class="food-detail-close" id="foodDetailClosePaoya" href="javascript:void(0)">&times;</a>
+        <!-- 左侧标题 -->
+        <div class="food-detail-title">
+            <img src="images/永定泡鸭爪/永定泡鸭爪大标题.png" alt="永定泡鸭爪" />
+        </div>
+        <!-- 中间美食图片 -->
+        <div class="food-detail-image">
+            <img src="images/永定泡鸭爪/永定泡鸭爪.png" alt="永定泡鸭爪" />
+        </div>
+        <!-- 右下角了解更多 -->
+        <a class="food-detail-more" href="永定泡鸭爪了解更多页面.html">了解更多</a>
+    </div>
+    <!-- 再抽一次（弹框外部下方） -->
+    <a class="food-detail-retry" id="paoyaDetailRetry" href="javascript:void(0)">再抽一次</a>
+</div>
+
+<!-- ===== 美食详情全屏弹窗 - 永定牛肉丸 ===== -->
+<div class="food-detail-overlay" id="foodDetailOverlayNiurou">
+    <div class="food-detail-inner food-detail-inner--niurou">
+        <!-- 关闭按钮 -->
+        <a class="food-detail-close" id="foodDetailCloseNiurou" href="javascript:void(0)">&times;</a>
+        <!-- 左侧标题 -->
+        <div class="food-detail-title">
+            <img src="images/永定牛肉丸/永定牛肉丸大标题.png" alt="永定牛肉丸" />
+        </div>
+        <!-- 中间美食图片 -->
+        <div class="food-detail-image">
+            <img src="images/永定牛肉丸/永定牛肉丸.png" alt="永定牛肉丸" />
+        </div>
+        <!-- 右下角了解更多 -->
+        <a class="food-detail-more" href="永定牛肉丸了解更多页面.html">了解更多</a>
+    </div>
+    <!-- 再抽一次（弹框外部下方） -->
+    <a class="food-detail-retry" id="niurouDetailRetry" href="javascript:void(0)">再抽一次</a>
+</div>
+
+<!-- ===== 汉堡菜单交互 JS ===== -->
+<script>
+(function() {
+    var hamburgerBtn = document.getElementById('hamburgerBtn');
+    var mobileNav = document.getElementById('mobileNav');
+    var mobileOverlay = document.getElementById('mobileOverlay');
+    if (!hamburgerBtn || !mobileNav || !mobileOverlay) return;
+
+    function openMobileMenu() {
+        hamburgerBtn.classList.add('active');
+        mobileNav.classList.add('open');
+        mobileOverlay.classList.add('open');
+    }
+
+    function closeMobileMenu() {
+        hamburgerBtn.classList.remove('active');
+        mobileNav.classList.remove('open');
+        mobileOverlay.classList.remove('open');
+    }
+
+    hamburgerBtn.addEventListener('click', function() {
+        if (hamburgerBtn.classList.contains('active')) {
+            closeMobileMenu();
+        } else {
+            openMobileMenu();
+        }
+    });
+
+    mobileOverlay.addEventListener('click', function() {
+        closeMobileMenu();
+    });
+
+    // 点击移动端导航链接后自动关闭菜单
+    var mobileLinks = mobileNav.querySelectorAll('a');
+    for (var ml = 0; ml < mobileLinks.length; ml++) {
+        mobileLinks[ml].addEventListener('click', function() {
+            closeMobileMenu();
+        });
+    }
+
+    /* ================================================================
+     *  盲盒盖子开合交互 - 交替美食图 + 弹窗
+     * ================================================================ */
+    var blindbox = document.getElementById('blindbox');
+    var lidOverlay = document.getElementById('lidOverlay');
+    var clickHint = document.getElementById('clickHint');
+    var boxBase = blindbox ? blindbox.querySelector('.box-base') : null;
+
+    if (blindbox && lidOverlay && boxBase) {
+        var isOpen = false;
+        var isShaking = false;
+
+        /* ===== 两个美食详情弹窗 ===== */
+        var foodOverlayPaoya = document.getElementById('foodDetailOverlayPaoya');
+        var foodClosePaoya = document.getElementById('foodDetailClosePaoya');
+        var foodOverlayNiurou = document.getElementById('foodDetailOverlayNiurou');
+        var foodCloseNiurou = document.getElementById('foodDetailCloseNiurou');
+
+        /* ===== 盲盒基底图片：11=泡鸭爪，22=牛肉丸 ===== */
+        var blindboxBaseImages = [
+            'images/永定盲盒11.png',
+            'images/永定盲盒22.png'
+        ];
+
+        blindbox.addEventListener('click', function() {
+            if (isShaking) return;
+
+            if (!isOpen) {
+                // 先晃动，再打开盲盒
+                isShaking = true;
+                blindbox.classList.add('shaking');
+
+                setTimeout(function() {
+                    blindbox.classList.remove('shaking');
+                    lidOverlay.classList.remove('closed');
+                    lidOverlay.classList.add('open');
+                    if (clickHint) clickHint.classList.add('hidden');
+                    isOpen = true;
+                    isShaking = false;
+
+                    // 随机弹出泡鸭爪或牛肉丸全屏详情
+                    var foodOverlays = [foodOverlayPaoya, foodOverlayNiurou];
+                    var randomIdx = Math.floor(Math.random() * foodOverlays.length);
+                    // 切换盲盒基底图片，使其与抽到的美食一致
+                    if (boxBase && blindboxBaseImages[randomIdx]) {
+                        boxBase.src = blindboxBaseImages[randomIdx];
+                    }
+                    var chosen = foodOverlays[randomIdx];
+                    if (chosen) {
+                        chosen.classList.add('show');
+                    }
+                }, 600);
+            } else {
+                // 关闭盲盒（盖子盖回）
+                lidOverlay.classList.remove('open');
+                lidOverlay.classList.add('closed');
+                isOpen = false;
+            }
+        });
+    }
+
+    // ---- 关闭泡鸭爪弹窗 ----
+    if (foodClosePaoya && foodOverlayPaoya) {
+        foodClosePaoya.addEventListener('click', function(e) {
+            e.preventDefault();
+            foodOverlayPaoya.classList.remove('show');
+        });
+        foodOverlayPaoya.addEventListener('click', function(e) {
+            if (e.target === foodOverlayPaoya) {
+                foodOverlayPaoya.classList.remove('show');
+            }
+        });
+    }
+
+    // ---- 关闭牛肉丸弹窗 ----
+    if (foodCloseNiurou && foodOverlayNiurou) {
+        foodCloseNiurou.addEventListener('click', function(e) {
+            e.preventDefault();
+            foodOverlayNiurou.classList.remove('show');
+        });
+        foodOverlayNiurou.addEventListener('click', function(e) {
+            if (e.target === foodOverlayNiurou) {
+                foodOverlayNiurou.classList.remove('show');
+            }
+        });
+    }
+
+    // ===== 再抽一次：关闭当前弹窗，重新随机弹出 =====
+    function retryDraw(currentOverlay) {
+        var overlays = [foodOverlayPaoya, foodOverlayNiurou];
+        currentOverlay.classList.remove('show');
+        var randomIdx = Math.floor(Math.random() * overlays.length);
+        // 切换盲盒基底图片
+        if (boxBase && blindboxBaseImages[randomIdx]) {
+            boxBase.src = blindboxBaseImages[randomIdx];
+        }
+        var chosen = overlays[randomIdx];
+        if (chosen) {
+            setTimeout(function() { chosen.classList.add('show'); }, 200);
+        }
+    }
+
+    var paoyaRetry = document.getElementById('paoyaDetailRetry');
+    var niurouRetry = document.getElementById('niurouDetailRetry');
+
+    if (paoyaRetry && foodOverlayPaoya) {
+        paoyaRetry.addEventListener('click', function(e) {
+            e.preventDefault();
+            retryDraw(foodOverlayPaoya);
+        });
+    }
+    if (niurouRetry && foodOverlayNiurou) {
+        niurouRetry.addEventListener('click', function(e) {
+            e.preventDefault();
+            retryDraw(foodOverlayNiurou);
+        });
+    }
+})();
+</script>
+
+</body>
+</html>

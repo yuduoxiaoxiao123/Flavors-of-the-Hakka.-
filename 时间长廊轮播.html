@@ -1,0 +1,2663 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>时间长廊|食在闽西，味在客家</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=ZCOOL+XiaoWei&display=swap');
+
+        /* ===== 全局重置 ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            font-family: "Ma Shan Zheng", "ZCOOL XiaoWei", "STXingkai", "霞鹜臻楷 GB 常规", "KaiTi", "楷体", serif;
+            background: #1a1410;
+        }
+
+        /* ===== 固定背景层 ===== */
+        .bg-fixed {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            background: url('images/背景图.png') center/cover no-repeat;
+        }
+
+        /* ===== 太阳（图片22.png）—— 位于文字框和图片框背后，太阳元素沿抛物线运动 ===== */
+        .sun {
+            position: absolute;
+            z-index: 0;
+            width: 138px;
+            height: auto;
+            pointer-events: none;
+            transition: left 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                        top 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            filter: drop-shadow(0 0 60px rgba(255, 180, 60, 0.25)) brightness(1.05);
+            opacity: 0.92;
+            will-change: left, top;
+            /* 边缘羽化：中心区域清晰，向边缘逐渐透明 */
+            -webkit-mask-image: radial-gradient(ellipse 80% 75% at 50% 45%, black 50%, transparent 95%);
+            mask-image: radial-gradient(ellipse 80% 75% at 50% 45%, black 50%, transparent 95%);
+            -webkit-mask-composite: source-over;
+            mask-composite: source-over;
+        }
+
+        /* ===== 半透明遮罩 ===== */
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.08);
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        /* ===== 底部渐隐 ===== */
+        .vignette-bottom {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            height: 25%;
+            background: linear-gradient(0deg, rgba(26, 20, 16, 0.3) 0%, transparent 100%);
+            z-index: 3;
+            pointer-events: none;
+        }
+
+        /* ===== 顶部导航栏 ===== */
+        .top-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 30;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding: 20px 50px;
+            pointer-events: none;
+        }
+        .top-bar > * {
+            pointer-events: auto;
+        }
+
+        .nav {
+            display: flex;
+            gap: 2px;
+            background: rgba(40, 28, 18, 0.55);
+            backdrop-filter: blur(10px);
+            padding: 4px 2px;
+            border-radius: 6px;
+            border: 1px solid rgba(180, 150, 110, 0.35);
+            box-shadow: 0 2px 16px rgba(0, 0, 0, 0.15), inset 0 0 20px rgba(180, 150, 110, 0.05);
+        }
+        .nav a {
+            display: block;
+            padding: 10px 22px;
+            font-size: 18px;
+            font-family: "Ma Shan Zheng", "ZCOOL XiaoWei", "STXingkai", "霞鹜臻楷 GB 常规", "KaiTi", serif;
+            color: #ffffff;
+            text-decoration: none;
+            letter-spacing: 4px;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+        }
+        .nav-map-hint {
+            display: none;
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 16px;
+            white-space: nowrap;
+            animation: hintBounce 1s ease-in-out infinite;
+            pointer-events: none;
+        }
+        @keyframes hintBounce {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(-4px); }
+        }
+        .nav a:hover,
+        .nav a.active {
+            color: #fff6e0;
+            background: rgba(200, 160, 80, 0.25);
+            text-shadow: 0 0 16px rgba(232, 200, 122, 0.5);
+        }
+        .nav a.active {
+            background: rgba(200, 160, 80, 0.3);
+            color: #fff6e0;
+        }
+        .nav a + a {
+            border-left: 1px solid rgba(180, 150, 110, 0.12);
+        }
+
+        /* ===== 汉堡菜单按钮（移动端 - 固定在右上角） ===== */
+        .hamburger-btn {
+            display: none;
+            position: fixed;
+            top: 14px;
+            right: 18px;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+            width: 44px;
+            height: 44px;
+            background: rgba(40, 28, 18, 0.65);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(180, 150, 110, 0.35);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 1200;
+            padding: 0;
+        }
+        .hamburger-btn:hover {
+            background: rgba(60, 44, 30, 0.75);
+            border-color: rgba(200, 170, 130, 0.5);
+        }
+        .hamburger-btn span {
+            display: block;
+            width: 24px;
+            height: 2px;
+            background: #ffffff;
+            border-radius: 2px;
+            transition: all 0.3s ease;
+            transform-origin: center;
+        }
+        /* 汉堡图标 → 叉叉动画 */
+        .hamburger-btn.active span:nth-child(1) {
+            transform: translateY(7px) rotate(45deg);
+        }
+        .hamburger-btn.active span:nth-child(2) {
+            opacity: 0;
+            transform: scaleX(0);
+        }
+        .hamburger-btn.active span:nth-child(3) {
+            transform: translateY(-7px) rotate(-45deg);
+        }
+
+        /* ===== 移动端下拉菜单 ===== */
+        .mobile-nav-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 1101;
+            background: rgba(0, 0, 0, 0.25);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+        .mobile-nav-overlay.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .mobile-nav {
+            position: fixed;
+            top: 76px;
+            right: 18px;
+            width: 200px;
+            z-index: 1150;
+            background: rgba(35, 24, 16, 0.92);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(180, 150, 110, 0.25);
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            padding: 8px 0;
+            opacity: 0;
+            transform: translateY(-10px) scale(0.95);
+            transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+            pointer-events: none;
+        }
+        .mobile-nav.open {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            pointer-events: auto;
+        }
+        .mobile-nav a {
+            display: block;
+            padding: 12px 20px;
+            font-size: 17px;
+            font-family: "Ma Shan Zheng", "ZCOOL XiaoWei", "STXingkai", "霞鹜臻楷 GB 常规", "KaiTi", serif;
+            color: #e8d5b8;
+            text-decoration: none;
+            letter-spacing: 4px;
+            transition: all 0.25s ease;
+            text-align: center;
+        }
+        .mobile-nav a:hover,
+        .mobile-nav a.active {
+            color: #fff6e0;
+            background: rgba(200, 160, 80, 0.2);
+            text-shadow: 0 0 12px rgba(232, 200, 122, 0.3);
+        }
+        .mobile-nav a.active {
+            color: #ffd966;
+        }
+        .mobile-nav a + a {
+            border-top: 1px solid rgba(180, 150, 110, 0.08);
+        }
+
+        /* ===== 轮播容器 ===== */
+        .carousel-wrapper {
+            position: relative;
+            z-index: 5;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .carousel-track {
+            display: flex;
+            width: 600%;
+            height: 100%;
+            transition: transform 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            will-change: transform;
+        }
+
+        .slide {
+            flex: 0 0 calc(100% / 6);
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* ===== 山景装饰层 ===== */
+        .slide .mountain-bg {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none;
+            overflow: hidden;
+        }
+        .slide .mountain-bg .mt-left {
+            position: absolute;
+            left: 0;
+            bottom: 140px;
+            width: 55%;
+            opacity: 0.55;
+            transform: scaleX(-1);
+        }
+        .slide .mountain-bg .mt-left img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        .slide .mountain-bg .mt-right {
+            position: absolute;
+            right: 0;
+            bottom: 120px;
+            width: 60%;
+            opacity: 0.5;
+        }
+        .slide .mountain-bg .mt-right img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* ===== 主内容区 ===== */
+        .slide .main-content {
+            position: absolute;
+            left: 50%;
+            top: calc(50% + 5px);
+            transform: translate(-50%, -50%);
+            z-index: 10;
+            width: 100%;
+            max-width: 1600px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 60px;
+            padding: 0 60px;
+        }
+
+        .slide .text-box {
+            flex: 0 0 56%;
+            position: relative;
+            border-radius: 16px;
+            padding: 90px 45px 45px;
+            overflow: hidden;
+        }
+        .slide .text-box::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 99%;
+            height: 96%;
+            background: rgba(250, 250, 250, 0.5);
+            border-radius: 12px;
+            z-index: 0;
+            pointer-events: none;
+        }
+        .slide .text-box h2 {
+            position: relative;
+            z-index: 1;
+            font-size: 28px;
+            font-weight: bold;
+            color: #3a2210;
+            text-align: center;
+            letter-spacing: 3px;
+            margin-bottom: 20px;
+            text-shadow: 0 1px 3px rgba(255, 255, 255, 0.3);
+            border-bottom: 2px solid rgba(120, 100, 75, 0.25);
+            padding-bottom: 12px;
+        }
+        .slide .text-box p {
+            position: relative;
+            z-index: 1;
+            font-family: "ZCOOL XiaoWei", "Noto Serif SC", "KaiTi", serif;
+            font-size: 24px;
+            line-height: 2;
+            color: rgba(50, 35, 20, 0.92);
+            text-indent: 2em;
+            letter-spacing: 1px;
+            text-shadow: 0 1px 2px rgba(255, 255, 255, 0.2);
+        }
+        .slide .text-box .btn-wrapper {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            margin-top: 35px;
+        }
+        .slide .text-box .learn-more {
+            display: inline-block;
+            padding: 16px 56px;
+            font-size: 22px;
+            font-family: inherit;
+            font-weight: bold;
+            color: #3a2210;
+            letter-spacing: 8px;
+            text-decoration: none;
+            border: 2px solid rgba(120, 100, 75, 0.5);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(4px);
+            cursor: pointer;
+            transition: all 0.4s ease;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+        .slide .text-box .learn-more:hover {
+            transform: translateY(-3px) scale(1.03);
+            box-shadow: 0 10px 35px rgba(0, 0, 0, 0.15);
+            border-color: rgba(120, 100, 75, 0.8);
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .slide .image-box {
+            flex: 0 0 38%;
+            border-radius: 16px;
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0);
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .slide .image-box::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 85%;
+            height: 100%;
+            background: rgba(250, 250, 250, 0.6);
+            border-radius: 12px;
+            z-index: 0;
+            pointer-events: none;
+        }
+        .slide .image-box img.map-img {
+            width: 80%;
+            height: auto;
+            display: block;
+            position: relative;
+            z-index: 1;
+            transform: translateX(-15px) translateY(-3px);
+        }
+
+        /* ===== 地图标题框 ===== */
+        .slide .image-box .map-title-box {
+            position: absolute;
+            top: -45px;
+            left: 48%;
+            transform: translateX(-50%);
+            z-index: 3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #d4b48c, #c4a070);
+            padding: 8px 32px;
+            border-radius: 6px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            border: 2px solid #a8855a;
+            white-space: nowrap;
+        }
+        .slide .image-box .map-title-box::before,
+        .slide .image-box .map-title-box::after {
+            content: '◆';
+            font-size: 12px;
+            color: #a8855a;
+            margin: 0 8px;
+            position: relative;
+            top: -1px;
+        }
+        .slide .image-box .map-title-box .map-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #fff6e8;
+            letter-spacing: 4px;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+
+        /* ===== 地图边框装饰 ===== */
+        .map-border {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            height: 140%;
+            z-index: 0;
+            pointer-events: none;
+            object-fit: fill;
+        }
+
+        /* ===== 文字边框装饰 ===== */
+        .text-border {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 110%;
+            height: 115%;
+            z-index: 0;
+            pointer-events: none;
+            object-fit: fill;
+        }
+
+        /* ===== 底部区域（固定石头） ===== */
+        .bottom-area {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 30;
+            height: 80px;
+            pointer-events: none;
+        }
+        .bottom-area > * {
+            pointer-events: auto;
+        }
+
+        .stones-row {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            align-items: flex-end;
+            justify-content: stretch;
+            gap: 0;
+            height: 45px;
+        }
+        .stones-row img {
+            flex: 1 1 16.666%;
+            width: 16.666%;
+            height: 100%;
+            display: block;
+            object-fit: cover;
+            object-position: center bottom;
+            filter: drop-shadow(0 -2px 8px rgba(0, 0, 0, 0.15));
+        }
+
+        /* ===== 移动的马车 —— 从左平移到右 ===== */
+        .moving-carriage {
+            position: fixed;
+            bottom: 40px;
+            z-index: 28;
+            pointer-events: none;
+            transition: left 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            will-change: left;
+        }
+        .moving-carriage img {
+            height: 130px;
+            width: auto;
+            display: block;
+            filter: drop-shadow(0 8px 25px rgba(0, 0, 0, 0.35));
+        }
+
+        /* ===== 移动的山 —— 从左平移到右 ===== */
+        .moving-mountain {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: -1;
+            pointer-events: none;
+            transition: left 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            will-change: left;
+            opacity: 0.45;
+        }
+        .moving-mountain img {
+            height: 600px;
+            width: auto;
+            display: block;
+        }
+
+        /* ===== 左右切换按钮 ===== */
+        .nav-btn {
+            position: fixed;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 50;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.18);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(180, 160, 130, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            user-select: none;
+        }
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.35);
+            transform: translateY(-50%) scale(1.12);
+            box-shadow: 0 6px 30px rgba(0, 0, 0, 0.25);
+        }
+        .nav-btn:active {
+            transform: translateY(-50%) scale(0.95);
+        }
+        .nav-btn.prev {
+            left: 24px;
+        }
+        .nav-btn.next {
+            right: 24px;
+        }
+        .nav-btn svg {
+            width: 28px;
+            height: 28px;
+            fill: none;
+            stroke: rgba(60, 40, 25, 0.8);
+            stroke-width: 2.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        /* ===== 响应式 ===== */
+        /* ===== 第6张幻灯片：客家饮食文化转变 ===== */
+        .slide .food-change-content {
+            flex-direction: column !important;
+            justify-content: flex-start !important;
+            gap: 0 !important;
+            padding: 45px 30px 80px !important;
+            height: 100vh !important;
+            max-width: 100% !important;
+            top: 0 !important;
+            left: 0 !important;
+            transform: none !important;
+            position: absolute !important;
+            width: 100% !important;
+        }
+
+        .food-title-wrapper {
+            position: relative;
+            width: 30%;
+            margin: 0 auto 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .food-title-wrapper .food-title-bg {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        .food-title-wrapper .food-title-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: clamp(22px, 2vw, 34px);
+            font-family: "Ma Shan Zheng", "ZCOOL XiaoWei", "STXingkai", "霞鹜臻楷 GB 常规", "KaiTi", serif;
+            color: #fff6e8;
+            letter-spacing: 8px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            white-space: nowrap;
+            font-weight: bold;
+        }
+
+        .food-columns {
+            display: flex;
+            gap: 12px;
+            flex: 1;
+            min-height: 0;
+            padding-bottom: 5px;
+        }
+        .food-col {
+            flex: 1;
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 0;
+        }
+        .food-col .food-col-bg {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: fill;
+            z-index: 0;
+        }
+        .food-col .food-col-inner {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 15% 6px 6px;
+            width: 100%;
+            height: 100%;
+            min-height: 0;
+        }
+        .food-subtitle-wrapper {
+            position: relative;
+            width: 55%;
+            margin: 0 auto 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .food-subtitle-wrapper .food-subtitle-bg {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        .food-subtitle-wrapper .food-subtitle-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: clamp(17px, 1.3vw, 23px);
+            font-family: "Ma Shan Zheng", "ZCOOL XiaoWei", "STXingkai", "霞鹜臻楷 GB 常规", "KaiTi", serif;
+            color: #222222;
+            letter-spacing: 2px;
+            text-shadow: 0 1px 2px rgba(255,255,255,0.3);
+            white-space: nowrap;
+            font-weight: bold;
+        }
+
+        .food-images {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin: 0 0 5px;
+            justify-content: flex-start;
+            align-items: center;
+            flex-shrink: 0;
+            width: 100%;
+        }
+        .food-images img {
+            width: auto;
+            height: auto;
+            max-width: 80%;
+            max-height: 130px;
+            display: block;
+            transition: transform 0.3s ease;
+            cursor: pointer;
+            object-fit: contain;
+        }
+        .food-images img:hover {
+            transform: scale(1.08);
+        }
+        .food-arrow {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: clamp(18px, 1.6vw, 30px);
+            color: #8B6914;
+            flex-shrink: 0;
+            opacity: 0.7;
+            line-height: 1;
+            font-weight: bold;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transform: rotate(90deg);
+        }
+        .food-desc {
+            font-family: "ZCOOL XiaoWei", "Noto Serif SC", "KaiTi", serif;
+            font-size: clamp(15px, 1.1vw, 20px) !important;
+            line-height: 1.7 !important;
+            color: rgba(50, 35, 20, 0.92) !important;
+            text-indent: 2em !important;
+            padding: 2px 4px !important;
+            margin-top: 8px !important;
+            overflow-y: auto !important;
+            flex: 1 !important;
+            min-height: 0 !important;
+            width: 90% !important;
+            max-width: 20em !important;
+            margin: 0 auto !important;
+            border-radius: 4px !important;
+        }
+
+        @media (min-width: 1920px) {
+            .slide .food-change-content {
+                padding: 35px 40px 60px !important;
+            }
+            .food-title-wrapper {
+                width: 22%;
+                margin-bottom: 10px;
+            }
+            .food-title-wrapper .food-title-text {
+                font-size: clamp(28px, 2.2vw, 36px);
+            }
+            .food-columns {
+                gap: 18px;
+                padding-bottom: 8px;
+            }
+            .food-col .food-col-inner {
+                padding: 12% 10px 10px;
+            }
+            .food-subtitle-wrapper {
+                width: 50%;
+                margin: 0 auto 10px;
+            }
+            .food-subtitle-wrapper .food-subtitle-text {
+                font-size: clamp(20px, 1.6vw, 28px);
+            }
+            .food-images img {
+                width: 50%;
+                max-height: 120px;
+            }
+            .food-desc {
+                font-size: clamp(18px, 1.3vw, 24px) !important;
+                line-height: 1.8 !important;
+                max-width: 22em !important;
+            }
+            .food-arrow {
+                font-size: clamp(28px, 2.5vw, 44px);
+            }
+        }
+
+        @media (max-width: 1920px) {
+            .slide .main-content {
+                max-width: 92vw;
+                gap: clamp(30px, 3vw, 60px);
+                padding: 0 clamp(20px, 3vw, 60px);
+            }
+            .slide .text-box {
+                flex: 0 0 clamp(50%, 54vw, 60%);
+                padding: clamp(55px, 4.5vw, 90px) clamp(32px, 2.8vw, 50px) clamp(28px, 2.4vw, 45px);
+            }
+            .slide .text-box h2 {
+                font-size: clamp(20px, 1.5vw, 28px);
+            }
+            .slide .text-box p {
+                font-size: clamp(18px, 1.25vw, 24px);
+            }
+            .slide .text-box .learn-more {
+                font-size: clamp(18px, 1.15vw, 22px);
+                padding: clamp(12px, 0.85vw, 16px) clamp(36px, 3vw, 56px);
+            }
+            .slide .image-box {
+                flex: 0 0 clamp(32%, 34vw, 40%);
+            }
+            .sun {
+                width: clamp(80px, 12vw, 120px);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .slide .main-content {
+                flex-direction: column;
+                gap: 20px;
+                padding: 0 20px;
+                top: calc(50% + 20px);
+            }
+            .slide .text-box {
+                flex: none;
+                width: 100%;
+                padding: 50px 20px 20px;
+            }
+            .slide .text-box p {
+                font-size: 16px;
+                line-height: 1.8;
+            }
+            .slide .image-box {
+                flex: none;
+                width: 60%;
+            }
+            .nav-btn {
+                width: 40px;
+                height: 40px;
+            }
+            .nav-btn svg {
+                width: 20px;
+                height: 20px;
+            }
+            .nav-btn.prev {
+                left: 10px;
+            }
+            .nav-btn.next {
+                right: 10px;
+            }
+            .hamburger-btn {
+                display: flex;
+            }
+            .nav {
+                display: none;
+            }
+            .mobile-nav-overlay {
+                display: block;
+            }
+            .top-bar {
+                padding: 12px 16px;
+            }
+            .sun {
+                width: 80px;
+            }
+            .moving-carriage img {
+                height: 100px;
+            }
+            .moving-mountain img {
+                height: 380px;
+            }
+
+            /* 第6张幻灯片移动端适配 */
+            .slide .food-change-content {
+                padding: 25px 10px 3px !important;
+            }
+            .food-title-wrapper {
+                width: 45%;
+                margin-bottom: 5px;
+            }
+            .food-title-wrapper .food-title-text {
+                font-size: 18px;
+                letter-spacing: 4px;
+            }
+            .food-columns {
+                flex-direction: column;
+                gap: 6px;
+                overflow-y: auto;
+            }
+            .food-col {
+                min-height: 0;
+            }
+            .food-col .food-col-inner {
+                padding: 22% 4px 4px;
+                flex-direction: column;
+                flex-wrap: nowrap;
+                justify-content: flex-start;
+            }
+            .food-subtitle-wrapper {
+                width: 40%;
+                margin: 0 auto 3px;
+            }
+            .food-subtitle-wrapper .food-subtitle-text {
+                font-size: 15px;
+                letter-spacing: 1px;
+                color: #222222 !important;
+            }
+            .food-images {
+                width: auto;
+                margin: 0 0 3px;
+                gap: 4px;
+            }
+            .food-images img {
+                width: auto;
+                height: auto;
+                max-width: 70%;
+                max-height: 85px;
+                object-fit: contain;
+            }
+            .food-arrow {
+                font-size: 14px;
+            }
+            .food-desc {
+                font-size: 14px !important;
+                line-height: 1.5 !important;
+                padding: 2px 4px !important;
+                max-width: 18em !important;
+                width: 90% !important;
+            }
+        }
+
+        /* ===== 返回总览按钮（固定定位，始终在右上角显示） ===== */
+        .back-to-overview {
+            position: fixed;
+            top: 20px;
+            left: 24px;
+            z-index: 100;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 24px;
+            font-size: 18px;
+            font-family: "Ma Shan Zheng", "ZCOOL XiaoWei", "STXingkai", "霞鹜臻楷 GB 常规", "KaiTi", serif;
+            color: #fff6e8;
+            text-decoration: none;
+            letter-spacing: 3px;
+            background: rgba(40, 28, 18, 0.6);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            border: 1px solid rgba(180, 150, 110, 0.4);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+            white-space: nowrap;
+            pointer-events: auto;
+        }
+        .back-to-overview:hover {
+            background: rgba(60, 44, 30, 0.75);
+            border-color: rgba(200, 170, 130, 0.6);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+            color: #ffd966;
+        }
+        .back-to-overview .back-icon {
+            font-size: 16px;
+            transition: transform 0.3s ease;
+        }
+        .back-to-overview:hover .back-icon {
+            transform: translateX(-3px);
+        }
+        @media (max-width: 768px) {
+            .back-to-overview {
+                top: 12px;
+                left: 12px;
+                padding: 6px 14px;
+                font-size: 15px;
+                letter-spacing: 2px;
+            }
+            .back-to-overview .back-icon {
+                font-size: 13px;
+            }
+        }
+
+        /* ===== 了解更多弹窗 ===== */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 99998;
+            background: rgba(0, 0, 0, 0.15);
+            backdrop-filter: blur(3px);
+            -webkit-backdrop-filter: blur(3px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+        .modal-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+        .modal-scroll-container {
+            position: relative;
+            width: auto;
+            max-width: min(1500px, 90vw);
+            max-height: 85vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform: scale(0.92) translateY(30px);
+            transition: transform 0.4s ease;
+            background: transparent;
+            border-radius: 12px;
+        }
+        .modal-overlay.active .modal-scroll-container {
+            transform: scale(1) translateY(0);
+        }
+        /* 弹窗关闭按钮 */
+        .modal-close-btn {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            z-index: 50;
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.92);
+            border: 2px solid rgba(120, 100, 75, 0.35);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 26px;
+            color: #3a2210;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            line-height: 1;
+            font-family: "Ma Shan Zheng", serif;
+        }
+        .modal-close-btn:hover {
+            transform: scale(1.12) rotate(90deg);
+            background: #fff;
+            border-color: rgba(180, 100, 60, 0.6);
+            color: #8B4513;
+        }
+        /* 弹窗滚动容器内边距 */
+        .modal-scroll-inner {
+            position: relative;
+            z-index: 1;
+            padding: 0;
+        }
+        /* 禁用按钮样式 */
+        .learn-more.disabled-btn {
+            opacity: 0.5;
+            cursor: default;
+            pointer-events: none;
+        }
+
+        /* ===== 弹窗内卷轴样式 ===== */
+        .modal-scroll-container .scroll-wrapper {
+            position: relative;
+            width: auto;
+            max-width: min(1500px, 90vw);
+            max-height: 85vh;
+            opacity: 0;
+            animation: fadeInScale 1.2s 0.3s forwards;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-scroll-container .scroll-img {
+            display: block;
+            max-width: 90vw;
+            max-height: 85vh;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            pointer-events: none;
+            user-select: none;
+        }
+        .modal-scroll-container .scroll-overlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            padding: 0;
+        }
+        .modal-scroll-container .scroll-overlay-inner {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            width: 100%;
+            height: 100%;
+            padding: 11% 9%;
+        }
+        .modal-scroll-container .scroll-left {
+            flex: 0 0 42%;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding: 15px 20px 15px 10px;
+        }
+        .modal-scroll-container .scroll-left img {
+            max-width: 60%;
+            max-height: 65%;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            display: block;
+            filter: drop-shadow(0 4px 15px rgba(0, 0, 0, 0.15));
+            transition: transform 0.5s ease;
+            margin-right: 12px;
+        }
+        .modal-scroll-container .scroll-left img:hover {
+            transform: scale(1.03);
+        }
+        .modal-scroll-container .scroll-divider {
+            flex: 0 0 2px;
+            height: 65%;
+            background: linear-gradient(180deg,
+                transparent 0%,
+                rgba(139, 105, 20, 0.25) 20%,
+                rgba(139, 105, 20, 0.35) 50%,
+                rgba(139, 105, 20, 0.25) 80%,
+                transparent 100%);
+            border-radius: 1px;
+        }
+        .modal-scroll-container .scroll-right {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 20px 15px 20px 30px;
+        }
+        .modal-scroll-container .scroll-right .title-tag {
+            font-size: clamp(20px, 2vw, 30px);
+            color: #5A3E08;
+            letter-spacing: 6px;
+            margin-bottom: 14px;
+            position: relative;
+            padding-bottom: 8px;
+            font-weight: bold;
+        }
+        .modal-scroll-container .scroll-right .title-tag::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 50px;
+            height: 2px;
+            background: linear-gradient(90deg, #A67B2B, transparent);
+        }
+        .modal-scroll-container .scroll-right p {
+            font-family: "ZCOOL XiaoWei", "Noto Serif SC", "KaiTi", serif;
+            font-size: clamp(12px, 1.1vw, 16px);
+            line-height: 1.7;
+            color: #3a2a15;
+            text-indent: 0;
+            letter-spacing: 1px;
+            position: relative;
+        }
+        .modal-scroll-container .scroll-right p + p {
+            margin-top: 8px;
+        }
+        .modal-scroll-container .scroll-right p .highlight {
+            color: #8B4513;
+            font-weight: bold;
+        }
+        @keyframes fadeInScale {
+            from {
+                opacity: 0;
+                transform: scale(0.92) translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        @media (max-width: 1000px) {
+            .modal-scroll-container .scroll-overlay-inner {
+                padding: 5% 5%;
+            }
+            .modal-scroll-container .scroll-right .title-tag {
+                font-size: 16px;
+                margin-bottom: 8px;
+            }
+            .modal-scroll-container .scroll-right p {
+                font-size: 12px;
+                line-height: 1.6;
+            }
+            .modal-scroll-container .scroll-right p + p {
+                margin-top: 4px;
+            }
+            .modal-scroll-container .scroll-left {
+                padding: 8px;
+            }
+        }
+        @media (max-width: 768px) {
+            .modal-scroll-container .scroll-overlay-inner {
+                flex-direction: column;
+                padding: 8% 6%;
+            }
+            .modal-scroll-container .scroll-left {
+                flex: none;
+                width: 55%;
+                max-height: 40%;
+                padding: 5px 0;
+            }
+            .modal-scroll-container .scroll-divider {
+                flex: none;
+                width: 50%;
+                height: 2px;
+                background: linear-gradient(90deg,
+                    transparent 0%,
+                    rgba(139, 105, 20, 0.25) 20%,
+                    rgba(139, 105, 20, 0.35) 50%,
+                    rgba(139, 105, 20, 0.25) 80%,
+                    transparent 100%);
+                margin: 4px 0;
+            }
+            .modal-scroll-container .scroll-right {
+                padding: 4px 8px;
+            }
+            .modal-scroll-container .scroll-right .title-tag {
+                font-size: 14px;
+                letter-spacing: 3px;
+                margin-bottom: 4px;
+            }
+            .modal-scroll-container .scroll-right p {
+                font-size: 11px;
+                line-height: 1.5;
+                text-indent: 1.5em;
+            }
+            .modal-scroll-container .scroll-right p + p {
+                margin-top: 2px;
+            }
+        }
+        @media (max-width: 480px) {
+            .modal-scroll-container .scroll-right p {
+                font-size: 9px;
+                line-height: 1.4;
+            }
+            .modal-scroll-container .scroll-right .title-tag {
+                font-size: 11px;
+            }
+            .modal-scroll-container .scroll-left {
+                width: 45%;
+            }
+        }
+
+        /* ===== 地图放大弹窗 ===== */
+        .map-zoom-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 99999;
+            background: rgba(0, 0, 0, 0.15);
+            backdrop-filter: blur(3px);
+            -webkit-backdrop-filter: blur(3px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.35s ease;
+        }
+        .map-zoom-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+        .map-zoom-content {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform: scale(0.9);
+            transition: transform 0.35s ease;
+            max-width: 92vw;
+            max-height: 90vh;
+        }
+        .map-zoom-overlay.active .map-zoom-content {
+            transform: scale(1);
+        }
+        .map-zoom-content img {
+            display: block;
+            max-width: 92vw;
+            max-height: 90vh;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            border-radius: 12px;
+            box-shadow: 0 12px 60px rgba(0, 0, 0, 0.5);
+        }
+        .map-zoom-close {
+            position: absolute;
+            top: -14px;
+            right: -14px;
+            z-index: 10;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.95);
+            border: 2px solid rgba(120, 100, 75, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 24px;
+            color: #3a2210;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+            line-height: 1;
+            font-family: "Ma Shan Zheng", serif;
+        }
+        .map-zoom-close:hover {
+            transform: scale(1.15) rotate(90deg);
+            background: #fff;
+            border-color: rgba(180, 100, 60, 0.5);
+            color: #8B4513;
+        }
+        .slide .image-box img.map-img {
+            cursor: pointer;
+        }
+
+        /* ===== 向下引导箭头（第6张幻灯片底部） ===== */
+        .summary-arrow {
+            position: absolute;
+            top: 55%;
+            right: 30px;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            z-index: 10;
+            pointer-events: auto;
+            transition: opacity 0.3s ease;
+        }
+        .summary-arrow .circle-icon {
+            font-size: 48px;
+            color: #d4b48c;
+            text-shadow: 0 0 20px rgba(196, 160, 112, 0.6), 0 2px 12px rgba(0,0,0,0.3);
+            line-height: 1;
+            animation: circlePulse 2.5s ease-in-out infinite;
+            display: inline-block;
+        }
+        .summary-arrow .arrow-text {
+            font-size: 16px;
+            font-family: "Ma Shan Zheng", "ZCOOL XiaoWei", "STXingkai", "霞鹜臻楷 GB 常规", "KaiTi", serif;
+            color: #fff6e0;
+            letter-spacing: 4px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            background: rgba(40, 28, 18, 0.55);
+            backdrop-filter: blur(4px);
+            padding: 4px 18px;
+            border-radius: 20px;
+            border: 1px solid rgba(200, 168, 110, 0.3);
+            white-space: nowrap;
+        }
+        @keyframes circlePulse {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 0.7;
+                text-shadow: 0 0 20px rgba(196, 160, 112, 0.6), 0 2px 12px rgba(0,0,0,0.3);
+            }
+            50% {
+                transform: scale(1.15);
+                opacity: 1;
+                text-shadow: 0 0 35px rgba(196, 160, 112, 0.9), 0 0 60px rgba(196, 160, 112, 0.4), 0 2px 12px rgba(0,0,0,0.3);
+            }
+        }
+        .summary-arrow:hover {
+            transform: translateY(-50%) scale(1.08);
+        }
+        .summary-arrow:hover .circle-icon {
+            animation: none;
+            transform: scale(1.15);
+        }
+        .summary-arrow.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        @media (max-width: 768px) {
+            .summary-arrow {
+                top: 55%;
+                right: 10px;
+                transform: translateY(-50%);
+            }
+            .summary-arrow .circle-icon {
+                font-size: 38px;
+            }
+            .summary-arrow .arrow-text {
+                font-size: 14px;
+                padding: 3px 14px;
+                letter-spacing: 2px;
+            }
+        }
+
+        /* ===== 总结过渡弹窗 ===== */
+        .summary-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 99998;
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        .summary-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+        .summary-box {
+            position: relative;
+            width: min(800px, 88vw);
+            max-height: 85vh;
+            background: linear-gradient(160deg, #f8f0e0 0%, #efe3cb 40%, #e8d6b8 100%);
+            border: 3px solid #c4a87c;
+            border-radius: 20px;
+            padding: 50px 60px 45px;
+            box-shadow:
+                0 20px 80px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.5),
+                inset 0 0 60px rgba(180, 150, 100, 0.08);
+            transform: scale(0.88) translateY(40px);
+            transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+            overflow-y: auto;
+            text-align: center;
+        }
+        .summary-overlay.active .summary-box {
+            transform: scale(1) translateY(0);
+        }
+        /* 装饰角花 */
+        .summary-box::before,
+        .summary-box::after {
+            content: '◆';
+            position: absolute;
+            font-size: 16px;
+            color: #b8944a;
+            opacity: 0.4;
+        }
+        .summary-box::before {
+            top: 18px;
+            left: 24px;
+        }
+        .summary-box::after {
+            bottom: 18px;
+            right: 24px;
+        }
+        /* 顶部装饰线 */
+        .summary-box .summ-deco-top {
+            width: 120px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #c4a87c, transparent);
+            margin: 0 auto 20px;
+        }
+        .summary-box .summ-deco-bottom {
+            width: 120px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #c4a87c, transparent);
+            margin: 20px auto 0;
+        }
+        .summary-box .summ-icon {
+            font-size: 52px;
+            display: block;
+            margin-bottom: 10px;
+            animation: summFloat 3s ease-in-out infinite;
+        }
+        @keyframes summFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+        .summary-box h2 {
+            font-family: "Ma Shan Zheng", "ZCOOL XiaoWei", "STXingkai", "霞鹜臻楷 GB 常规", "KaiTi", serif;
+            font-size: clamp(26px, 3vw, 38px);
+            color: #3a2210;
+            letter-spacing: 6px;
+            margin-bottom: 12px;
+            font-weight: bold;
+        }
+        .summary-box .summ-subtitle {
+            font-size: clamp(14px, 1.1vw, 18px);
+            color: #8a704a;
+            letter-spacing: 4px;
+            margin-bottom: 20px;
+        }
+        .summary-box .summ-divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 16px auto;
+            max-width: 70%;
+        }
+        .summary-box .summ-divider::before,
+        .summary-box .summ-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(180, 150, 100, 0.4), transparent);
+        }
+        .summary-box .summ-divider span {
+            font-size: 14px;
+            color: #b8944a;
+            letter-spacing: 2px;
+            white-space: nowrap;
+        }
+        .summary-box .summ-text {
+            font-family: "ZCOOL XiaoWei", "Noto Serif SC", "KaiTi", serif;
+            font-size: clamp(17px, 1.3vw, 22px);
+            line-height: 2;
+            color: rgba(50, 35, 20, 0.92);
+            letter-spacing: 1px;
+            text-align: left;
+            text-indent: 2em;
+            margin: 8px 0;
+        }
+        .summary-box .summ-text .highlight {
+            color: #8B4513;
+            font-weight: bold;
+        }
+        .summary-box .summ-map-preview {
+            display: block;
+            width: 100%;
+            max-width: 520px;
+            margin: 18px auto 0;
+            border-radius: 12px;
+            border: 3px solid #c4a87c;
+            box-shadow: 0 6px 30px rgba(0, 0, 0, 0.18);
+            cursor: pointer;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .summary-box .summ-map-preview img {
+            display: block;
+            width: 100%;
+            height: auto;
+            border-radius: 9px;
+            transition: transform 0.5s ease;
+        }
+        .summary-box .summ-map-preview:hover img {
+            transform: scale(1.06);
+        }
+        .summary-box .summ-map-preview::after {
+            content: '🖼️ 点击放大查看地图';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 12px;
+            background: linear-gradient(transparent, rgba(0,0,0,0.6));
+            color: #fff6e0;
+            font-family: "Ma Shan Zheng", "ZCOOL XiaoWei", "STXingkai", "霞鹜臻楷 GB 常规", "KaiTi", serif;
+            font-size: 18px;
+            letter-spacing: 3px;
+            text-align: center;
+            pointer-events: none;
+        }
+        .summary-box .summ-map-preview:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+            border-color: #d4b48c;
+        }
+        .summary-box .summ-close-btn {
+            position: absolute;
+            top: 14px;
+            right: 18px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.8);
+            border: 2px solid rgba(180, 150, 110, 0.35);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 22px;
+            color: #3a2210;
+            transition: all 0.3s ease;
+            line-height: 1;
+            font-family: "Ma Shan Zheng", serif;
+        }
+        .summary-box .summ-close-btn:hover {
+            transform: scale(1.12) rotate(90deg);
+            background: #fff;
+            border-color: rgba(180, 100, 60, 0.5);
+            color: #8B4513;
+        }
+        /* 底部小文字 */
+        .summary-box .summ-footer {
+            font-size: 14px;
+            color: #a08060;
+            letter-spacing: 2px;
+            margin-top: 14px;
+        }
+        @media (max-width: 768px) {
+            .summary-box {
+                padding: 36px 25px 30px;
+            }
+            .summary-box h2 {
+                font-size: 22px;
+                letter-spacing: 4px;
+            }
+            .summary-box .summ-text {
+                font-size: 15px;
+                line-height: 1.8;
+            }
+            .summary-box .summ-btn {
+                padding: 14px 40px;
+                font-size: 20px;
+                letter-spacing: 6px;
+            }
+            .summary-box .summ-icon {
+                font-size: 40px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== 固定背景 ===== -->
+    <div class="bg-fixed"></div>
+
+    <!-- ===== 遮罩与渐隐 ===== -->
+    <div class="overlay"></div>
+    <div class="vignette-bottom"></div>
+
+    <!-- ===== 顶部导航栏 ===== -->
+    <div class="top-bar">
+        <nav class="nav">
+            <a href="index.html">首页</a>
+            <a href="时间总览.html">时间长廊</a>
+            <a href="地图页面.html" style="position: relative;">地图<span class="nav-map-hint" id="mapNavHint">👆</span></a>
+            <a href="美食图鉴.html">美食图鉴</a>
+        </nav>
+        <!-- 汉堡菜单按钮 -->
+        <button class="hamburger-btn" id="hamburgerBtn" aria-label="菜单">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+    </div>
+
+    <!-- ===== 移动端下拉菜单 ===== -->
+    <div class="mobile-nav-overlay" id="mobileOverlay"></div>
+    <div class="mobile-nav" id="mobileNav">
+        <a href="index.html">首页</a>
+        <a href="时间总览.html">时间长廊</a>
+        <a href="地图页面.html" style="position: relative;">地图<span class="nav-map-hint" id="mapNavHintMobile">👆</span></a>
+        <a href="美食图鉴.html">美食图鉴</a>
+    </div>
+
+    <!-- ===== 轮播容器 ===== -->
+    <div class="carousel-wrapper" id="carouselWrapper">
+
+        <!-- ===== 太阳（在文字框/图片框之下，山景之上） ===== -->
+        <img class="sun" id="sun" src="images/图片22.png" alt="太阳" />
+
+        <!-- ===== 移动的山（在文字框/图片框之下，山景之上） ===== -->
+        <div class="moving-mountain" id="movingMountain">
+            <img src="images/移动山.png" alt="移动的山" />
+        </div>
+
+        <div class="carousel-track" id="carouselTrack">
+
+            <!-- ===== 幻灯片 1 ===== -->
+            <div class="slide">
+                <div class="mountain-bg">
+                    <div class="mt-left"><img src="images/图片24.png" alt="山景" /></div>
+                    <div class="mt-right"><img src="images/图片23.png" alt="山景" /></div>
+                </div>
+                <div class="main-content">
+                    <div class="text-box">
+                        <img class="text-border" src="images/文字边框.png" alt="文字边框" />
+                        <h2>一、客家人的蓄力期形成独特民系的开端</h2>
+                        <p>第一次迁徙始于西晋末年310至350年，八王之乱、五胡乱华致使中原战乱四起，洛阳失守，大批中原百姓与士族开启衣冠南渡。民众辗转多地，沿水路陆续迁入赣南等地，部分人群抵达梅州大埔一带。东晋设侨置州县安置南迁民众，此次历时170余年，迁徙人口规模达上百万，为客家民系形成的初始根基。</p>
+                    </div>
+                    <div class="image-box">
+                        <img class="map-border" src="images/地图边框.png" alt="地图边框" />
+                        <div class="map-title-box">
+                            <span class="map-title">西晋末年至唐朝中叶</span>
+                        </div>
+                        <img class="map-img" src="images/第一次迁徙地图.jpg" alt="迁徙地图" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== 幻灯片 2 ===== -->
+            <div class="slide">
+                <div class="mountain-bg">
+                    <div class="mt-left"><img src="images/图片21.png" alt="山景" /></div>
+                    <div class="mt-right"><img src="images/图片20.png" alt="山景" /></div>
+                </div>
+                <div class="main-content">
+                    <div class="text-box">
+                        <img class="text-border" src="images/文字边框.png" alt="文字边框" />
+                        <h2>二、客家人孕育期的结束与形成期的开端</h2>
+                        <p>第二次迁徙发生于唐末至五代（875-960 年），安史之乱后藩镇割据，灾荒不断，百姓生活困顿。黄巢起义引发大范围战乱，此前南迁的汉人再次迁徙。民众沿赣江行进，聚居赣南、闽西南与粤东北交界地带，福建宁化石壁洞成为重要落脚中转站。这次迁徙历经90余年，为客家民系成型筑牢根基。</p>
+                    </div>
+                    <div class="image-box">
+                        <img class="map-border" src="images/地图边框.png" alt="地图边框" />
+                        <div class="map-title-box">
+                            <span class="map-title">唐朝中叶至北宋末年</span>
+                        </div>
+                        <img class="map-img" src="images/第二次迁徙地图.jpg" alt="迁徙地图" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== 幻灯片 3 ===== -->
+            <div class="slide">
+                <div class="mountain-bg">
+                    <div class="mt-left"><img src="images/图片15.png" alt="山景" /></div>
+                    <div class="mt-right"><img src="images/图片25.png" alt="山景" /></div>
+                </div>
+                <div class="main-content">
+                    <div class="text-box">
+                        <img class="text-border" src="images/文字边框.png" alt="文字边框" />
+                        <h2>三、客家民系正式形成的关键时期</h2>
+                        <p>第三次迁徙发生于北宋末年至元代（1127-1279 年），金兵攻破开封，南宋建立，大批民众南迁。后续金元相继进犯，百姓饱受欺压，中原汉人再度向南迁徙。赣闽粤交界沦为宋元交战之地，当地先民继续迁往粤东梅州、惠州等地。不少客家子弟投身抗元战事，此次推动了客家人进一步扎根粤东地区。</p>
+                        <div class="btn-wrapper">
+                            <span class="learn-more" id="openModalBtn">了解更多</span>
+                        </div>
+                    </div>
+                    <div class="image-box">
+                        <img class="map-border" src="images/地图边框.png" alt="地图边框" />
+                        <div class="map-title-box">
+                            <span class="map-title">南宋初期至明朝末年</span>
+                        </div>
+                        <img class="map-img" src="images/第三次迁徙地图.jpg" alt="迁徙地图" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== 幻灯片 4 ===== -->
+            <div class="slide">
+                <div class="mountain-bg">
+                    <div class="mt-left"><img src="images/图片13.png" alt="山景" /></div>
+                    <div class="mt-right"><img src="images/图片19.png" alt="山景" /></div>
+                </div>
+                <div class="main-content">
+                    <div class="text-box">
+                        <img class="text-border" src="images/文字边框.png" alt="文字边框" />
+                        <h2>四、客家人从被动迁移到主动拓荒</h2>
+                        <p>第四次迁徙发生于明末清初 1644 年至 19 世纪初，历时约 150 年。清军入关后，反清客家人被迫四散，部分迁居台湾、两广、湘桂等地。加之赣闽粤人口稠密、耕地匮乏，配合湖广填四川政策，大量客家人迁入四川。朱德、郭沫若先祖均为此时期迁川客家先民，此次迁徙大幅拓展了客家聚居范围。</p>
+                    </div>
+                    <div class="image-box">
+                        <img class="map-border" src="images/地图边框.png" alt="地图边框" />
+                        <div class="map-title-box">
+                            <span class="map-title">明朝末年至清朝中叶</span>
+                        </div>
+                        <img class="map-img" src="images/第四次迁徙地图.jpg" alt="迁徙地图" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== 幻灯片 5 ===== -->
+            <div class="slide">
+                <div class="mountain-bg">
+                    <div class="mt-left"><img src="images/图片20.png" alt="山景" /></div>
+                    <div class="mt-right"><img src="images/图片17.png" alt="山景" /></div>
+                </div>
+                <div class="main-content">
+                    <div class="text-box">
+                        <img class="text-border" src="images/文字边框.png" alt="文字边框" />
+                        <h2>五、从中国客家人走向世界客家人的转折点</h2>
+                        <p>第五次迁徙始于清朝咸丰、同治年间，1850 至 1860 年太平天国运动落败后，客家人遭清廷清算，叠加粤中12年土客械斗，民众被迫迁徙。部分迁居海南、广西，大批族人远赴东南亚、欧美等地。如今海外客家人达3000万，分布80余国，成为中外文化交流纽带。</p>
+                    </div>
+                    <div class="image-box">
+                        <img class="map-border" src="images/地图边框.png" alt="地图边框" />
+                        <div class="map-title-box">
+                            <span class="map-title">清朝同治年间以后</span>
+                        </div>
+                        <img class="map-img" src="images/第五次迁徙地图.jpg" alt="迁徙地图" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== 幻灯片 6：客家饮食文化转变 ===== -->
+            <div class="slide">
+                <div class="mountain-bg">
+                    <div class="mt-left"><img src="images/图片15.png" alt="山景" /></div>
+                    <div class="mt-right"><img src="images/图片19.png" alt="山景" /></div>
+                </div>
+                <div class="main-content food-change-content">
+                    <!-- 大标题 -->
+                    <div class="food-title-wrapper">
+                        <img class="food-title-bg" src="images/大标题.png" alt="大标题" />
+                        <span class="food-title-text">客家饮食文化的转变</span>
+                    </div>
+                    <!-- 三列内容 -->
+                    <div class="food-columns">
+                        <!-- 第1列：面食向米食的转变 -->
+                        <div class="food-col">
+                            <img class="food-col-bg" src="images/变化22.png" alt="" />
+                            <div class="food-col-inner">
+                                <div class="food-subtitle-wrapper">
+                                    <img class="food-subtitle-bg" src="images/小标题.png" alt="" />
+                                    <span class="food-subtitle-text">面食向米食的转变</span>
+                                </div>
+                                <div class="food-images">
+                                    <img src="images/饺子.png" alt="饺子" />
+                                    <span class="food-arrow">→</span>
+                                    <img src="images/武平酿豆腐/武平酿豆腐.png" alt="武平酿豆腐" />
+                                </div>
+                                <p class="food-desc">中原饺子、包子等面食因缺乏小麦而无法制作，客家人便用豆腐、木薯粉、竹笋等替代，创造出"酿豆腐"、"笋粄"等独特小吃。如"酿豆腐"是中原饺子文化的创造性转化，用豆腐替代面粉，保留"皮馅结合"的核心特征。</p>
+                            </div>
+                        </div>
+                        <!-- 第2列：肉类食材的多样化 -->
+                        <div class="food-col">
+                            <img class="food-col-bg" src="images/变化22.png" alt="" />
+                            <div class="food-col-inner">
+                                <div class="food-subtitle-wrapper">
+                                    <img class="food-subtitle-bg" src="images/小标题.png" alt="" />
+                                    <span class="food-subtitle-text">肉类食材的多样化</span>
+                                </div>
+                                <div class="food-images">
+                                    <img src="images/鸡.png" alt="鸡" />
+                                    <span class="food-arrow">→</span>
+                                    <img src="images/羊肉.png" alt="羊肉" />
+                                </div>
+                                <p class="food-desc">中原地区以牛羊肉为主，而闽西山区则以猪肉、鸡肉、鸭肉为主。客家人将中原的肉食烹饪技法（如腌制、炖煮）应用于猪肉和禽类，创造出"梅菜扣肉"、"盐焗鸡"等经典菜品。</p>
+                            </div>
+                        </div>
+                        <!-- 第3列：野菜的充分利用 -->
+                        <div class="food-col">
+                            <img class="food-col-bg" src="images/变化22.png" alt="" />
+                            <div class="food-col-inner">
+                                <div class="food-subtitle-wrapper">
+                                    <img class="food-subtitle-bg" src="images/小标题.png" alt="" />
+                                    <span class="food-subtitle-text">野菜的充分利用</span>
+                                </div>
+                                <div class="food-images">
+                                    <img src="images/艾叶粄.png" alt="艾叶粄" />
+                                    <span class="food-arrow">→</span>
+                                    <img src="images/野菜.png" alt="野菜" />
+                                </div>
+                                <p class="food-desc">中原地区蔬菜种类有限，而闽西山区野菜资源丰富。客家人将马齿苋（"老鼠耳"）、蕨菜、苋菜等野菜纳入日常饮食，创造出"艾粄"、"蕨须包"等特色小吃。</p>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 圆圈引导（左上角） -->
+                    <div class="summary-arrow" id="summaryArrow">
+                        <span class="circle-icon">◯</span>
+                        <span class="arrow-text">点击此处，回顾旅程</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ===== 返回总览按钮（固定定位，始终显示在左上角） ===== -->
+    <a class="back-to-overview" href="时间总览.html">
+        <span class="back-icon">◀</span>
+        <span>返回总览</span>
+    </a>
+
+    <!-- ===== 左右切换按钮 ===== -->
+    <div class="nav-btn prev" id="prevBtn">
+        <svg viewBox="0 0 24 24"><polyline points="15,18 9,12 15,6"/></svg>
+    </div>
+    <div class="nav-btn next" id="nextBtn">
+        <svg viewBox="0 0 24 24"><polyline points="9,6 15,12 9,18"/></svg>
+    </div>
+
+    <!-- ===== 底部石头（固定） ===== -->
+    <div class="bottom-area">
+        <div class="stones-row">
+            <img src="images/石头1.png" alt="stone" />
+            <img src="images/石头1.png" alt="stone" />
+            <img src="images/石头1.png" alt="stone" />
+            <img src="images/石头1.png" alt="stone" />
+            <img src="images/石头1.png" alt="stone" />
+            <img src="images/石头1.png" alt="stone" />
+        </div>
+    </div>
+
+    <!-- ===== 移动的马车（z-index=28，在石头之上） ===== -->
+    <div class="moving-carriage" id="movingCarriage">
+        <img src="images/马车1.png" alt="马车" />
+    </div>
+
+<script>
+(function() {
+    var track = document.getElementById('carouselTrack');
+    var slides = track.querySelectorAll('.slide');
+    var totalSlides = slides.length;
+    var slidePercent = 100 / totalSlides; // 每张幻灯片宽度百分比
+    var currentIndex = 0;
+    var isAnimating = false;
+
+    var prevBtn = document.getElementById('prevBtn');
+    var nextBtn = document.getElementById('nextBtn');
+
+    // 太阳元素（图片22.png，太阳位于图片内 20.1%左、36.8%顶 的位置）
+    var sun = document.getElementById('sun');
+    // 马车元素
+    var carriage = document.getElementById('movingCarriage');
+    // 移动山元素
+    var movingMtn = document.getElementById('movingMountain');
+
+    // ===== 太阳内太阳元素的偏移比例（经像素采样精确测得） =====
+    var SUN_RATIO_X = 0.201; // 太阳中心距图片左侧 20.1%
+    var SUN_RATIO_Y = 0.368; // 太阳中心距图片顶部 36.8%
+
+    // ===== 抛物线轨迹参数 =====
+    // 太阳元素（图片中的太阳图案）水平范围：从左 2% 到右 85%
+    // 太阳元素垂直抛物线：峰顶0%（画面顶部），谷底70%
+    // 马车水平：从左侧 -3% 平移至右侧 82%
+    // 移动山水平：从左侧 -5% 平移至右侧 85%
+    var sunTargetLeftMin = 2, sunTargetLeftMax = 85;
+    var carriageLeftMin = -3, carriageLeftMax = 82;
+    var mtnLeftMin = -5, mtnLeftMax = 85;
+
+    function updateSunAndCarriage(index) {
+        var t = index / (totalSlides - 1); // 0 ~ 1
+
+        // ---- 计算太阳元素（图片中的太阳图案）的目标屏幕位置 ----
+        var targetSunLeftPct = sunTargetLeftMin + t * (sunTargetLeftMax - sunTargetLeftMin);
+        var parabola = (t - 0.5) * (t - 0.5); // (t-0.5)²
+        var targetSunTopPct = 0 + 280 * parabola; // t=0→70%, t=0.5→0%（顶部）, t=1→70%
+
+        // 将百分比转换为像素
+        var targetSunX = targetSunLeftPct / 100 * window.innerWidth;
+        var targetSunY = targetSunTopPct / 100 * window.innerHeight;
+
+        // ---- 反算图片左上角位置 ----
+        // 太阳元素在图片内的偏移 = 图片宽 × 比例
+        var imgW = sun.offsetWidth;
+        var imgH = sun.offsetHeight;
+        var offsetX = SUN_RATIO_X * imgW;
+        var offsetY = SUN_RATIO_Y * imgH;
+
+        var imgLeftPx = targetSunX - offsetX;
+        var imgTopPx = targetSunY - offsetY;
+
+        sun.style.left = imgLeftPx + 'px';
+        sun.style.top = imgTopPx + 'px';
+
+        // ---- 马车：水平线性平移 ----
+        var carriageLeft = carriageLeftMin + t * (carriageLeftMax - carriageLeftMin);
+        carriage.style.left = carriageLeft + '%';
+
+        // ---- 移动山：水平线性平移 ----
+        var mtnLeft = mtnLeftMin + t * (mtnLeftMax - mtnLeftMin);
+        movingMtn.style.left = mtnLeft + '%';
+    }
+
+    // ===== 切换到指定页面 =====
+    function goToSlide(index) {
+        if (isAnimating) return;
+        if (index < 0) index = 0;
+        if (index >= totalSlides) index = totalSlides - 1;
+        if (index === currentIndex) return;
+
+        isAnimating = true;
+        currentIndex = index;
+
+        var offset = -currentIndex * slidePercent;
+        track.style.transform = 'translateX(' + offset + '%)';
+
+        // 更新太阳与马车位置
+        updateSunAndCarriage(currentIndex);
+
+            // 第6张幻灯片（index===5）显示箭头，其他隐藏
+        // 同时控制右侧切换按钮和地图导航提示的显示
+        // 第6张隐藏返回总览按钮
+        var backBtn = document.querySelector('.back-to-overview');
+        if (backBtn) {
+            backBtn.style.display = (index === 5) ? 'none' : 'inline-flex';
+        }
+        var arrow = document.getElementById('summaryArrow');
+        if (arrow) {
+            if (index === 5) {
+                arrow.classList.remove('hidden');
+            } else {
+                arrow.classList.add('hidden');
+            }
+        }
+        
+        // 最后一张隐藏右侧箭头按钮
+        var nextBtn = document.getElementById('nextBtn');
+        if (nextBtn) {
+            nextBtn.style.display = (index === totalSlides - 1) ? 'none' : 'flex';
+        }
+        
+        // 第6张显示地图导航提示
+        var mapHint = document.getElementById('mapNavHint');
+        var mapHintMobile = document.getElementById('mapNavHintMobile');
+        if (mapHint) {
+            mapHint.style.display = (index === 5) ? 'inline-block' : 'none';
+        }
+        if (mapHintMobile) {
+            mapHintMobile.style.display = (index === 5) ? 'inline-block' : 'none';
+        }
+
+        setTimeout(function() {
+            isAnimating = false;
+        }, 700);
+    }
+
+    function prevSlide() {
+        if (currentIndex > 0) goToSlide(currentIndex - 1);
+    }
+    function nextSlide() {
+        if (currentIndex < totalSlides - 1) goToSlide(currentIndex + 1);
+    }
+
+    // ===== 按钮事件 =====
+    prevBtn.addEventListener('click', prevSlide);
+    nextBtn.addEventListener('click', nextSlide);
+
+    // ===== 鼠标滚轮 =====
+    var wheelTimeout = null;
+    document.addEventListener('wheel', function(e) {
+        if (isAnimating) return;
+        if (e.target.closest('.top-bar') || e.target.closest('.bottom-area') || e.target.closest('.nav-btn')) return;
+
+        var delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+
+        if (wheelTimeout) return;
+        wheelTimeout = setTimeout(function() {
+            wheelTimeout = null;
+        }, 800);
+
+        if (delta > 15) {
+            nextSlide();
+        } else if (delta < -15) {
+            prevSlide();
+        }
+    }, { passive: true });
+
+    // ===== 鼠标拖拽 =====
+    var isDragging = false;
+    var startX = 0;
+    var dragOffset = 0;
+    var threshold = 80;
+
+    document.addEventListener('mousedown', function(e) {
+        if (isAnimating) return;
+        if (e.target.closest('.top-bar') || e.target.closest('.bottom-area') || e.target.closest('.nav-btn')) return;
+        isDragging = true;
+        startX = e.clientX;
+        track.style.transition = 'none';
+        e.preventDefault();
+    });
+
+    document.addEventListener('mousemove', function(e) {
+        if (!isDragging) return;
+        dragOffset = e.clientX - startX;
+        var baseOffset = -currentIndex * slidePercent;
+        var limitedOffset = Math.max(-(totalSlides - 1) * slidePercent, Math.min(0, baseOffset + (dragOffset / window.innerWidth) * 100));
+        track.style.transform = 'translateX(' + limitedOffset + '%)';
+    });
+
+    document.addEventListener('mouseup', function() {
+        if (!isDragging) return;
+        isDragging = false;
+        track.style.transition = 'transform 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+
+        if (dragOffset < -threshold) {
+            nextSlide();
+        } else if (dragOffset > threshold) {
+            prevSlide();
+        } else {
+            goToSlide(currentIndex);
+        }
+        dragOffset = 0;
+    });
+
+    // ===== 触屏拖拽 =====
+    document.addEventListener('touchstart', function(e) {
+        if (isAnimating) return;
+        if (e.target.closest('.top-bar') || e.target.closest('.bottom-area') || e.target.closest('.nav-btn')) return;
+        isDragging = true;
+        startX = e.touches[0].clientX;
+        track.style.transition = 'none';
+    }, { passive: true });
+
+    document.addEventListener('touchmove', function(e) {
+        if (!isDragging) return;
+        dragOffset = e.touches[0].clientX - startX;
+        var baseOffset = -currentIndex * slidePercent;
+        var limitedOffset = Math.max(-(totalSlides - 1) * slidePercent, Math.min(0, baseOffset + (dragOffset / window.innerWidth) * 100));
+        track.style.transform = 'translateX(' + limitedOffset + '%)';
+    }, { passive: true });
+
+    document.addEventListener('touchend', function() {
+        if (!isDragging) return;
+        isDragging = false;
+        track.style.transition = 'transform 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+
+        if (dragOffset < -threshold) {
+            nextSlide();
+        } else if (dragOffset > threshold) {
+            prevSlide();
+        } else {
+            goToSlide(currentIndex);
+        }
+        dragOffset = 0;
+    });
+
+    // ===== 键盘左右键 =====
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'ArrowLeft') {
+            prevSlide();
+        } else if (e.key === 'ArrowRight') {
+            nextSlide();
+        }
+    });
+
+    // ===== 初始化 =====
+    sun.style.transition = 'none';
+    carriage.style.transition = 'none';
+    movingMtn.style.transition = 'none';
+    updateSunAndCarriage(0);
+    void sun.offsetHeight;
+    sun.style.transition = '';
+    carriage.style.transition = '';
+    movingMtn.style.transition = '';
+    // 暴露 goToSlide 给全局，供导航栏 onclick 调用
+    window.goToSlide = goToSlide;
+
+    // ===== 读取URL参数，直接跳转到指定幻灯片 =====
+    var slideParam = new URLSearchParams(window.location.search).get('slide');
+    var targetIndex = slideParam ? (parseInt(slideParam, 10) - 1) : -1;
+    if (targetIndex >= 0 && targetIndex < totalSlides && targetIndex !== 0) {
+        // 取消过渡，瞬间跳转
+        track.style.transition = 'none';
+        sun.style.transition = 'none';
+        carriage.style.transition = 'none';
+        movingMtn.style.transition = 'none';
+        var offset = -targetIndex * slidePercent;
+        track.style.transform = 'translateX(' + offset + '%)';
+        currentIndex = targetIndex;
+        updateSunAndCarriage(targetIndex);
+        void track.offsetHeight;
+        track.style.transition = '';
+        sun.style.transition = '';
+        carriage.style.transition = '';
+        movingMtn.style.transition = '';
+    }
+
+    // 如果初始就是美食变化页（第6张），显示箭头和地图提示，隐藏右侧按钮
+    // 第6张隐藏返回总览按钮
+    var backBtn = document.querySelector('.back-to-overview');
+    if (backBtn) {
+        backBtn.style.display = (currentIndex === 5) ? 'none' : 'inline-flex';
+    }
+    var arrow = document.getElementById('summaryArrow');
+    if (arrow) {
+        if (currentIndex === 5) {
+            arrow.classList.remove('hidden');
+        } else {
+            arrow.classList.add('hidden');
+        }
+    }
+    var nextBtn = document.getElementById('nextBtn');
+    if (nextBtn) {
+        nextBtn.style.display = (currentIndex === totalSlides - 1) ? 'none' : 'flex';
+    }
+    var mapHint = document.getElementById('mapNavHint');
+    var mapHintMobile = document.getElementById('mapNavHintMobile');
+    if (mapHint) mapHint.style.display = (currentIndex === 5) ? 'inline-block' : 'none';
+    if (mapHintMobile) mapHintMobile.style.display = (currentIndex === 5) ? 'inline-block' : 'none';
+})();
+
+// ============================================================
+//  水墨互动效果：点击涟漪 + 毛笔拖尾
+// ============================================================
+(function() {
+    // ---- 创建全屏 Canvas（置于最顶层，不阻止鼠标事件） ----
+    var cvs = document.createElement('canvas');
+    cvs.id = 'inkCanvas';
+    cvs.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:99999;pointer-events:none;';
+    document.body.appendChild(cvs);
+    var ctx = cvs.getContext('2d');
+    var W, H;
+
+    function resize() {
+        W = cvs.width = window.innerWidth;
+        H = cvs.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    // ---- 青绿色彩 ----
+    var palette = [
+        [0, 188, 212],   // 青
+        [0, 150, 136],   // 青绿
+        [38, 198, 218],  // 亮青
+        [0, 172, 193],   // 中青
+        [76, 175, 80],   // 绿
+        [56, 142, 60],   // 深绿
+        [102, 187, 106], // 亮绿
+        [128, 203, 196], // 浅青绿
+        [129, 199, 132], // 浅绿
+    ];
+
+    function randColor() {
+        return palette[Math.floor(Math.random() * palette.length)];
+    }
+
+    // ==========================================================
+    //  1) 点击 → 水墨涟漪圆环
+    // ==========================================================
+    var rings = [];
+
+    function createInkRings(x, y) {
+        // 每个点击生成 3~5 个同心环，不同速度与粗细
+        var count = 3 + Math.floor(Math.random() * 3);
+        for (var i = 0; i < count; i++) {
+            var c = randColor();
+            rings.push({
+                x: x, y: y,
+                r: 0,
+                maxR: 40 + Math.random() * 80,   // 40~120px
+                opacity: 0.5 + Math.random() * 0.4,
+                rColor: c,
+                speed: 0.5 + Math.random() * 0.8, // 扩散速度
+                lw: 1.5 + Math.random() * 3.5,    // 线条粗细
+                delay: i * (50 + Math.random() * 80), // 错开出现
+                life: 0,
+                decay: 0.0015 + Math.random() * 0.002,
+                // 水墨的不规则感
+                wobble: 0.08 + Math.random() * 0.12,
+                phase: Math.random() * Math.PI * 2,
+            });
+        }
+    }
+
+    // ==========================================================
+    //  2) 鼠标移动 → 毛笔拖尾（涟漪感）
+    // ==========================================================
+    var trail = [];
+    var MAX_TRAIL = 15;
+
+    function addTrailPoint(x, y) {
+        var c = randColor();
+        trail.push({
+            x: x, y: y,
+            r: 0,
+            maxR: 10 + Math.random() * 18,   // 10~28px
+            opacity: 0.5 + Math.random() * 0.3,
+            color: c,
+            lw: 1.2 + Math.random() * 2.0,   // 线条粗细
+            life: 0,
+            speed: 0.5 + Math.random() * 0.8,
+            decay: 0.002 + Math.random() * 0.0025,
+            wobble: 0.06 + Math.random() * 0.10,
+            phase: Math.random() * Math.PI * 2,
+        });
+        if (trail.length > MAX_TRAIL) {
+            trail.shift();
+        }
+    }
+
+    // ---- 鼠标事件监听 ----
+    var lastMouse = { x: 0, y: 0 };
+    var mouseMoved = false;
+
+    document.addEventListener('mousedown', function(e) {
+        if (e.target.closest('.top-bar') || e.target.closest('.bottom-area') || e.target.closest('.nav-btn')) return;
+        createInkRings(e.clientX, e.clientY);
+    });
+
+    document.addEventListener('mousemove', function(e) {
+        var dx = e.clientX - lastMouse.x;
+        var dy = e.clientY - lastMouse.y;
+        var dist = Math.sqrt(dx * dx + dy * dy);
+        // 按距离插值，使笔画连续
+        if (dist > 12) {
+            var steps = Math.min(Math.floor(dist / 12), 4);
+            for (var i = 0; i <= steps; i++) {
+                var t = i / steps;
+                var px = lastMouse.x + dx * t;
+                var py = lastMouse.y + dy * t;
+                addTrailPoint(px, py);
+            }
+            lastMouse.x = e.clientX;
+            lastMouse.y = e.clientY;
+            mouseMoved = true;
+        }
+    });
+
+    // ---- 初始化鼠标位置 ----
+    document.addEventListener('mouseenter', function(e) {
+        lastMouse.x = e.clientX;
+        lastMouse.y = e.clientY;
+    });
+
+    // ==========================================================
+    //  3) 动画主循环
+    // ==========================================================
+    function animate() {
+        ctx.clearRect(0, 0, W, H);
+
+        // ---- 绘制涟漪圆环 ----
+        for (var i = rings.length - 1; i >= 0; i--) {
+            var ring = rings[i];
+
+            if (ring.life < ring.delay) {
+                ring.life += 16;
+                if (ring.life < ring.delay) continue;
+            }
+
+            // 加速扩散
+            ring.r += ring.speed;
+            var progress = ring.r / ring.maxR; // 0~1
+            var alpha = ring.opacity * (1 - progress * progress);
+            alpha = Math.max(0, alpha);
+
+            // 水墨不规则：用正弦扰动半径
+            var wobbleAmount = ring.wobble * ring.r;
+            var r1 = ring.r + wobbleAmount * Math.sin(ring.phase + progress * 4);
+            var r2 = ring.r + wobbleAmount * Math.sin(ring.phase + 2.3 + progress * 3.5);
+
+            if (alpha > 0.01 && ring.r < ring.maxR * 1.3) {
+                ctx.beginPath();
+                ctx.ellipse(ring.x, ring.y, r1, r2, 0, 0, Math.PI * 2);
+                ctx.strokeStyle = 'rgba(' + ring.rColor[0] + ',' + ring.rColor[1] + ',' + ring.rColor[2] + ',' + alpha + ')';
+                ctx.lineWidth = ring.lw * (1 - progress * 0.6);
+                ctx.stroke();
+
+                // 内层淡墨晕染
+                ctx.beginPath();
+                ctx.ellipse(ring.x, ring.y, r1 * 0.5, r2 * 0.5, 0, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(' + ring.rColor[0] + ',' + ring.rColor[1] + ',' + ring.rColor[2] + ',' + (alpha * 0.15) + ')';
+                ctx.fill();
+            }
+
+            // 消失条件
+            if (alpha <= 0.01 || ring.r > ring.maxR * 1.5) {
+                rings.splice(i, 1);
+            }
+        }
+
+        // ---- 绘制拖尾涟漪 ----
+        for (var i = trail.length - 1; i >= 0; i--) {
+            var p = trail[i];
+            p.r += p.speed;
+            if (p.r > p.maxR * 1.3) { trail.splice(i, 1); continue; }
+
+            var progress = p.r / p.maxR;
+            var alpha = p.opacity * (1 - progress * progress);
+            if (alpha < 0.01) { trail.splice(i, 1); continue; }
+
+            // 水墨不规则椭圆
+            var wobbleAmount = p.wobble * p.r;
+            var r1 = p.r + wobbleAmount * Math.sin(p.phase + progress * 4);
+            var r2 = p.r + wobbleAmount * Math.sin(p.phase + 2.3 + progress * 3.5);
+
+            ctx.beginPath();
+            ctx.ellipse(p.x, p.y, r1, r2, 0, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(' + p.color[0] + ',' + p.color[1] + ',' + p.color[2] + ',' + alpha + ')';
+            ctx.lineWidth = p.lw * (1 - progress * 0.5);
+            ctx.stroke();
+
+            // 内层淡墨
+            ctx.beginPath();
+            ctx.ellipse(p.x, p.y, r1 * 0.4, r2 * 0.4, 0, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(' + p.color[0] + ',' + p.color[1] + ',' + p.color[2] + ',' + (alpha * 0.12) + ')';
+            ctx.fill();
+        }
+
+        requestAnimationFrame(animate);
+    }
+
+    animate();
+})();
+</script>
+
+<!-- ===== 总结过渡弹窗 ===== -->
+<div class="summary-overlay" id="summaryModal">
+    <div class="summary-box">
+        <button class="summ-close-btn" id="summaryCloseBtn">✕</button>
+        <div class="summ-deco-top"></div>
+        <span class="summ-icon">🏮</span>
+        <h2>旅程回顾 · 美味启程</h2>
+        <div class="summ-subtitle">—— 从千年迁徙到舌尖相聚 ——</div>
+        <div class="summ-divider"><span>✦</span></div>
+        <p class="summ-text">
+            你已经了解了客家人五次大迁徙的历史脉络，见证了客家民系从形成到走向世界的壮阔历程，
+            也看到了客家饮食文化在闽西山区的<span class="highlight">奇妙演变</span>——
+            从北方面食到客家酿豆腐，从中原肉食到闽西腊味，千年饮食智慧在山水中生根发芽。
+        </p>
+        <p class="summ-text">
+            接下来，就让我们一起走进<span class="highlight">龙岩客家美食地图</span>，
+            去探索长汀、上杭、武平、永定、连城<span class="highlight">五个县</span>各自的特色风味，
+            开启属于你的客家美食品鉴之旅吧！
+        </p>
+        <div class="summ-deco-bottom"></div>
+        <div class="summ-map-preview" id="mapPreviewBtn" title="点击打开美食地图">
+            <img src="images/地图鸟瞰.png" alt="龙岩客家美食地图预览" />
+        </div>
+        <div class="summ-footer">—— 食在闽西，味在客家 ——</div>
+    </div>
+</div>
+
+<!-- ===== 了解更多弹窗 ===== -->
+<div class="modal-overlay" id="learnMoreModal">
+    <div class="modal-scroll-container">
+        <!-- 关闭按钮 -->
+        <button class="modal-close-btn" id="modalCloseBtn">✕</button>
+        <!-- 卷轴内容 -->
+        <div class="modal-scroll-inner">
+            <div class="scroll-wrapper">
+                <img src="images/卷轴.png" alt="卷轴" class="scroll-img" />
+                <div class="scroll-overlay">
+                    <div class="scroll-overlay-inner">
+                        <!-- 左侧：客家字图片 -->
+                        <div class="scroll-left">
+                            <img src="images/客家字.png" alt="客家" />
+                        </div>
+                        <!-- 分隔线 -->
+                        <div class="scroll-divider"></div>
+                        <!-- 右侧：文字介绍 -->
+                        <div class="scroll-right">
+                            <div class="title-tag">客家人名称来源</div>
+                            <p>
+                                第三次南迁时户籍有<span class="highlight">"主"</span><span class="highlight">"客"</span>之分，<br />
+                                移民入籍者编入<span class="highlight">"客籍"</span>，<br />
+                                <span class="highlight">"客家人"</span>的称谓自此正式形成并沿用至今，<br />
+                                客家民系就此定型。<br />
+                                <span class="highlight">"亻厓"</span>（客家话里是"我"的意思），<br />
+                                已经成为客家人的精神象征，<br />
+                                不少地方把客家话称为<span class="highlight">"亻厓"</span>话，<br />
+                                <span class="highlight">"亻厓"</span>也代表着客家人勤劳、能吃苦<span class="highlight">"肯挨"</span>的特点。
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    var modal = document.getElementById('learnMoreModal');
+    var openBtn = document.getElementById('openModalBtn');
+    var closeBtn = document.getElementById('modalCloseBtn');
+
+    if (!modal || !openBtn || !closeBtn) return;
+
+    var carouselEl = document.querySelector('.carousel-wrapper');
+
+    // 打开弹窗
+    openBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        document.body.style.overflow = 'hidden';
+        if (carouselEl) carouselEl.style.pointerEvents = 'none';
+        modal.classList.add('active');
+        // 重新触发卷轴动画
+        var scrollWrapper = modal.querySelector('.scroll-wrapper');
+        if (scrollWrapper) {
+            scrollWrapper.style.animation = 'none';
+            void scrollWrapper.offsetHeight;
+            scrollWrapper.style.animation = '';
+        }
+    });
+
+    // 关闭弹窗
+    function closeModal() {
+        modal.classList.remove('active');
+        if (carouselEl) carouselEl.style.pointerEvents = '';
+        document.body.style.overflow = '';
+    }
+
+    closeBtn.addEventListener('click', closeModal);
+
+    // 点击遮罩背景关闭
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            closeModal();
+        }
+    });
+
+    // ESC键关闭
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
+            closeModal();
+        }
+    });
+})();
+
+// ===== 总结过渡弹窗控制 =====
+(function() {
+    var summaryModal = document.getElementById('summaryModal');
+    var summaryCloseBtn = document.getElementById('summaryCloseBtn');
+    if (!summaryModal || !summaryCloseBtn) return;
+
+    var carouselEl = document.querySelector('.carousel-wrapper');
+
+    // 暴露为全局函数，供轮播模块调用
+    window.openSummary = function() {
+        document.body.style.overflow = 'hidden';
+        if (carouselEl) carouselEl.style.pointerEvents = 'none';
+        summaryModal.classList.add('active');
+        // 隐藏引导箭头
+        var arrow = document.getElementById('summaryArrow');
+        if (arrow) arrow.classList.add('hidden');
+        // 重新触发弹窗动画
+        var box = summaryModal.querySelector('.summary-box');
+        if (box) {
+            box.style.transition = 'none';
+            box.style.transform = 'scale(0.88) translateY(40px)';
+            void box.offsetHeight;
+            box.style.transition = '';
+            box.style.transform = '';
+        }
+    };
+
+    function closeSummary() {
+        summaryModal.classList.remove('active');
+        if (carouselEl) carouselEl.style.pointerEvents = '';
+        document.body.style.overflow = '';
+    }
+
+    summaryCloseBtn.addEventListener('click', closeSummary);
+
+    // 点击遮罩关闭
+    summaryModal.addEventListener('click', function(e) {
+        if (e.target === summaryModal) {
+            closeSummary();
+        }
+    });
+
+    // ESC键关闭
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && summaryModal.classList.contains('active')) {
+            closeSummary();
+        }
+    });
+
+    // 箭头点击打开总结
+    var summaryArrow = document.getElementById('summaryArrow');
+    if (summaryArrow) {
+        summaryArrow.addEventListener('click', function(e) {
+            e.preventDefault();
+            openSummary();
+        });
+    }
+
+    // 地图预览点击跳转到地图页面
+    var mapPreview = document.getElementById('mapPreviewBtn');
+    if (mapPreview) {
+        mapPreview.addEventListener('click', function(e) {
+            e.preventDefault();
+            window.open('地图页面.html', '_blank');
+        });
+    }
+})();
+
+</script>
+
+<!-- ===== 地图放大弹窗 ===== -->
+<div class="map-zoom-overlay" id="mapZoomOverlay">
+    <div class="map-zoom-content">
+        <button class="map-zoom-close" id="mapZoomClose">✕</button>
+        <img id="mapZoomImg" src="" alt="地图放大" />
+    </div>
+</div>
+
+<script>
+(function() {
+    var overlay = document.getElementById('mapZoomOverlay');
+    var zoomImg = document.getElementById('mapZoomImg');
+    var closeBtn = document.getElementById('mapZoomClose');
+    if (!overlay || !zoomImg || !closeBtn) return;
+
+    // 给所有地图图片绑定点击事件
+    var mapImgs = document.querySelectorAll('.slide .image-box .map-img');
+    mapImgs.forEach(function(img) {
+        img.addEventListener('click', function(e) {
+            e.stopPropagation();
+            zoomImg.src = this.src;
+            overlay.classList.add('active');
+        });
+    });
+
+    function closeMapZoom() {
+        overlay.classList.remove('active');
+    }
+
+    closeBtn.addEventListener('click', closeMapZoom);
+    overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) {
+            closeMapZoom();
+        }
+    });
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && overlay.classList.contains('active')) {
+            closeMapZoom();
+        }
+    });
+})();
+</script>
+
+<!-- ===== 汉堡菜单交互 JS ===== -->
+<script>
+(function() {
+    var hamburgerBtn = document.getElementById('hamburgerBtn');
+    var mobileNav = document.getElementById('mobileNav');
+    var mobileOverlay = document.getElementById('mobileOverlay');
+    if (!hamburgerBtn || !mobileNav || !mobileOverlay) return;
+
+    function openMobileMenu() {
+        hamburgerBtn.classList.add('active');
+        mobileNav.classList.add('open');
+        mobileOverlay.classList.add('open');
+    }
+
+    function closeMobileMenu() {
+        hamburgerBtn.classList.remove('active');
+        mobileNav.classList.remove('open');
+        mobileOverlay.classList.remove('open');
+    }
+
+    hamburgerBtn.addEventListener('click', function() {
+        if (hamburgerBtn.classList.contains('active')) {
+            closeMobileMenu();
+        } else {
+            openMobileMenu();
+        }
+    });
+
+    mobileOverlay.addEventListener('click', function() {
+        closeMobileMenu();
+    });
+
+    // 点击移动端导航链接后自动关闭菜单
+    var mobileLinks = mobileNav.querySelectorAll('a');
+    for (var ml = 0; ml < mobileLinks.length; ml++) {
+        mobileLinks[ml].addEventListener('click', function() {
+            closeMobileMenu();
+        });
+    }
+})();
+</script>
+
+</body>
+</html>

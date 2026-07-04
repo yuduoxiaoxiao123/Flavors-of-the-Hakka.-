@@ -1,0 +1,377 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>客家人名称来源 — 食在闽西，味在客家</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=ZCOOL+XiaoWei&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            font-family: "Ma Shan Zheng", "ZCOOL XiaoWei", "STXingkai", "霞鹜臻楷 GB 常规", "KaiTi", "楷体", serif;
+            background: #1a1410;
+        }
+
+        /* ===== 牛皮纸背景 ===== */
+        .bg-kraft {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            background: url('images/牛皮纸背景.jpg') center/cover no-repeat;
+        }
+
+        /* ===== 顶部栏（仅返回按钮） ===== */
+        .top-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 30;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 20px 50px;
+            pointer-events: none;
+        }
+        .top-bar > * { pointer-events: auto; }
+
+        .top-bar-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* ===== 返回按钮（与导航栏同风格） ===== */
+        .back-btn {
+            display: inline-block;
+            padding: 10px 22px;
+            font-size: 18px;
+            font-family: "Ma Shan Zheng", "ZCOOL XiaoWei", "STXingkai", "霞鹜臻楷 GB 常规", "KaiTi", serif;
+            color: #ffffff;
+            text-decoration: none;
+            letter-spacing: 4px;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            position: relative;
+            text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+            background: rgba(40, 28, 18, 0.55);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(180, 150, 110, 0.35);
+            box-shadow: 0 2px 16px rgba(0, 0, 0, 0.15), inset 0 0 20px rgba(180, 150, 110, 0.05);
+            cursor: pointer;
+        }
+        .back-btn::after {
+            content: "";
+            position: absolute;
+            bottom: 4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 2px;
+            background: #e8c87a;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 8px rgba(232, 200, 122, 0.4);
+        }
+        .back-btn:hover::after { width: 60%; }
+        .back-btn:hover {
+            color: #fff6e0;
+            background: rgba(200, 160, 80, 0.25);
+            text-shadow: 0 0 16px rgba(232, 200, 122, 0.5);
+        }
+
+        /* ===== 页面整体居中容器 ===== */
+        .page-wrapper {
+            position: relative;
+            z-index: 10;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding-top: 60px;
+        }
+
+        /* ===== 卷轴容器 ===== */
+        .scroll-wrapper {
+            position: relative;
+            width: min(1500px, 92vw);
+            max-width: 1500px;
+            opacity: 0;
+            animation: fadeInScale 1.2s 0.3s forwards;
+        }
+
+        /* ===== 卷轴图片本身 ===== */
+        .scroll-img {
+            display: block;
+            width: 100%;
+            height: auto;
+            pointer-events: none;
+            user-select: none;
+        }
+
+        /* ===== 卷轴上的内容（绝对定位在卷轴图片之上） ===== */
+        .scroll-overlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            padding: 0;
+        }
+
+        /* ===== 卷轴内左右分栏，留出卷轴卷边的空间 ===== */
+        .scroll-overlay-inner {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            width: 100%;
+            height: 100%;
+            padding: 11% 9%;
+        }
+
+        /* ===== 左侧：客家字图片区 ===== */
+        .scroll-left {
+            flex: 0 0 42%;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding: 15px 20px 15px 10px;
+        }
+        .scroll-left img {
+            max-width: 60%;
+            max-height: 65%;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            display: block;
+            filter: drop-shadow(0 4px 15px rgba(0, 0, 0, 0.15));
+            transition: transform 0.5s ease;
+            margin-right: 12px;
+        }
+        .scroll-left img:hover {
+            transform: scale(1.03);
+        }
+
+        /* ===== 右侧竖线装饰分隔 ===== */
+        .scroll-divider {
+            flex: 0 0 2px;
+            height: 65%;
+            background: linear-gradient(180deg,
+                transparent 0%,
+                rgba(139, 105, 20, 0.25) 20%,
+                rgba(139, 105, 20, 0.35) 50%,
+                rgba(139, 105, 20, 0.25) 80%,
+                transparent 100%);
+            border-radius: 1px;
+        }
+
+        /* ===== 右侧：文字介绍区 ===== */
+        .scroll-right {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 20px 15px 20px 30px;
+        }
+
+        .scroll-right .title-tag {
+            font-size: clamp(20px, 2vw, 30px);
+            color: #5A3E08;
+            letter-spacing: 6px;
+            margin-bottom: 14px;
+            position: relative;
+            padding-bottom: 8px;
+            font-weight: bold;
+        }
+        .scroll-right .title-tag::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 50px;
+            height: 2px;
+            background: linear-gradient(90deg, #A67B2B, transparent);
+        }
+
+        .scroll-right p {
+            font-size: clamp(15px, 1.35vw, 21px);
+            line-height: 2;
+            color: #3a2a15;
+            text-indent: 0;
+            letter-spacing: 1px;
+            position: relative;
+        }
+        .scroll-right p + p {
+            margin-top: 8px;
+        }
+
+        .scroll-right p .highlight {
+            color: #8B4513;
+            font-weight: bold;
+        }
+
+        /* ===== 动画 ===== */
+        @keyframes fadeInScale {
+            from {
+                opacity: 0;
+                transform: scale(0.92) translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        /* ===== 响应式 ===== */
+        @media (max-width: 1000px) {
+            .scroll-overlay-inner {
+                padding: 5% 5%;
+            }
+            .scroll-right .title-tag {
+                font-size: 16px;
+                margin-bottom: 8px;
+            }
+            .scroll-right p {
+                font-size: 12px;
+                line-height: 1.6;
+            }
+            .scroll-right p + p {
+                margin-top: 4px;
+            }
+            .scroll-left {
+                padding: 8px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .scroll-overlay-inner {
+                flex-direction: column;
+                padding: 8% 6%;
+            }
+            .scroll-left {
+                flex: none;
+                width: 55%;
+                max-height: 40%;
+                padding: 5px 0;
+            }
+            .scroll-divider {
+                flex: none;
+                width: 50%;
+                height: 2px;
+                background: linear-gradient(90deg,
+                    transparent 0%,
+                    rgba(139, 105, 20, 0.25) 20%,
+                    rgba(139, 105, 20, 0.35) 50%,
+                    rgba(139, 105, 20, 0.25) 80%,
+                    transparent 100%);
+                margin: 4px 0;
+            }
+            .scroll-right {
+                padding: 4px 8px;
+            }
+            .scroll-right .title-tag {
+                font-size: 14px;
+                letter-spacing: 3px;
+                margin-bottom: 4px;
+            }
+            .scroll-right p {
+                font-size: 11px;
+                line-height: 1.5;
+                text-indent: 1.5em;
+            }
+            .scroll-right p + p {
+                margin-top: 2px;
+            }
+            .top-bar {
+                padding: 10px 12px;
+            }
+            .back-btn {
+                padding: 6px 10px;
+                font-size: 13px;
+                letter-spacing: 2px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .scroll-right p {
+                font-size: 9px;
+                line-height: 1.4;
+            }
+            .scroll-right .title-tag {
+                font-size: 11px;
+            }
+            .scroll-left {
+                width: 45%;
+            }
+            .back-btn {
+                padding: 4px 8px;
+                font-size: 11px;
+                letter-spacing: 1px;
+            }
+            .top-bar {
+                padding: 6px 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== 牛皮纸背景 ===== -->
+    <div class="bg-kraft"></div>
+
+    <!-- ===== 顶部栏（仅返回按钮） ===== -->
+    <div class="top-bar">
+        <div class="top-bar-left">
+            <a href="时间长廊6.html" class="back-btn">← 返回</a>
+        </div>
+    </div>
+
+    <!-- ===== 卷轴内容 ===== -->
+    <div class="page-wrapper">
+        <div class="scroll-wrapper">
+            <!-- 卷轴底图 -->
+            <img src="images/卷轴.png" alt="卷轴" class="scroll-img" />
+
+            <!-- 卷轴上的叠加内容 -->
+            <div class="scroll-overlay">
+                <div class="scroll-overlay-inner">
+                    <!-- 左侧：客家字图片 -->
+                    <div class="scroll-left">
+                        <img src="images/客家字.png" alt="客家" />
+                    </div>
+
+                    <!-- 分隔线 -->
+                    <div class="scroll-divider"></div>
+
+                    <!-- 右侧：文字介绍 -->
+                    <div class="scroll-right">
+                        <div class="title-tag">客家人名称来源</div>
+                        <p>
+                            第三次南迁时户籍有<span class="highlight">"主"</span><span class="highlight">"客"</span>之分，<br />
+                            移民入籍者编入<span class="highlight">"客籍"</span>，<br />
+                            <span class="highlight">"客家人"</span>的称谓自此正式形成并沿用至今，<br />
+                            客家民系就此定型。<br />
+                            <span class="highlight">"亻厓"</span>（客家话里是"我"的意思），<br />
+                            已经成为客家人的精神象征，<br />
+                            不少地方把客家话称为<span class=\"highlight\">"亻厓"</span>话，<br />
+                            <span class="highlight">"亻厓"</span>也代表着客家人勤劳<span class="highlight"></span>的特点。
+                        </p>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

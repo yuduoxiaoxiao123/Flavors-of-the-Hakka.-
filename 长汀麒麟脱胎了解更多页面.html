@@ -1,0 +1,663 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>长汀麒麟脱胎 — 食在闽西，味在客家</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=ZCOOL+XiaoWei&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 100vw;
+            height: 100vh;
+            overflow-x: hidden;
+            overflow-y: auto;
+            font-family: "ZCOOL XiaoWei", "Noto Serif SC", "KaiTi", serif;
+            background: #1a1410;
+        }
+
+        /* ===== 背景 ===== */
+        .bg-kraft {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            background: url('images/长汀麒麟脱胎/长汀麒麟脱胎弹窗背景.png') center/cover no-repeat;
+        }
+
+        /* ===== 半透明遮罩 ===== */
+        .overlay-mask {
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+            background: rgba(255, 255, 255, 0.06);
+            pointer-events: none;
+        }
+
+        /* ===== 顶部栏 ===== */
+        .top-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 30;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 20px 50px;
+            pointer-events: none;
+        }
+        .top-bar > * { pointer-events: auto; }
+
+        .back-btn {
+            display: inline-block;
+            padding: 10px 22px;
+            font-size: 18px;
+            font-family: "Ma Shan Zheng", "ZCOOL XiaoWei", "STXingkai", "霞鹜臻楷 GB 常规", "KaiTi", serif;
+            color: #ffffff;
+            text-decoration: none;
+            letter-spacing: 4px;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            position: relative;
+            text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+            background: rgba(40, 28, 18, 0.55);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(180, 150, 110, 0.35);
+            box-shadow: 0 2px 16px rgba(0, 0, 0, 0.15), inset 0 0 20px rgba(180, 150, 110, 0.05);
+            cursor: pointer;
+        }
+        .back-btn::after {
+            content: "";
+            position: absolute;
+            bottom: 4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 2px;
+            background: #e8c87a;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 8px rgba(232, 200, 122, 0.4);
+        }
+        .back-btn:hover::after { width: 60%; }
+        .back-btn:hover {
+            color: #fff6e0;
+            background: rgba(200, 160, 80, 0.25);
+            text-shadow: 0 0 16px rgba(232, 200, 122, 0.5);
+        }
+
+        /* ===== 页面容器 ===== */
+        .page-wrapper {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            min-height: 100vh;
+            padding: 80px 5% 60px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        /* ===== 淡入动画 ===== */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ===== 主内容卡片（透明） ===== */
+        .main-card {
+            width: 100%;
+            max-width: min(1200px, calc(100vw - 680px));
+            background: transparent;
+            backdrop-filter: none;
+            border-radius: 24px;
+            border: none;
+            box-shadow: none;
+            padding: 40px 50px 40px 40px;
+        }
+
+        /* ===== 左侧固定容器（制作工艺） ===== */
+        .side-images {
+            position: fixed;
+            left: 5%;
+            top: 100px;
+            width: min(45vw, 620px);
+            max-width: 620px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            z-index: 20;
+            pointer-events: none;
+            animation: fadeInLeft 1s 0.3s forwards;
+            opacity: 0;
+        }
+        .side-origin-card {
+            background: rgba(255, 248, 235, 0.6);
+            border-radius: 16px;
+            border: 1px solid rgba(200, 170, 130, 0.2);
+            padding: 16px 20px;
+            backdrop-filter: blur(6px);
+        }
+        .side-origin-card .origin-text {
+            font-size: clamp(12px, 0.9vw, 14px);
+            line-height: 1.8;
+            color: #4a3820;
+            letter-spacing: 0.5px;
+            text-indent: 2em;
+        }
+        .side-origin-card .section-header {
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+        }
+        .side-origin-card .section-title-img {
+            height: 32px;
+        }
+        @keyframes fadeInLeft {
+            from { opacity: 0; transform: translateX(-30px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+
+        /* --- 左侧：制作工艺 compact 版 --- */
+        .side-craft-card {
+            background: rgba(255, 248, 235, 0.6);
+            border-radius: 20px;
+            border: 1px solid rgba(200, 170, 130, 0.2);
+            padding: 20px 26px;
+            backdrop-filter: blur(8px);
+        }
+        .side-craft-card .section-header {
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+        }
+        .side-craft-card .section-title-img {
+            height: 72px;
+        }
+        .side-craft-card .step-list {
+            gap: 14px;
+        }
+        .side-craft-card .step-item {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        .side-craft-card .step-label {
+            font-size: clamp(16px, 1.3vw, 20px);
+            font-family: "Ma Shan Zheng", serif;
+        }
+        .side-craft-card .step-desc {
+            font-size: clamp(14px, 1.05vw, 17px);
+            line-height: 1.7;
+        }
+        .side-craft-card .step-img {
+            width: auto;
+            height: 55px;
+            flex-shrink: 0;
+            border-radius: 10px;
+            object-fit: contain;
+            display: block;
+            border: 2px solid rgba(139, 105, 20, 0.15);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        /* ===== 右上角固定（美食图 + 标题并排） ===== */
+        .top-right-group {
+            position: fixed;
+            right: 3%;
+            top: 50px;
+            display: flex;
+            flex-direction: row;
+            align-items: flex-start;
+            gap: 30px;
+            z-index: 25;
+            animation: fadeInRight 1s 0.3s forwards;
+            opacity: 0;
+        }
+        .top-right-group .food-wrap {
+            position: relative;
+            width: 38vw;
+            max-width: 480px;
+            flex-shrink: 0;
+            margin-top: 30px;
+        }
+        .top-right-group .food-wrap .side-food-img {
+            width: 100%;
+            height: auto;
+            display: block;
+            border-radius: 16px;
+            position: relative;
+            z-index: 2;
+        }
+        .top-right-group .title-corner {
+            width: 14vw;
+            max-width: 120px;
+            height: auto;
+            display: block;
+            flex-shrink: 0;
+        }
+
+        /* ===== 历史起源（右上角下方固定） ===== */
+        .origin-right {
+            position: fixed;
+            right: 3%;
+            top: 430px;
+            width: calc(52vw + 30px);
+            max-width: 630px;
+            z-index: 24;
+            animation: fadeInRight 1s 0.5s forwards;
+            opacity: 0;
+        }
+        .origin-right .side-origin-card {
+            pointer-events: auto;
+            padding: 22px 28px;
+        }
+        .origin-right .side-origin-card .section-title-img {
+            height: 72px;
+        }
+        .origin-right .origin-text {
+            font-size: clamp(14px, 1.1vw, 18px);
+            line-height: 2;
+        }
+        @keyframes fadeInRight {
+            from { opacity: 0; transform: translateX(30px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+
+        /* ===== 热气效果（蒸汽动画） ===== */
+        .steam-container {
+            position: absolute;
+            inset: 0;
+            z-index: 3;
+            pointer-events: none;
+            overflow: hidden;
+            border-radius: 12px;
+        }
+        .steam {
+            position: absolute;
+            bottom: 15%;
+            left: 0%;
+            width: 100%;
+            height: 70%;
+            background: radial-gradient(ellipse at 30% 100%,
+                rgba(255, 255, 255, 0.50) 0%,
+                rgba(255, 255, 255, 0.25) 25%,
+                transparent 65%);
+            filter: blur(16px);
+            animation: steamRise 3.5s ease-in-out infinite;
+        }
+        .steam:nth-child(2) {
+            left: 10%;
+            width: 80%;
+            height: 65%;
+            animation-delay: 0.8s;
+            background: radial-gradient(ellipse at 50% 100%,
+                rgba(255, 255, 255, 0.40) 0%,
+                rgba(255, 255, 255, 0.20) 20%,
+                transparent 55%);
+            filter: blur(14px);
+        }
+        .steam:nth-child(3) {
+            left: 40%;
+            width: 60%;
+            height: 60%;
+            animation-delay: 1.6s;
+            background: radial-gradient(ellipse at 60% 100%,
+                rgba(255, 255, 255, 0.45) 0%,
+                rgba(255, 255, 255, 0.22) 22%,
+                transparent 60%);
+            filter: blur(15px);
+        }
+        .steam:nth-child(4) {
+            left: -10%;
+            width: 70%;
+            height: 50%;
+            animation-delay: 2.4s;
+            background: radial-gradient(ellipse at 40% 100%,
+                rgba(255, 255, 255, 0.35) 0%,
+                rgba(255, 255, 255, 0.15) 18%,
+                transparent 50%);
+            filter: blur(13px);
+        }
+        .steam:nth-child(5) {
+            left: 50%;
+            width: 55%;
+            height: 55%;
+            animation-delay: 0.4s;
+            background: radial-gradient(ellipse at 70% 100%,
+                rgba(255, 255, 255, 0.38) 0%,
+                rgba(255, 255, 255, 0.18) 20%,
+                transparent 55%);
+            filter: blur(14px);
+        }
+        @keyframes steamRise {
+            0%   { transform: translateY(0) scaleX(1) rotate(0deg); opacity: 0.5; }
+            30%  { transform: translateY(-15px) scaleX(1.15) rotate(2deg); opacity: 0.8; }
+            60%  { transform: translateY(-35px) scaleX(1.3) rotate(-1deg); opacity: 0.6; }
+            100% { transform: translateY(-70px) scaleX(0.9) rotate(1deg); opacity: 0; }
+        }
+
+        /* ===== 内容网格布局 ===== */
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+
+        /* ===== 每个栏目卡片 ===== */
+        .section-card {
+            background: rgba(255, 248, 235, 0.6);
+            border-radius: 16px;
+            border: 1px solid rgba(200, 170, 130, 0.2);
+            padding: 30px;
+            animation: fadeInUp 0.6s 0.4s forwards;
+            opacity: 0;
+        }
+        .section-card:nth-child(2) {
+            animation-delay: 0.5s;
+        }
+
+        /* --- 栏目标题 --- */
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+            padding-bottom: 14px;
+            border-bottom: 2px solid rgba(139, 105, 20, 0.12);
+        }
+        .section-title-img {
+            height: 48px;
+            width: auto;
+            display: block;
+        }
+
+        /* --- 制作工艺：步骤列表 --- */
+        .step-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .step-item {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 12px;
+        }
+        .step-img {
+            width: auto;
+            height: 80px;
+            flex-shrink: 0;
+            border-radius: 12px;
+            object-fit: contain;
+            display: block;
+            border: 2px solid rgba(139, 105, 20, 0.15);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+        .step-content {
+            width: 100%;
+        }
+        .step-label {
+            font-family: "Ma Shan Zheng", serif;
+            font-size: clamp(14px, 1.2vw, 18px);
+            font-weight: bold;
+            color: #5A3E08;
+            margin-bottom: 4px;
+            letter-spacing: 2px;
+        }
+        .step-desc {
+            font-size: clamp(13px, 1.05vw, 16px);
+            line-height: 1.8;
+            color: #4a3820;
+            letter-spacing: 0.5px;
+        }
+
+        /* --- 历史起源 --- */
+        .origin-text {
+            font-size: clamp(14px, 1.15vw, 18px);
+            line-height: 2;
+            color: #4a3820;
+            letter-spacing: 1px;
+            text-indent: 2em;
+        }
+        .origin-text .highlight {
+            color: #8B4513;
+            font-weight: bold;
+        }
+
+        /* ===== 响应式 ===== */
+        @media (max-width: 1000px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+            .side-images {
+                left: 2%;
+                width: 44vw;
+                max-width: 440px;
+                gap: 14px;
+            }
+            .side-origin-card {
+                padding: 12px 14px;
+            }
+            .side-craft-card {
+                padding: 20px;
+            }
+            .side-craft-card .section-title-img { height: 48px; }
+            .side-craft-card .step-img {
+                height: 45px;
+            }
+            .side-craft-card .step-label { font-size: 15px; }
+            .side-craft-card .step-desc { font-size: 14px; }
+            .main-card {
+                padding: 30px 30px 30px 20px;
+                max-width: min(1200px, calc(100vw - 460px));
+            }
+            .top-right-group {
+                right: 1%;
+                gap: 16px;
+            }
+            .top-right-group .food-wrap {
+                width: 28vw;
+                max-width: 300px;
+            }
+            .top-right-group .title-corner {
+                width: 12vw;
+                max-width: 100px;
+            }
+            .origin-right {
+                right: 1%;
+                width: calc(40vw + 16px);
+                max-width: 416px;
+                top: 340px;
+            }
+            .origin-right .side-origin-card {
+                padding: 14px 18px;
+            }
+            .origin-right .side-origin-card .section-title-img { height: 48px; }
+            .origin-right .origin-text { font-size: 13px; line-height: 1.8; }
+        }
+
+        @media (max-width: 768px) {
+            .top-bar {
+                padding: 12px 16px;
+            }
+            .back-btn {
+                padding: 6px 12px;
+                font-size: 14px;
+                letter-spacing: 2px;
+            }
+            .main-card {
+                padding: 20px;
+                max-width: 100%;
+            }
+            .side-images {
+                display: none;
+            }
+            .top-right-group {
+                display: none;
+            }
+            .origin-right {
+                display: none;
+            }
+            .section-card {
+                padding: 20px;
+            }
+            .step-img {
+                width: auto;
+                height: 60px;
+            }
+            .section-title-img {
+                height: 36px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .back-btn {
+                padding: 4px 8px;
+                font-size: 12px;
+                letter-spacing: 1px;
+            }
+            .main-card {
+                padding: 14px;
+                border-radius: 16px;
+            }
+            .step-img {
+                width: auto;
+                height: 50px;
+            }
+            .section-title-img {
+                height: 28px;
+            }
+            .step-desc {
+                font-size: 12px;
+            }
+            .origin-text {
+                font-size: 13px;
+                line-height: 1.8;
+            }
+        }
+
+        /* ===== 滚动条美化 ===== */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(26, 20, 16, 0.3);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(180, 150, 110, 0.4);
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== 背景 ===== -->
+    <div class="bg-kraft"></div>
+    <div class="overlay-mask"></div>
+
+    <!-- ===== 顶部栏 ===== -->
+    <div class="top-bar">
+        <a href="长汀县盲盒打开.html" class="back-btn">← 返回</a>
+    </div>
+
+    <!-- ===== 页面主体 ===== -->
+    <div class="page-wrapper">
+
+        <!-- ===== 左侧固定（制作工艺） ===== -->
+        <div class="side-images">
+            <!-- 制作工艺 -->
+            <div class="side-craft-card">
+                <div class="section-header">
+                    <img src="images/长汀麒麟脱胎/制作工艺.png" alt="制作工艺" class="section-title-img" />
+                </div>
+                <div class="step-list">
+                    <div class="step-item">
+                        <div class="step-content">
+                            <div class="step-label">① 备料与初加工</div>
+                            <div class="step-desc">宰杀乳狗、洗净猪肚；将狗肉加香料、米酒翻炒。</div>
+                        </div>
+                        <img src="images/长汀麒麟脱胎/备料与初加工.png" alt="备料与初加工" class="step-img" />
+                    </div>
+                    <div class="step-item">
+                        <div class="step-content">
+                            <div class="step-label">② 填充与缝合</div>
+                            <div class="step-desc">将炒好的狗肉填入猪肚内，用线将猪肚所有出口缝好。</div>
+                        </div>
+                        <img src="images/长汀麒麟脱胎/填充与缝合.png" alt="填充与缝合" class="step-img" />
+                    </div>
+                    <div class="step-item">
+                        <div class="step-content">
+                            <div class="step-label">③ 文火蒸制</div>
+                            <div class="step-desc">将缝好的猪肚放入盆中，加入鸡汤、胡椒粉和精盐，加盖，旺火蒸2小时。</div>
+                        </div>
+                        <img src="images/长汀麒麟脱胎/文火蒸制.png" alt="文火蒸制" class="step-img" />
+                    </div>
+                    <div class="step-item">
+                        <div class="step-content">
+                            <div class="step-label">④ 拆线上席</div>
+                            <div class="step-desc">取出后拆去缝线，摆放在长盆内，附刀上桌。食用时切开猪肚，即成"麒麟脱胎"。</div>
+                        </div>
+                        <img src="images/长汀麒麟脱胎/开胚成菜.png" alt="拆线上席" class="step-img" />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== 右上角固定：美食图 + 标题文字 ===== -->
+        <div class="top-right-group">
+            <div class="food-wrap">
+                <img src="images/长汀麒麟脱胎/长汀麒麟脱胎.png" alt="长汀麒麟脱胎" class="side-food-img" />
+                <div class="steam-container">
+                    <div class="steam"></div>
+                    <div class="steam"></div>
+                    <div class="steam"></div>
+                    <div class="steam"></div>
+                    <div class="steam"></div>
+                </div>
+            </div>
+            <img src="images/长汀麒麟脱胎/长汀麒麟脱胎标题.png" alt="长汀麒麟脱胎" class="title-corner" />
+        </div>
+
+        <!-- ===== 历史起源（右上角下方） ===== -->
+        <div class="origin-right">
+            <div class="side-origin-card">
+                <div class="section-header">
+                    <img src="images/长汀麒麟脱胎/历史起源.png" alt="历史起源" class="section-title-img" />
+                </div>
+                <p class="origin-text">
+                    据说，清代的长汀府司前街是富人聚居区，其中有个姓郑的富人，估计是求子心切又有点精力不支，于是妻妾中有擅长烹调者，常在猪肚内逐层填入小狗和乌鸡、白鸽、麻雀、野山参等清蒸服用。居然见效，子孙满堂。<span class="highlight">"麒麟脱胎"</span>作为一种饮食疗法，便在富人中流传开了。这道菜的制作技艺也得到认可，曾在1986年的福建省闽菜评比中获得<span class="highlight">"优质菜点"</span>称号，并在2018年被列入长汀县级非物质文化遗产代表性项目名录。
+                </p>
+            </div>
+        </div>
+
+        <div class="main-card">
+
+            <!-- ===== 底部占位 ===== -->
+
+        </div>
+    </div>
+
+    <script>
+    (function() {
+        if (window.location.search.indexOf('embed=true') !== -1) {
+            var btns = document.querySelectorAll('.back-btn');
+            for (var i = 0; i < btns.length; i++) btns[i].style.display = 'none';
+        } else {
+            var r = document.referrer || '';
+            if (r.indexOf('美食图鉴.html') !== -1) {
+                var btns = document.querySelectorAll('.back-btn');
+                for (var i = 0; i < btns.length; i++) btns[i].href = '美食图鉴.html';
+            }
+        }
+    })();
+    </script>
+
+</body>
+</html>
